@@ -36,7 +36,7 @@ class Bot(GameObject):
         self.photo_count = 0#зеленый в режиме отбражения типа питания
         self.minerals_count = 0#синий в режиме отбражения типа питания
         self.bots = bots#количество ботов(для отображения на экране)
-        self.diff = [[25, 50, 50, 10] for x in range(8)]#0 - приход минералов, 1 - переработка минералов, 2 - фотосинтез, 3 - атака
+        self.diff = [0, 0, 0, 0, 0]#приход минералов, переработка минералов, атака, перемещение, Фотосинтез
         self.photo_list = [#массивы с приходом фотосинтеза и минералов в зависимости от уровня
             10,
             8,
@@ -142,16 +142,10 @@ class Bot(GameObject):
                             rand(0, 255)
                         )
                     new_brain = copy.deepcopy(self.brain)
-                    new_diff = copy.deepcopy(self.diff)
                     if rand(0, 3) == 0:#шанс мутации 1/4(коэффициент 1/256)
-                        t = rand(0, 3)
                         for i in range(8):
                             new_brain[i][rand(0, 63)] = rand(0, 63)
-                            for g in range(4):
-                                if g == t:
-                                    new_diff[i][g] = border(new_diff[i][g] + rand(1, 5), 100)
-                                else:
-                                    new_diff[i][g] = border(new_diff[i][g] - rand(1, 5), 100)
+
                     new_bot = Bot(#создать нового бота
                         pos2,#позиция
                         new_color,#цвет
@@ -164,7 +158,6 @@ class Bot(GameObject):
                         brain=new_brain#мозг
                     )
                     #минералы и энергия распределяются равномерно между потомком и предком
-                    new_bot.diff = new_diff
                     new_bot.minerals = int(self.minerals / 2)
                     self.minerals = int(self.minerals / 2)
                     self.energy = int(self.energy / 2)
@@ -188,7 +181,11 @@ class Bot(GameObject):
                     else:
                         victim = None
                 if victim != None:#если есть жертва
-                    self.energy += int(victim.energy * (self.diff[self.type][3] / 100))#отнять у жертвы энергию
+                    if self.diff[3] == 0:
+                        self.diff[3] = 1
+                        self.energy += victim.energy#отнять у жертвы энергию
+                    else:
+                        self.energy += int(victim.energy * (self.diff[3] / 100))#отнять у жертвы энергию
                     victim.killed = 1#убить жертву
                     victim.kill()
                     self.attack_count += 1#бот краснеет
@@ -242,7 +239,11 @@ class Bot(GameObject):
             elif command == 25:#фотосинтез
                 sector = self.bot_in_sector()
                 if sector <= 5:
-                    self.energy += int(self.photo_list[sector] * (self.diff[self.type][2] / 100))
+                    if self.diff[2] == 0:
+                        self.diff[2] = 1
+                        self.energy += self.photo_list[sector]
+                    else:
+                        self.energy += int(self.photo_list[sector] * (self.diff[2] / sum(self.diff)))
                     self.photo_count += 1
                 self.next_command()
                 break
@@ -253,7 +254,12 @@ class Bot(GameObject):
                 sensor = self.sensor(self.world, self.rotate)
                 if sensor == 2:
                     self.energy -= 1
-                self.move(self.world)
+                if self.diff[4] == 0:
+                    self.diff[4] = 1
+                    self.move(self.world)
+                else:
+                    if rand(0, 1000) < int((self.diff[4] / sum(self.diff)) * 1000):
+                        self.move(self.world)
                 self.rotate = stc
                 self.next_command(2)
                 break
@@ -261,7 +267,12 @@ class Bot(GameObject):
                 sensor = self.sensor(self.world, self.rotate)
                 if sensor == 2:
                     self.energy -= 1
-                self.move(self.world)
+                if self.diff[4] == 0:
+                    self.diff[4] = 1
+                    self.move(self.world)
+                else:
+                    if rand(0, 1000) < int((self.diff[4] / sum(self.diff)) * 1000):
+                        self.move(self.world)
                 self.next_command()
                 break
             #--------------------------------------------------------
@@ -312,7 +323,11 @@ class Bot(GameObject):
             elif command == 38:#преобразовать минералы в энергию
                 if self.minerals != 0:
                     self.minerals_count += 1
-                self.energy += int(self.minerals * (self.diff[self.type][1] / 100))
+                    if self.diff[1] == 0:
+                        self.energy += self.minerals
+                        self.diff[1] = 1
+                    else:
+                        self.energy += int(self.minerals * (self.diff[1] / sum(self.diff)))
                 self.minerals = 0
                 self.next_command()
                 break
@@ -382,8 +397,13 @@ class Bot(GameObject):
             self.age -= 1#постареть
             self.energy -= 1#уменьшить количество энергии
             sector = self.bot_in_sector()#для минералов
+            #print(self.diff)
             if sector <= 7 and sector >= 5:#приход минералов
-                self.minerals += int(self.minerals_list[sector - 5] * (self.diff[self.type][0] / 100))
+                if self.diff[0] == 0:
+                    self.diff[0] = 1
+                    self.minerals += self.minerals_list[sector - 5]
+                else:
+                    self.minerals += int(self.minerals_list[sector - 5] * (self.diff[0] / sum(self.diff)))
             if draw_type != self.last_draw_type:#сменить режим отрисовки
                 self.last_draw_type[0] = draw_type
                 self.change_image(draw_type)
