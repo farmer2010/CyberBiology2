@@ -44,8 +44,8 @@ public class World extends JPanel{
 	int mouse = 0;
 	int W = 1920;
 	int H = 1080;
-	JButton stop_button = new JButton("Stop");
-	boolean pause = false;
+	JButton stop_button = new JButton("Start");
+	boolean pause = true;
 	boolean render = true;
 	Bot selection = null;
 	int[] botpos = new int [2];
@@ -56,6 +56,18 @@ public class World extends JPanel{
 	JButton record_button = new JButton("Record: off");
 	boolean sh_brain = false;
 	boolean rec = false;
+	int file_index = 0;
+	int[] world_scale = {162, 108};
+	int[][] movelist = {
+			{0, -1},
+			{1, -1},
+			{1, 0},
+			{1, 1},
+			{0, 1},
+			{-1, 1},
+			{-1, 0},
+			{-1, -1}
+		};
 	public World() {
 		setLayout(null);
 		timer = new Timer(delay, new BotListener());
@@ -143,6 +155,11 @@ public class World extends JPanel{
         kill_button.setBounds(W - 170, 590, 125, 20);
         add(kill_button);
 		//newPopulation();
+        for (int x = 0; x < 162; x++) {
+    		for (int y = 0; y < 108; y++) {
+    			organics_map[x][y] = 5;
+    		}
+    	}
 		timer.start();
 	}
 	public void paintComponent(Graphics canvas) {
@@ -178,7 +195,7 @@ public class World extends JPanel{
 		canvas.setFont(new Font("arial", Font.BOLD, 18));
 		canvas.drawString("Main: ", W - 300, 20);
 		canvas.drawString("version 1.9", W - 300, 40);
-		canvas.drawString("steps: " + String.valueOf(steps), W - 300, 60);
+		canvas.drawString("steps: " + String.valueOf(steps) + ", number: " + String.valueOf(file_index), W - 300, 60);
 		canvas.drawString("objects: " + String.valueOf(obj_count) + ", bots: " + String.valueOf(b_count), W - 300, 80);
 		if (draw_type == 0) {
 			txt = "predators view";
@@ -220,17 +237,17 @@ public class World extends JPanel{
 			canvas.drawString("none", W - 300, 295);
 		}
 		if (sh_brain) {
-			canvas.setColor(new Color(90, 90, 90));
-			canvas.fillRect(0, 0, 360, 360);
-			canvas.setColor(new Color(128, 128, 128));
-			for (int x = 0; x < 8; x++) {
-				for (int y = 0; y < 8; y++) {
-					canvas.setColor(new Color(128, 128, 128));
-					canvas.fillRect(x * 45, y * 45, 40, 40);
-					canvas.setColor(new Color(0, 0, 0));
-					canvas.drawString(String.valueOf(selection.commands[x + y * 8]), x * 45 + 20, y * 45 + 20);
-				}
-			}
+			//canvas.setColor(new Color(90, 90, 90));
+			//canvas.fillRect(0, 0, 360, 360);
+			//canvas.setColor(new Color(128, 128, 128));
+			//for (int x = 0; x < 8; x++) {
+			//	for (int y = 0; y < 8; y++) {
+			//		canvas.setColor(new Color(128, 128, 128));
+			//		canvas.fillRect(x * 45, y * 45, 40, 40);
+			//		canvas.setColor(new Color(0, 0, 0));
+			//		canvas.drawString(String.valueOf(selection.commands[x + y * 8]), x * 45 + 20, y * 45 + 20);
+			//	}
+			//}
 		}
 		if (rec && steps % 25 == 0) {
 			try {
@@ -273,7 +290,7 @@ public class World extends JPanel{
 				}
 				g2d.dispose();
 				
-				draw_type = 5;
+				draw_type = 6;
 				BufferedImage buff3 = new BufferedImage(1920, 1080, BufferedImage.TYPE_INT_RGB);
 				g2d = buff3.createGraphics();
 				g2d.setColor(Color.WHITE);
@@ -294,16 +311,21 @@ public class World extends JPanel{
 				
 				draw_type = last;
 				
-				ImageIO.write(buff, "png", new File("record/predators/screen" + String.valueOf(steps / 25)+ ".png"));
-				ImageIO.write(buff2, "png", new File("record/energy/screen" + String.valueOf(steps / 25)+ ".png"));
-				ImageIO.write(buff3, "png", new File("record/color/screen" + String.valueOf(steps / 25)+ ".png"));
+				ImageIO.write(buff, "png", new File("record" + String.valueOf(file_index) + "/predators/screen" + String.valueOf(steps / 25)+ ".png"));
+				ImageIO.write(buff2, "png", new File("record" + String.valueOf(file_index) + "/energy/screen" + String.valueOf(steps / 25)+ ".png"));
+				ImageIO.write(buff3, "png", new File("record" + String.valueOf(file_index) + "/color/screen" + String.valueOf(steps / 25)+ ".png"));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
 	}
 	public void newPopulation() {
-		organics_map = new int[162][108];
+		//organics_map = new int[162][108];
+		for (int x = 0; x < 162; x++) {
+			for (int y = 0; y < 108; y++) {
+				organics_map[x][y] = 5;
+			}
+		}
 		steps = 0;
 		objects = new ArrayList<Bot>();
 		Map = new int[162][108];//0 - none, 1 - bot, 2 - organics
@@ -421,18 +443,36 @@ public class World extends JPanel{
 						sh_brain = false;
 					}
 				}
-			}
-			ListIterator<Bot> iterator = objects.listIterator();
-			while (iterator.hasNext()) {
-				Bot next_bot = iterator.next();
-				if (next_bot.killed == 1) {
-					iterator.remove();
+				if (b_count == 0 && !pause) {
+					file_index++;
+					if (rec) {
+						new File("record" + String.valueOf(file_index) + "/predators").mkdirs();
+						new File("record" + String.valueOf(file_index) + "/energy").mkdirs();
+						new File("record" + String.valueOf(file_index) + "/color").mkdirs();
+					}
+					newPopulation();
 				}
+				ListIterator<Bot> iterator = objects.listIterator();
+				while (iterator.hasNext()) {
+					Bot next_bot = iterator.next();
+					if (next_bot.killed == 1) {
+					iterator.remove();
+					}
+				}
+				repaint();
 			}
-			repaint();
-			
 		}
-		
+	}
+	public int[] get_rotate_position(int rot, int[] start){
+		int[] pos = new int[2];
+		pos[0] = (start[0] + movelist[rot][0]) % world_scale[0];
+		pos[1] = start[1] + movelist[rot][1];
+		if (pos[0] < 0) {
+			pos[0] = 161;
+		}else if(pos[0] >= world_scale[0]) {
+			pos[0] = 0;
+		}
+		return(pos);
 	}
 	private class dr1 implements ActionListener{
 		public void actionPerformed(ActionEvent e) {

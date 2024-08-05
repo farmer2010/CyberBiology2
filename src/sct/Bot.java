@@ -54,6 +54,7 @@ public class Bot{
 	private int c_yellow = 0;
 	private int sector_len = world_scale[1] / 8;
 	private int defense = rand.nextInt(200);
+	private double[] gen = {1.0, 1.0};//множитель органики, множитель фотосинтеза
 	public Bot(int new_xpos, int new_ypos, Color new_color, int new_energy, int[][] new_map, ArrayList<Bot> new_objects) {
 		xpos = new_xpos;
 		ypos = new_ypos;
@@ -127,13 +128,12 @@ public class Bot{
 				int sector = bot_in_sector();
 				energy -= 1;
 				age -= 1;
-				if (sector <= 7 & sector >= 5) {
+				if (sector <= 7 && sector >= 5 && organics_map[xpos][ypos] >= 5) {
 					minerals += minerals_list[sector - 5];
 				}
 				update_commands(iterator, organics_map);
 				if (energy <= 0) {
-					killed = 1;
-					map[xpos][ypos] = 0;
+					die_with_organics(organics_map);
 					return(0);
 				}else if (energy > 1000) {
 					energy = 1000;
@@ -145,7 +145,7 @@ public class Bot{
 					die_with_organics(organics_map);
 					return(0);
 				}
-				if (rand.nextInt(1001) < border(organics_map[xpos][ypos] - defense, 1000, 0)) {
+				if (organics_map[xpos][ypos] >= 800) {
 					die_with_organics(organics_map);
 					return(0);
 				}
@@ -179,9 +179,14 @@ public class Bot{
 				index += 2;
 				index %= 64;
 			}else if (command == 25) {//фотосинтез
+				gen[0] = 0.25;
 				int sector = bot_in_sector();
 				if (sector <= 5) {
-					energy += photo_list[sector];
+					if (organics_map[xpos][ypos] >= 5) {
+						energy += (int)(photo_list[sector] * gen[1]);
+					}else {
+						energy += 3;
+					}
 					c_green += 1;
 				}
 				index += 1;
@@ -204,12 +209,12 @@ public class Bot{
 				index %= 64;
 				break;
 			}else if (command == 28) {//атаковать относительно
-				attack(commands[(index + 1) % 64] % 8);
+				attack(commands[(index + 1) % 64] % 8, organics_map);
 				index += 2;
 				index %= 64;
 				break;
 			}else if (command == 29) {//атаковать абсолютно
-				attack(rotate);
+				attack(rotate, organics_map);
 				index += 1;
 				index %= 64;
 				break;
@@ -282,10 +287,11 @@ public class Bot{
 					index = commands[(index + 3) % 64];
 				}
 			}else if (command == 38) {//преобразовать минералы в энергию
+				gen[0] = 0.25;
 				if (minerals > 0) {
 					c_blue++;
 				}
-				energy += minerals * 4;
+				energy += (int)(minerals * 4 * gen[1]);
 				minerals = 0;
 				index += 1;
 				index %= 64;
@@ -348,16 +354,19 @@ public class Bot{
 			}else if (command == 48) {//безусловный переход
 				index = commands[(index + 1) % 64];
 			}else if (command == 49) {//переработка органики абсолютно
+				gen[1] = 0.25;
 				recycle_organics(rotate, organics_map);
 				index += 1;
 				index %= 64;
 				break;
 			}else if (command == 51) {//переработка органики относительно
+				gen[1] = 0.25;
 				recycle_organics(commands[(index + 1) % 64] % 8, organics_map);
 				index += 2;
 				index %= 64;
 				break;
 			}else if (command == 53) {//переработка органики под собой
+				gen[1] = 0.25;
 				recycle_organics2(organics_map);
 				index += 1;
 				index %= 64;
@@ -377,35 +386,39 @@ public class Bot{
 			}
 		}
 	}
-	public void recycle_organics(int rot, int[][] organics_map) {
+	public void recycle_organics(int rot, int[][] organics_map) {//переработка органики перед собой
 		int[] pos = get_rotate_position(rot);
 		if (pos[1] > 0 & pos[1] < world_scale[1]) {
-			if (organics_map[pos[0]][pos[1]] > 150) {
-				energy += 150;
-				organics_map[pos[0]][pos[1]] -= 150;
+			if (organics_map[pos[0]][pos[1]] > 50) {
+				energy += (int)(50 * gen[0]);
+				organics_map[pos[0]][pos[1]] -= 50;
 				c_yellow++;
-			}else if (organics_map[pos[0]][pos[1]] > 0){
-				energy += organics_map[pos[0]][pos[1]];
+			}else {
+				energy += (int)(organics_map[pos[0]][pos[1]] * gen[0]);
+				if (organics_map[pos[0]][pos[1]] != 0) {
+					c_yellow++;
+				}
 				organics_map[pos[0]][pos[1]] = 0;
-				c_yellow++;
 			}
 		}
 	}
-	public void recycle_organics2(int[][] organics_map) {
+	public void recycle_organics2(int[][] organics_map) {//переработка органики под собой
 		int[] pos = {xpos, ypos};
 		if (pos[1] > 0 & pos[1] < world_scale[1]) {
-			if (organics_map[pos[0]][pos[1]] > 150) {
-				energy += 150;
-				organics_map[pos[0]][pos[1]] -= 150;
+			if (organics_map[pos[0]][pos[1]] > 50) {
+				energy += (int)(50 * gen[0]);
+				organics_map[pos[0]][pos[1]] -= 50;
 				c_yellow++;
-			}else if (organics_map[pos[0]][pos[1]] > 0){
-				energy += organics_map[pos[0]][pos[1]];
+			}else {
+				energy += (int)(organics_map[pos[0]][pos[1]] * gen[0]);
+				if (organics_map[pos[0]][pos[1]] != 0) {
+					c_yellow++;
+				}
 				organics_map[pos[0]][pos[1]] = 0;
-				c_yellow++;
 			}
 		}
 	}
-	public void give(int rot) {
+	public void give(int rot) {//отдать часть ресурсов
 		int[] pos = get_rotate_position(rot);
 		if (pos[1] > 0 & pos[1] < world_scale[1]) {
 			if (map[pos[0]][pos[1]] == 1) {
@@ -419,7 +432,7 @@ public class Bot{
 			}
 		}
 	}
-	public void give2(int rot) {
+	public void give2(int rot) {//равномерное распределение ресурсов
 		int[] pos = get_rotate_position(rot);
 		if (pos[1] > 0 & pos[1] < world_scale[1]) {
 			if (map[pos[0]][pos[1]] == 1) {
@@ -435,21 +448,21 @@ public class Bot{
 			}
 		}
 	}
-	public void attack(int rot) {
+	public void attack(int rot, int[][] organics_map) {//атаковать
 		int[] pos = get_rotate_position(rot);
 		if (pos[1] > 0 & pos[1] < world_scale[1]) {
 			if (map[pos[0]][pos[1]] != 0) {
 				Bot victim = find(pos);
 				if (victim != null) {
-					victim.killed = 1;
 					energy += victim.energy;
-					map[pos[0]][pos[1]] = 0;
+					victim.energy = 0;
+					victim.die_with_organics(organics_map);
 					c_red++;
 				}
 			}
 		}
 	}
-	public Bot find(int[] pos) {//только если есть сосед
+	public Bot find(int[] pos) {//поиск соседа(если есть - выдает объект Bot, если нет - null)
 		for (Bot b: objects) {
 			if (b.killed == 0 & b.xpos == pos[0] & b.ypos == pos[1]) {
 				return(b);
@@ -457,19 +470,20 @@ public class Bot{
 		}
 		return(null);
 	}
-	public boolean is_relative(int[] brain1, int[] brain2) {
-		int errors = 0;
-		for (int i = 0; i < 64; i++) {
-			if (brain1[i] != brain2[i]) {
-				errors += 1;
-			}
-			if (errors > 1) {
-				return(false);
-			}
-		}
-		return(errors < 2);
+	public boolean is_relative(int[] brain1, int[] brain2) {//являются ли два бота родственниками
+		return(false);
+		//int errors = 0;
+		//for (int i = 0; i < 64; i++) {
+		//	if (brain1[i] != brain2[i]) {
+		//		errors += 1;
+		//	}
+		//	if (errors > 1) {
+		//		return(false);
+		//	}
+		//}
+		//return(errors < 2);
 	}
-	public int[] get_rotate_position(int rot){
+	public int[] get_rotate_position(int rot){//выдать позицию, на которую смотрит бот
 		int[] pos = new int[2];
 		pos[0] = (xpos + movelist[rot][0]) % world_scale[0];
 		pos[1] = ypos + movelist[rot][1];
@@ -480,7 +494,7 @@ public class Bot{
 		}
 		return(pos);
 	}
-	public int move(int rot) {
+	public int move(int rot) {//походить
 		int[] pos = get_rotate_position(rot);
 		if (pos[1] > 0 & pos[1] < world_scale[1]) {
 			if (map[pos[0]][pos[1]] == 0) {
@@ -495,7 +509,7 @@ public class Bot{
 		}
 		return(0);
 	}
-	public void multiply(int rot, ListIterator<Bot> iterator) {
+	public void multiply(int rot, ListIterator<Bot> iterator) {//поделиться
 		int[] pos = get_rotate_position(rot);
 		if (pos[1] > 0 & pos[1] < world_scale[1]) {
 			if (map[pos[0]][pos[1]] == 0) {
@@ -527,17 +541,10 @@ public class Bot{
 			}
 		}
 	}
-	public int bot_in_sector() {
-		int sec = ypos / sector_len;
-		if (sec > 7) {
-			sec = 10;
-		}
-		return(sec);
-	}
-	public void die_with_organics(int[][] organics_map) {
+	public void die_with_organics(int[][] organics_map) {//умереть с появлением органики
 		killed = 1;
 		map[xpos][ypos] = 0;
-		int enr = energy / 9;
+		int enr = (energy + 150) / 9;
 		for (int i = 0; i < 8; i++) {
 			int[] pos = get_rotate_position(i);
 			if (pos[1] > 0 & pos[1] < world_scale[1]) {
@@ -554,7 +561,15 @@ public class Bot{
 			organics_map[xpos][ypos] = 1000;
 		}
 	}
-	public int border(int number, int border1, int border2) {
+	//технические функции
+	public int bot_in_sector() {//для минералов и фотосинтеза
+		int sec = ypos / sector_len;
+		if (sec > 7) {
+			sec = 10;
+		}
+		return(sec);
+	}
+	public int border(int number, int border1, int border2) {//ограничитель
 		if (number > border1) {
 			number = border1;
 		}else if (number < border2) {
