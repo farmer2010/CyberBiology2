@@ -15,10 +15,11 @@ public class Bot{
 	public int ypos;
 	public Color color;
 	public int energy;
+	public int organics;
 	public int minerals;
 	public int killed = 0;
-	public int[][] map;//---------------------------------------------------------------------------------------|
-	public int[] commands = {23, 1, 25, 28, 1, 28, 5, 23, 1, 25, 28, 1, 28, 5, 23, 1, 25, 28, 1, 28, 5, 51, 48, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+	public int[][] map;
+	public int[] commands = {23, 1, 25, 28, 1, 28, 5, 23, 1, 25, 28, 1, 28, 5, 23, 1, 25, 28, 1, 28, 5, 49, 48, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
 	private int index = 0;
 	public int age = 1000;
 	public int state = 0;//бот или органика
@@ -52,7 +53,6 @@ public class Bot{
 	private int c_green = 0;
 	private int c_blue = 0;
 	private int sector_len = world_scale[1] / 8;
-	public int organics = 0;
 	public Bot(int new_xpos, int new_ypos, Color new_color, int new_energy, int[][] new_map, ArrayList<Bot> new_objects) {
 		xpos = new_xpos;
 		ypos = new_ypos;
@@ -60,6 +60,7 @@ public class Bot{
 		y = new_ypos * 10;
 		color = new_color;
 		energy = new_energy;
+		organics = 0;
 		minerals = 0;
 		objects = new_objects;
 		map = new_map;
@@ -107,8 +108,6 @@ public class Bot{
 				canvas.setColor(new Color(rg, rg, 255));
 			}else if (draw_type == 4) {//возраста
 				canvas.setColor(new Color((int)(age / 1000.0 * 255.0), (int)(age / 1000.0 * 255.0), (int)(age / 1000.0 * 255.0)));
-			}else if (draw_type == 5) {
-				canvas.setColor(new Color((int)((1000 - organics) / 1000.0 * 255.0), (int)((1000 - organics) / 1000.0 * 255.0), (int)((1000 - organics) / 1000.0 * 255.0)));
 			}
 			canvas.fillRect(x + 1, y + 1, 8, 8);
 		}else {//рисуем органику
@@ -118,7 +117,7 @@ public class Bot{
 			canvas.fillRect(x + 2, y + 2, 6, 6);
 		}
 	}
-	public int Update(ListIterator<Bot> iterator, double[] ch) {
+	public int Update(ListIterator<Bot> iterator, double[][] oxygen_map, int[][] co2_map) {
 		if (killed == 0) {
 			if (state == 0) {//бот
 				int sector = bot_in_sector();
@@ -127,10 +126,7 @@ public class Bot{
 				if (sector <= 7 & sector >= 5) {
 					minerals += minerals_list[sector - 5];
 				}
-				update_commands(iterator, ch);
-				if (organics > 1000) {
-					organics = 1000;
-				}
+				update_commands(iterator, oxygen_map, co2_map);
 				if (energy <= 0) {
 					killed = 1;
 					map[xpos][ypos] = 0;
@@ -164,7 +160,7 @@ public class Bot{
 		}
 		return(0);
 	}
-	public void update_commands(ListIterator<Bot> iterator, double[] ch) {//мозг
+	public void update_commands(ListIterator<Bot> iterator, double[][] oxygen_map, int[][] co2_map) {//мозг
 		for (int i = 0; i < 5; i++) {
 			int command = commands[index];
 			if (command == 23) {//повернуться
@@ -178,11 +174,13 @@ public class Bot{
 				index %= 64;
 			}else if (command == 25) {//фотосинтез
 				int sector = bot_in_sector();
-				if (sector <= 5 && ch[1] / objects.size() >= 0.004) {
+				if (sector <= 5) {
 					organics += photo_list[sector];
 					c_green += 1;
-					ch[1] -= 0.004;
-					ch[0] += 0.003;
+					oxygen_map[xpos][ypos] += 3;
+					if (oxygen_map[xpos][ypos] > 1000) {
+						oxygen_map[xpos][ypos] = 1000;
+					}
 				}
 				index += 1;
 				index %= 64;
@@ -347,23 +345,16 @@ public class Bot{
 				break;
 			}else if (command == 48) {//безусловный переход
 				index = commands[(index + 1) % 64];
-			}else if (command == 49) {
-				int ind = commands[(index + 1) % 64] * 15;
-				if (organics >= ind) {
-					index = commands[(index + 2) % 64];
-				}else {
-					index = commands[(index + 3) % 64];
-				}
-			}else if (command == 51 || command == 53) {
-				int or = organics;
-				organics -= 50;
-				if (organics < 0) {
-					organics = 0;
-				}
-				if (or > 0 && ch[0] / objects.size() >= 0.005) {
-					energy += or - organics;
-					ch[0] -= 0.005;
-					ch[1] += 0.008;
+			}else if (command == 49) {//переработка органики
+				if (oxygen_map[xpos][ypos] >= 5) {
+					oxygen_map[xpos][ypos] -= 5;
+					if (organics > 50) {
+						energy += 50;
+						organics -= 50;
+					}else {
+						energy += organics;
+						organics = 0;
+					}
 				}
 				index += 1;
 				index %= 64;
@@ -411,7 +402,7 @@ public class Bot{
 				Bot victim = find(pos);
 				if (victim != null) {
 					victim.killed = 1;
-					organics += victim.energy;
+					energy += victim.energy;
 					map[pos[0]][pos[1]] = 0;
 					c_red++;
 				}
@@ -499,5 +490,22 @@ public class Bot{
 			sec = 10;
 		}
 		return(sec);
+	}
+	public int border(int number, int border1, int border2) {
+		if (number > border1) {
+			number = border1;
+		}else if (number < border2) {
+			number = border2;
+		}
+		return(number);
+	}
+	public int max(int number1, int number2) {//максимальное из двух чисел
+		if (number1 > number2) {
+			return(number1);
+		}else if (number2 > number1) {
+			return(number2);
+		}else {
+			return(number1);
+		}
 	}
 }
