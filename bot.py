@@ -24,6 +24,7 @@ class Bot(GameObject):
         self.photo_count = 0#зеленый в режиме отбражения типа питания
         self.minerals_count = 0#синий в режиме отбражения типа питания
         self.bots = bots#количество ботов(для отображения на экране)
+        self.virus = 0#статус заражения(0 - здоровый, 1 - зараженный, не выполнял команду вируса, 2 - зараженный, выполнял команду вируса хотя бы раз)
         self.photo_list = [#массивы с приходом фотосинтеза и минералов в зависимости от уровня
             10,
             8,
@@ -93,6 +94,14 @@ class Bot(GameObject):
                 G = int(self.photo_count / count * 255)
                 B = int(self.minerals_count / count * 255)
             self.image = image_factory.get_image((R, G, B))
+        elif draw_type == 5:#режим отображения зараженных
+            if self.virus == 0:#
+                self.image = image_factory.get_image((0, 255, 0))
+            elif self.virus == 1:#
+                self.image = image_factory.get_image((255, 255, 0))
+            elif self.virus == 2:#
+                self.image = image_factory.get_image((255, 0, 0))
+                
 
     def multiply(self, draw_type, rotate):#поделиться
         pos2 = self.get_rotate_position(rotate)#позиция, на которую смотрит бот
@@ -109,7 +118,7 @@ class Bot(GameObject):
                     new_commands = copy.deepcopy(self.commands)
                     new_color = self.color
                     #мутация
-                    if rand(0, 3) == 0:
+                    if rand(0, 3) == -1:
                         new_color = (
                             rand(0, 255),
                             rand(0, 255),
@@ -179,6 +188,19 @@ class Bot(GameObject):
             self.energy = int(enr / 2)
             self.minerals = int(mnr / 2)
 
+    def virus_cmd(self, pos):#заразить соседа 
+        friend = None
+        for friend in self.objects:
+            if friend.pos == pos and friend.name == "bot":
+                break
+            else:
+                friend = None
+        if friend != None:#если есть сосед
+            if friend.virus == 0:
+                friend.commands[0] = 64
+                friend.virus = 1
+                self.virus = 2
+
     def update_commands(self, draw_type):
         pos2 = self.get_rotate_position(self.rotate)
         for x in range(5):
@@ -234,10 +256,10 @@ class Bot(GameObject):
             elif command == 30:#посмотреть относительно
                 rotate = self.commands[(self.index + 1) % 64] % 8
                 sensor = self.sensor(self.world, rotate) + 1
-                self.index = self.commands[(self.index + sensor) % 64]
+                self.index = self.commands[(self.index + sensor) % 64] % 64
             elif command == 31:#посмотреть абсолютно
                 sensor = self.sensor(self.world, self.rotate)
-                self.index = self.commands[(self.index + sensor) % 64]
+                self.index = self.commands[(self.index + sensor) % 64] % 64
             #--------------------------------------------------------
             elif command == 34 or command == 50:#отдать ресурсы относительно
                 rotate = self.commands[(self.index + 1) % 64] % 8
@@ -254,15 +276,15 @@ class Bot(GameObject):
             elif command == 36:#сколько у меня энергии
                 cmd = self.commands[(self.index + 1) % 64]
                 if self.energy >= cmd * 15:
-                    self.index = self.commands[(self.index + 2) % 64]
+                    self.index = self.commands[(self.index + 2) % 64] % 64
                 else:
-                    self.index = self.commands[(self.index + 3) % 64]
+                    self.index = self.commands[(self.index + 3) % 64] % 64
             elif command == 37:#сколько у меня минералов
                 cmd = self.commands[(self.index + 1) % 64]
                 if self.minerals >= cmd * 15:
-                    self.index = self.commands[(self.index + 2) % 64]
+                    self.index = self.commands[(self.index + 2) % 64] % 64
                 else:
-                    self.index = self.commands[(self.index + 3) % 64]
+                    self.index = self.commands[(self.index + 3) % 64] % 64
             #--------------------------------------------------------
             elif command == 38:#преобразовать минералы в энергию
                 if self.minerals != 0:
@@ -275,15 +297,15 @@ class Bot(GameObject):
             elif command == 39:#есть ли приход энергии
                 sector = self.bot_in_sector()
                 if sector >= 0 and sector <= 5:
-                    self.index = self.commands[(self.index + 1) % 64]
+                    self.index = self.commands[(self.index + 1) % 64] % 64
                 else:
-                    self.index = self.commands[(self.index + 2) % 64]
+                    self.index = self.commands[(self.index + 2) % 64] % 64
             elif command == 40:#есть ли приход минералов
                 sector = self.bot_in_sector()
                 if sector >= 5 and sector <= 7:
-                    self.index = self.commands[(self.index + 1) % 64]
+                    self.index = self.commands[(self.index + 1) % 64] % 64
                 else:
-                    self.index = self.commands[(self.index + 2) % 64]
+                    self.index = self.commands[(self.index + 2) % 64] % 64
             #--------------------------------------------------------
             elif command == 41:#поделиться относительно
                 rotate = self.commands[(self.index + 1) % 64] % 8
@@ -298,22 +320,22 @@ class Bot(GameObject):
             elif command == 43:#какая моя позиция(x)
                 cmd = self.commands[(self.index + 1) % 64] / 64
                 if self.pos[0] / self.world_scale[0] >= cmd:
-                    self.index = self.commands[(self.index + 2) % 64]
+                    self.index = self.commands[(self.index + 2) % 64] % 64
                 else:
-                    self.index = self.commands[(self.index + 3) % 64]
+                    self.index = self.commands[(self.index + 3) % 64] % 64
             elif command == 44:#какая моя позиция(y)
                 cmd = self.commands[(self.index + 1) % 64] / 64
                 if self.pos[1] / self.world_scale[1] >= cmd:
-                    self.index = self.commands[(self.index + 2) % 64]
+                    self.index = self.commands[(self.index + 2) % 64] % 64
                 else:
-                    self.index = self.commands[(self.index + 3) % 64]
+                    self.index = self.commands[(self.index + 3) % 64] % 64
             #--------------------------------------------------------
             elif command == 45:#какой мой возраст
                 cmd = self.commands[(self.index + 1) % 64] * 15
                 if self.age >= cmd:
-                    self.index = self.commands[(self.index + 2) % 64]
+                    self.index = self.commands[(self.index + 2) % 64] % 64
                 else:
-                    self.index = self.commands[(self.index + 3) % 64]
+                    self.index = self.commands[(self.index + 3) % 64] % 64
             #--------------------------------------------------------
             elif command == 46:#равномерное распределение ресурсов относительно
                 rotate = self.commands[(self.index + 1) % 64] % 8
@@ -323,12 +345,14 @@ class Bot(GameObject):
                 break
             elif command == 47:#равномерное распределение ресурсов абсолютно
                 pos = self.get_rotate_position(self.rotate)
-                self.give2(pos)
+                self.give(pos)
                 self.next_command(2)
                 break
             #--------------------------------------------------------
-            elif command == 48:#безусловный переход
-                self.index = self.commands[(self.index + 1) % 64]
+            elif command == 64:#заразить соседа
+                self.virus_cmd(pos2)
+                self.next_command()
+                break
             else:#безусловный переход
                 self.next_command(command)
 

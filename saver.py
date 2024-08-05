@@ -32,12 +32,12 @@ def save(world, objects, steps, name):#сохранить мир
                     "MineralsCount" : obj.minerals_count
                 }
             )
-    file = open(f"files/Saved Worlds/{name}.json", "w")#запись в файл
+    file = open(f"Saved Worlds/{name}.json", "w")#запись в файл
     json.dump(for_save, file)
     file.close()
 
 def load(name, bots):#загрузить мир
-    file = open(f"files/Saved Worlds/{name}.json", "r")
+    file = open(f"Saved Worlds/{name}.json", "r")
     ret = json.load(file)
     file.close()
     steps = ret["Steps"]#количество шагов

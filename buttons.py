@@ -42,6 +42,8 @@ def f4():
     draw_type[0] = 3
 def f5():
     draw_type[0] = 4
+def f6():
+    draw_type[0] = 5
 
 def mouse1():#сменить режим мыши
     mouse[0] = "set"
@@ -78,7 +80,7 @@ def stop():#функция кнопки остановки симуляции
     )
 
 def save_bot(brain):#сохранить мозг бота
-    file = open(f"files/Saved Objects/{input_name.getText()}.dat", "w")
+    file = open(f"Saved Objects/{input_name.getText()}.dat", "w")
     save_brain = ""
     for x in range(64):
         save_brain += str(brain[x]) + " "
@@ -88,7 +90,7 @@ def save_bot(brain):#сохранить мозг бота
 def load_bot():#загрузить бота
     global brain
     try:
-        file = open(f"files/Saved Objects/{load_name.getText()}.dat", "r")
+        file = open(f"Saved Objects/{load_name.getText()}.dat", "r")
         botcode = file.readline()
         brain[0] = botcode.split(" ")
         for x in range(64):
@@ -255,6 +257,21 @@ predators_button = Button(
     pressedColour=(0, 100, 220),
     radius=0,
     onClick=f5
+)
+virus_button = Button(
+    screen,
+    W - 35,
+    200,
+    35,
+    35,
+    text='',
+    fontSize=24,
+    margin=20,
+    inactiveColour=(0, 128, 255),
+    hoverColour=(0, 140, 255),
+    pressedColour=(0, 100, 220),
+    radius=0,
+    onClick=f6
 )
 pause_button = Button(
     screen,
