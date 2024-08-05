@@ -39,14 +39,6 @@ public class Bot{
 		2,
 		3
 	};
-	private int[] photo_list = {
-		10,
-		8,
-		6,
-		5,
-		4,
-		3
-	};
 	private int[] world_scale = {162, 108};
 	private int c_red = 0;
 	private int c_green = 0;
@@ -113,7 +105,7 @@ public class Bot{
 			canvas.fillRect(x + 1, y + 1, 8, 8);
 			canvas.setColor(new Color(128, 128, 128));
 			canvas.fillRect(x + 2, y + 2, 6, 6);
-		}else {
+		}else {//рисуем траву
 			canvas.setColor(new Color(0, 0, 0));
 			canvas.fillOval(x, y, 10, 10);
 			canvas.setColor(new Color(0, 255, 0));
@@ -152,7 +144,7 @@ public class Bot{
 			}else if (state == 1) {//падающая органика
 				move(4);
 				int[] pos = get_rotate_position(4);
-				if (pos[1] > 0 & pos[1] < world_scale[1]) {
+				if ((pos[1] >= 0 && pos[1] < world_scale[1]) && (pos[0] >= 0 && pos[0] < world_scale[0])) {
 					if (map[pos[0]][pos[1]] != 0) {
 						state = 2;
 					}
@@ -203,7 +195,7 @@ public class Bot{
 				break;
 			}else if (command == 30) {//посмотреть относительно
 				int[] pos = get_rotate_position(commands[(index + 1) % 64] % 8);
-				if (pos[1] > 0 & pos[1] < world_scale[1]) {
+				if ((pos[1] >= 0 && pos[1] < world_scale[1]) && (pos[0] >= 0 && pos[0] < world_scale[0])) {
 					if (map[pos[0]][pos[1]] == 0) {
 						index = commands[(index + 3) % 64];//если ничего
 					}else if (map[pos[0]][pos[1]] == 1) {
@@ -227,7 +219,7 @@ public class Bot{
 				}
 			}else if (command == 31) {//посмотреть абсолютно
 				int[] pos = get_rotate_position(rotate);
-				if (pos[1] > 0 & pos[1] < world_scale[1]) {
+				if ((pos[1] >= 0 && pos[1] < world_scale[1]) && (pos[0] >= 0 && pos[0] < world_scale[0])) {
 					if (map[pos[0]][pos[1]] == 0) {
 						index = commands[(index + 2) % 64];//если ничего
 					}else if (map[pos[0]][pos[1]] == 1) {
@@ -338,7 +330,7 @@ public class Bot{
 	}
 	public void give(int rot) {
 		int[] pos = get_rotate_position(rot);
-		if (pos[1] > 0 & pos[1] < world_scale[1]) {
+		if ((pos[1] >= 0 && pos[1] < world_scale[1]) && (pos[0] >= 0 && pos[0] < world_scale[0])) {
 			if (map[pos[0]][pos[1]] == 1) {
 				Bot relative = find(pos);
 				if (relative.killed == 0) {
@@ -352,7 +344,7 @@ public class Bot{
 	}
 	public void give2(int rot) {
 		int[] pos = get_rotate_position(rot);
-		if (pos[1] > 0 & pos[1] < world_scale[1]) {
+		if ((pos[1] >= 0 && pos[1] < world_scale[1]) && (pos[0] >= 0 && pos[0] < world_scale[0])) {
 			if (map[pos[0]][pos[1]] == 1) {
 				Bot relative = find(pos);
 				if (relative.killed == 0) {
@@ -368,7 +360,7 @@ public class Bot{
 	}
 	public void attack(int rot) {
 		int[] pos = get_rotate_position(rot);
-		if (pos[1] > 0 & pos[1] < world_scale[1]) {
+		if ((pos[1] >= 0 && pos[1] < world_scale[1]) && (pos[0] >= 0 && pos[0] < world_scale[0])) {
 			if (map[pos[0]][pos[1]] != 0) {
 				Bot victim = find(pos);
 				if (victim != null) {
@@ -406,18 +398,13 @@ public class Bot{
 	}
 	public int[] get_rotate_position(int rot){
 		int[] pos = new int[2];
-		pos[0] = (xpos + movelist[rot][0]) % world_scale[0];
+		pos[0] = xpos + movelist[rot][0];
 		pos[1] = ypos + movelist[rot][1];
-		if (pos[0] < 0) {
-			pos[0] = 161;
-		}else if(pos[0] >= world_scale[0]) {
-			pos[0] = 0;
-		}
 		return(pos);
 	}
 	public int move(int rot) {
 		int[] pos = get_rotate_position(rot);
-		if (pos[1] > 0 & pos[1] < world_scale[1]) {
+		if ((pos[1] >= 0 && pos[1] < world_scale[1]) && (pos[0] >= 0 && pos[0] < world_scale[0])) {
 			if (map[pos[0]][pos[1]] == 0) {
 				map[xpos][ypos] = 0;
 				xpos = pos[0];
@@ -432,7 +419,7 @@ public class Bot{
 	}
 	public void multiply(int rot, ListIterator<Bot> iterator) {
 		int[] pos = get_rotate_position(rot);
-		if (pos[1] > 0 & pos[1] < world_scale[1]) {
+		if ((pos[1] >= 0 && pos[1] < world_scale[1]) && (pos[0] >= 0 && pos[0] < world_scale[0])) {
 			if (map[pos[0]][pos[1]] == 0) {
 				energy -= 150;
 				if (energy <= 0) {
