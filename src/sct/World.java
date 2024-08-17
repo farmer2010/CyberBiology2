@@ -53,9 +53,25 @@ public class World extends JPanel{
 	JButton show_brain_button = new JButton("Show brain");
 	JButton render_button = new JButton("Render: on");
 	JButton record_button = new JButton("Record: off");
+	JButton gas_button = new JButton("Gas: none");
 	boolean sh_brain = false;
 	boolean rec = false;
-	double[] ch = {1.0, 0.2};
+	int[] world_scale = {162, 108};
+	int[][] movelist = {
+		{0, -1},
+		{1, -1},
+		{1, 0},
+		{1, 1},
+		{0, 1},
+		{-1, 1},
+		{-1, 0},
+		{-1, -1}
+	};
+	double[][] oxygen_map;
+	double[][] co2_map;
+	double count_ox = -1;
+	double count_co2 = -1;
+	int gas_draw_type = 0;
 	public World() {
 		setLayout(null);
 		timer = new Timer(delay, new BotListener());
@@ -86,10 +102,9 @@ public class World extends JPanel{
         color_button.addActionListener(new dr2());
 		color_button.setBounds(W - 300, 240, 125, 20);
         add(color_button);
-        JButton organics_button = new JButton("Organics");
-        organics_button.addActionListener(new dr6());
-        organics_button.setBounds(W - 170, 240, 125, 20);
-        add(organics_button);
+        gas_button.addActionListener(new gas());
+		gas_button.setBounds(W - 170, 240, 125, 20);
+        add(gas_button);
         JButton select_button = new JButton("Select");
         select_button.addActionListener(new select());
 		select_button.setBounds(W - 300, 455, 95, 20);
@@ -143,6 +158,16 @@ public class World extends JPanel{
         kill_button.setBounds(W - 170, 590, 125, 20);
         add(kill_button);
 		//newPopulation();
+        
+        oxygen_map = new double[162][108];
+		co2_map = new double[162][108];
+		for (int x = 0; x < 162; x++) {
+			for (int y = 0; y < 108; y++) {
+				oxygen_map[x][y] = 0.01;
+				co2_map[x][y] = 0.01;
+			}
+		}
+        
 		timer.start();
 	}
 	public void paintComponent(Graphics canvas) {
@@ -159,6 +184,19 @@ public class World extends JPanel{
 		//	}
 		//}
 		if (render) {
+			if (gas_draw_type != 0) {
+				for (int x = 0; x < 162; x++) {
+					for (int y = 0; y < 108; y++) {
+						if (gas_draw_type == 1) {
+							canvas.setColor(new Color(255 - (int)(oxygen_map[x][y] * 128), 255 - (int)(oxygen_map[x][y] * 128), 255));
+							canvas.fillRect(x * 10, y * 10, 10, 10);
+						}else {
+							canvas.setColor(new Color(255, 255 - (int)(co2_map[x][y] * 128), 255 - (int)(co2_map[x][y] * 128)));
+							canvas.fillRect(x * 10, y * 10, 10, 10);
+						}
+					}
+				}
+			}
 			for(Bot b: objects) {
 				b.Draw(canvas, draw_type);
 			}
@@ -198,11 +236,11 @@ public class World extends JPanel{
 		canvas.drawString("Load:", W - 300, 490);
 		canvas.drawString("enter name:", W - 300, 510);
 		canvas.drawString("Controls:", W - 300, 580);
-		canvas.drawString("Oxygen: " + String.valueOf(ch[0]), W - 300, 660);
-		canvas.drawString("Co2: " + String.valueOf(ch[1]), W - 300, 680);
+		canvas.drawString("Oxygen: " + String.valueOf(count_ox), W - 300, 650);
+		canvas.drawString("Co2: " + String.valueOf(count_co2), W - 300, 670);
 		if (selection != null) {
 			canvas.drawString("energy: " + String.valueOf(selection.energy) + ", minerals: " + String.valueOf(selection.minerals), W - 300, 295);
-			canvas.drawString("age: " + String.valueOf(selection.age) + ", " + "organics: " + String.valueOf(selection.organics), W - 300, 315);
+			canvas.drawString("age: " + String.valueOf(selection.age), W - 300, 315);
 			canvas.drawString("position: " + "[" + String.valueOf(selection.xpos) + ", " + String.valueOf(selection.ypos) + "]", W - 300, 335);
 			canvas.drawString("color: " + "(" + String.valueOf(selection.color.getRed()) + ", " + String.valueOf(selection.color.getGreen()) + ", " + String.valueOf(selection.color.getBlue()) + ")", W - 300, 355);
 			canvas.setColor(new Color(90, 90, 90, 90));
@@ -227,50 +265,70 @@ public class World extends JPanel{
 		}
 		if (rec && steps % 25 == 0) {
 			try {
-				int last = draw_type;
-				draw_type = 0;
 				BufferedImage buff = new BufferedImage(1920, 1080, BufferedImage.TYPE_INT_RGB);
 				Graphics2D g2d = buff.createGraphics();
 				g2d.setColor(Color.WHITE);
 				g2d.fillRect(0, 0, 1920, 1080);
-				for(Bot b: objects) {
-					b.Draw(g2d, draw_type);
+				for (int x = 0; x < 162; x++) {
+					for (int y = 0; y < 108; y++) {
+						g2d.setColor(new Color(255 - (int)(oxygen_map[x][y] * 255), 255 - (int)(oxygen_map[x][y] * 255), 255 - (int)(oxygen_map[x][y] * 255)));
+						g2d.fillRect(x * 10, y * 10, 10, 10);
+					}
 				}
-				g2d.setColor(Color.BLACK);
-				g2d.drawString("Oxygen: " + String.valueOf(ch[0]), W - 300, 660);
-				g2d.drawString("Co2: " + String.valueOf(ch[1]), W - 300, 680);
+				for(Bot b: objects) {
+					b.Draw(g2d, 0);
+				}
 				g2d.dispose();
-				
-				draw_type = 2;
+				//
+				BufferedImage buff4 = new BufferedImage(1920, 1080, BufferedImage.TYPE_INT_RGB);
+				g2d = buff4.createGraphics();
+				g2d.setColor(Color.WHITE);
+				g2d.fillRect(0, 0, 1920, 1080);
+				for (int x = 0; x < 162; x++) {
+					for (int y = 0; y < 108; y++) {
+						g2d.setColor(new Color(255, 255 - (int)(co2_map[x][y] * 128), 255 - (int)(co2_map[x][y] * 128)));
+						g2d.fillRect(x * 10, y * 10, 10, 10);
+					}
+				}
+				for(Bot b: objects) {
+					b.Draw(g2d, 0);
+				}
+				g2d.dispose();
+				//
 				BufferedImage buff2 = new BufferedImage(1920, 1080, BufferedImage.TYPE_INT_RGB);
 				g2d = buff2.createGraphics();
 				g2d.setColor(Color.WHITE);
 				g2d.fillRect(0, 0, 1920, 1080);
-				for(Bot b: objects) {
-					b.Draw(g2d, draw_type);
+				for (int x = 0; x < 162; x++) {
+					for (int y = 0; y < 108; y++) {
+						g2d.setColor(new Color(255 - (int)(oxygen_map[x][y] * 255), 255 - (int)(oxygen_map[x][y] * 255), 255 - (int)(oxygen_map[x][y] * 255)));
+						g2d.fillRect(x * 10, y * 10, 10, 10);
+					}
 				}
-				g2d.setColor(Color.BLACK);
-				g2d.drawString("Oxygen: " + String.valueOf(ch[0]), W - 300, 660);
-				g2d.drawString("Co2: " + String.valueOf(ch[1]), W - 300, 680);
+				for(Bot b: objects) {
+					b.Draw(g2d, 2);
+				}
 				g2d.dispose();
-				
-				draw_type = 1;
+				//
 				BufferedImage buff3 = new BufferedImage(1920, 1080, BufferedImage.TYPE_INT_RGB);
 				g2d = buff3.createGraphics();
 				g2d.setColor(Color.WHITE);
 				g2d.fillRect(0, 0, 1920, 1080);
-				for(Bot b: objects) {
-					b.Draw(g2d, draw_type);
+				for (int x = 0; x < 162; x++) {
+					for (int y = 0; y < 108; y++) {
+						g2d.setColor(new Color(255 - (int)(oxygen_map[x][y] * 255), 255 - (int)(oxygen_map[x][y] * 255), 255 - (int)(oxygen_map[x][y] * 255)));
+						g2d.fillRect(x * 10, y * 10, 10, 10);
+					}
 				}
-				g2d.setColor(Color.BLACK);
-				g2d.drawString("Oxygen: " + String.valueOf(ch[0]), W - 300, 660);
-				g2d.drawString("Co2: " + String.valueOf(ch[1]), W - 300, 680);
+				for(Bot b: objects) {
+					b.Draw(g2d, 1);
+				}
 				g2d.dispose();
-				
-				draw_type = last;
-				ImageIO.write(buff, "png", new File("record/predators/screen" + String.valueOf(steps / 25)+ ".png"));
+				//
+				ImageIO.write(buff, "png", new File("record/predators-oxygen/screen" + String.valueOf(steps / 25)+ ".png"));
 				ImageIO.write(buff2, "png", new File("record/energy/screen" + String.valueOf(steps / 25)+ ".png"));
 				ImageIO.write(buff3, "png", new File("record/color/screen" + String.valueOf(steps / 25)+ ".png"));
+				ImageIO.write(buff4, "png", new File("record/predators-co2/screen" + String.valueOf(steps / 25)+ ".png"));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -279,13 +337,19 @@ public class World extends JPanel{
 	public void newPopulation() {
 		steps = 0;
 		objects = new ArrayList<Bot>();
-		ch[0] = 1.0;
-		ch[1] = 0.2;
 		Map = new int[162][108];//0 - none, 1 - bot, 2 - organics
-		for (int i = 0; i < 1; i++) {
+		oxygen_map = new double[162][108];
+		co2_map = new double[162][108];
+		for (int x = 0; x < 162; x++) {
+			for (int y = 0; y < 108; y++) {
+				oxygen_map[x][y] = 0.01;
+				co2_map[x][y] = 0.01;
+			}
+		}
+		for (int i = 0; i < 1000; i++) {
 			while(true){
 				int x = rand.nextInt(162);
-				int y = rand.nextInt(10);
+				int y = rand.nextInt(108);
 				if (Map[x][y] == 0) {
 					objects.add(new Bot(
 						x,
@@ -307,6 +371,8 @@ public class World extends JPanel{
 			if (e.getX() < W - 300) {
 				botpos[0] = e.getX() / 10;
 				botpos[1] = e.getY() / 10;
+				count_ox = oxygen_map[botpos[0]][botpos[1]];
+				count_co2 = co2_map[botpos[0]][botpos[1]];
 				if (mouse == 0) {//select
 					if (Map[botpos[0]][botpos[1]] == 1) {
 						for(Bot b: objects) {
@@ -340,12 +406,17 @@ public class World extends JPanel{
 						}
 					}
 				}
+			}else {
+				count_ox = -1;
+				count_co2 = -1;
 			}
 		}
 		public void mouseDragged(MouseEvent e) {
 			if (e.getX() < W - 300) {
 				botpos[0] = e.getX() / 10;
 				botpos[1] = e.getY() / 10;
+				count_ox = oxygen_map[botpos[0]][botpos[1]];
+				count_co2 = co2_map[botpos[0]][botpos[1]];
 				if (mouse == 1) {//set
 					//
 				}else if (mouse == 2) {//remove
@@ -359,6 +430,9 @@ public class World extends JPanel{
 						}
 					}
 				}
+			}else {
+				count_ox = -1;
+				count_co2 = -1;
 			}
 		}
 		public void actionPerformed(ActionEvent e) {
@@ -370,7 +444,7 @@ public class World extends JPanel{
 				ListIterator<Bot> bot_iterator = objects.listIterator();
 				while (bot_iterator.hasNext()) {
 					Bot next_bot = bot_iterator.next();
-					next_bot.Update(bot_iterator, ch);
+					next_bot.Update(bot_iterator, oxygen_map, co2_map);
 					if (selection != null) {
 						if (next_bot.xpos == selection.xpos && next_bot.ypos == selection.ypos) {
 							if (next_bot != selection) {
@@ -396,18 +470,107 @@ public class World extends JPanel{
 						sh_brain = false;
 					}
 				}
+				ListIterator<Bot> iterator = objects.listIterator();
+				while (iterator.hasNext()) {
+					Bot next_bot = iterator.next();
+					if (next_bot.killed == 1) {
+						iterator.remove();
+					}
+				}
+				oxygen();
+				co2();
+				repaint();
 			}
-			ListIterator<Bot> iterator = objects.listIterator();
-			while (iterator.hasNext()) {
-				Bot next_bot = iterator.next();
-				if (next_bot.killed == 1) {
-					iterator.remove();
+		}
+	}
+	public void oxygen() {
+		double[][] new_map = new double[162][108];
+		for (int x = 0; x < 162; x++) {
+			for (int y = 0; y < 108; y++) {
+				if (oxygen_map[x][y] >= 0.009) {
+					oxygen_map[x][y] *= 0.99;
+					int count = 1;
+					for (int i = 0; i < 8; i++) {
+						int[] f = {x, y};
+						int[] pos = get_rotate_position(i, f);
+						if (pos[1] >= 0 && pos[1] < world_scale[1]) {
+							count++;
+						}
+					}
+					double ox = oxygen_map[x][y] / count;
+					new_map[x][y] += ox;
+					if (new_map[x][y] > 1) {
+						new_map[x][y] = 1;
+					}
+					for (int i = 0; i < 8; i++) {
+						int[] f = {x, y};
+						int[] pos = get_rotate_position(i, f);
+						if (pos[1] >= 0 && pos[1] < world_scale[1]) {
+							new_map[pos[0]][pos[1]] += ox;
+							if (new_map[pos[0]][pos[1]] > 1) {
+								new_map[pos[0]][pos[1]] = 1;
+							}
+						}
+					}
+				}else {
+					new_map[x][y] += oxygen_map[x][y];
+					if (new_map[x][y] > 1) {
+						new_map[x][y] = 1;
+					}
 				}
 			}
-			repaint();
-			
 		}
-		
+		oxygen_map = new_map;
+	}
+	public void co2() {
+		double[][] new_map = new double[162][108];
+		for (int x = 0; x < 162; x++) {
+			for (int y = 0; y < 108; y++) {
+				if (co2_map[x][y] >= 0.009) {
+					co2_map[x][y] *= 0.99;
+					int count = 1;
+					for (int i = 0; i < 8; i++) {
+						int[] f = {x, y};
+						int[] pos = get_rotate_position(i, f);
+						if (pos[1] >= 0 && pos[1] < world_scale[1]) {
+							count++;
+						}
+					}
+					double c = co2_map[x][y]/ count;
+					new_map[x][y] += c;
+					if (new_map[x][y] > 1) {
+						new_map[x][y] = 1;
+					}
+					for (int i = 0; i < 8; i++) {
+						int[] f = {x, y};
+						int[] pos = get_rotate_position(i, f);
+						if (pos[1] >= 0 && pos[1] < world_scale[1]) {
+							new_map[pos[0]][pos[1]] += c;
+							if (new_map[pos[0]][pos[1]] > 1) {
+								new_map[pos[0]][pos[1]] = 1;
+							}
+						}
+					}
+				}else {
+					new_map[x][y] += co2_map[x][y];
+					if (new_map[x][y] > 1) {
+						new_map[x][y] = 1;
+					}
+				}
+			}
+		}
+		co2_map = new_map;
+	}
+	public int[] get_rotate_position(int rot, int[] sp){
+		int[] pos = new int[2];
+		pos[0] = (sp[0] + movelist[rot][0]) % world_scale[0];
+		pos[1] = sp[1] + movelist[rot][1];
+		if (pos[0] < 0) {
+			pos[0] = 161;
+		}else if(pos[0] >= world_scale[0]) {
+			pos[0] = 0;
+		}
+		return(pos);
 	}
 	private class dr1 implements ActionListener{
 		public void actionPerformed(ActionEvent e) {
@@ -434,9 +597,17 @@ public class World extends JPanel{
 			draw_type = 4;
 		}
 	}
-	private class dr6 implements ActionListener{
+	private class gas implements ActionListener{
 		public void actionPerformed(ActionEvent e) {
-			draw_type = 5;
+			gas_draw_type++;
+			gas_draw_type %= 3;
+			if (gas_draw_type == 0) {
+				gas_button.setText("Gas: none");
+			}else if (gas_draw_type == 1) {
+				gas_button.setText("Gas: oxygen");
+			}else if (gas_draw_type == 2) {
+				gas_button.setText("Gas: co2");
+			}
 		}
 	}
 	private class start_stop implements ActionListener{
@@ -492,7 +663,11 @@ public class World extends JPanel{
 	private class shbr implements ActionListener{
 		public void actionPerformed(ActionEvent e) {
 			sh_brain = !sh_brain;
-			new start_stop().actionPerformed(e);
+			if (pause == false) {
+				pause = true;
+			}else if (sh_brain == false) {
+				pause = false;
+			}
 		}
 	}
 	private class kill_all implements ActionListener{
