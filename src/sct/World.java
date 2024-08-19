@@ -451,9 +451,6 @@ public class World extends JPanel{
 				if (organics_map[x][y] >= 9) {
 					int enr = organics_map[x][y] / 9;
 					new_map[x][y] += organics_map[x][y] - enr * 9;
-					if (new_map[x][y] > 1000) {
-						new_map[x][y] = 1000;
-					}
 					for (int i = 0; i < 8; i++) {
 						int[] f = {x, y};
 						int[] pos = get_rotate_position(i, f);
@@ -464,15 +461,14 @@ public class World extends JPanel{
 							}
 						}else {
 							new_map[x][y] += enr;
-							if (new_map[x][y] > 1000) {
-								new_map[x][y] = 1000;
-							}
 						}
 					}
 					new_map[x][y] += enr;
-					if (new_map[x][y] > 1000) {
-						new_map[x][y] = 1000;
-					}
+				}else {
+					new_map[x][y] += organics_map[x][y];
+				}
+				if (new_map[x][y] > 1000) {
+					new_map[x][y] = 1000;
 				}
 			}
 		}
