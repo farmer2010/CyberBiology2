@@ -4,7 +4,7 @@ import javax.swing.*;
 
 public class Main{
 	public static void main(String[] args) {
-		JFrame frame = new JFrame("Cyber biology 2 grass 2");
+		JFrame frame = new JFrame("Cyber biology 2 grass");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.add(new World());
 		frame.setSize(1920, 1080);
