@@ -9,7 +9,8 @@ public class Main{
 		new File("record/predators-oxygen").mkdirs();
 		new File("record/energy").mkdirs();
 		new File("record/color").mkdirs();
-		new File("record/predators-co2").mkdirs();
+		new File("record/predators-org").mkdirs();
+		//new File("record/predators-mnr").mkdirs();
 		//
 		JFrame frame = new JFrame("Cyber biology 2 oxygen 2");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

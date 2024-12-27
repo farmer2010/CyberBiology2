@@ -69,8 +69,10 @@ public class World extends JPanel{
 	};
 	double[][] oxygen_map;
 	double[][] org_map;
+	double[][] mnr_map = new double[world_scale[0]][world_scale[1]];
 	double count_ox = -1;
 	double count_org = -1;
+	double count_mnr = -1;
 	int gas_draw_type = 0;
 	public World() {
 		setLayout(null);
@@ -83,23 +85,23 @@ public class World extends JPanel{
 		stop_button.setBounds(W - 300, 125, 250, 35);
         add(stop_button);
         JButton predators_button = new JButton("Predators");
-        predators_button.addActionListener(new dr1());
+        predators_button.addActionListener(new change_draw_type(0));
 		predators_button.setBounds(W - 300, 190, 125, 20);
         add(predators_button);
         JButton energy_button = new JButton("Energy");
-        energy_button.addActionListener(new dr3());
+        energy_button.addActionListener(new change_draw_type(2));
 		energy_button.setBounds(W - 170, 190, 125, 20);
         add(energy_button);
         JButton minerals_button = new JButton("Minerals");
 		minerals_button.setBounds(W - 300, 215, 125, 20);
-		minerals_button.addActionListener(new dr4());
+		minerals_button.addActionListener(new change_draw_type(3));
         add(minerals_button);
         JButton age_button = new JButton("Age");
-        age_button.addActionListener(new dr5());
+        age_button.addActionListener(new change_draw_type(4));
 		age_button.setBounds(W - 170, 215, 125, 20);
         add(age_button);
         JButton color_button = new JButton("Color");
-        color_button.addActionListener(new dr2());
+        color_button.addActionListener(new change_draw_type(1));
 		color_button.setBounds(W - 300, 240, 125, 20);
         add(color_button);
         gas_button.addActionListener(new gas());
@@ -238,6 +240,7 @@ public class World extends JPanel{
 		canvas.drawString("Controls:", W - 300, 580);
 		canvas.drawString("Oxygen: " + String.valueOf(count_ox), W - 300, 650);
 		canvas.drawString("Organics: " + String.valueOf(count_org), W - 300, 670);
+		canvas.drawString("Minerals: " + String.valueOf(count_mnr), W - 300, 690);
 		if (selection != null) {
 			canvas.drawString("energy: " + String.valueOf(selection.energy) + ", minerals: " + String.valueOf(selection.minerals), W - 300, 295);
 			canvas.drawString("age: " + String.valueOf(selection.age), W - 300, 315);
@@ -271,7 +274,7 @@ public class World extends JPanel{
 				g2d.fillRect(0, 0, 1920, 1080);
 				for (int x = 0; x < world_scale[0]; x++) {
 					for (int y = 0; y < world_scale[1]; y++) {
-						g2d.setColor(new Color(255 - (int)(oxygen_map[x][y] * 255), 255 - (int)(oxygen_map[x][y] * 255), 255 - (int)(oxygen_map[x][y] * 255)));
+						g2d.setColor(new Color(255 - (int)(oxygen_map[x][y] * 128), 255 - (int)(oxygen_map[x][y] * 128), 255));
 						g2d.fillRect(x * 5, y * 5, 5, 5);
 					}
 				}
@@ -328,7 +331,7 @@ public class World extends JPanel{
 				ImageIO.write(buff, "png", new File("record/predators-oxygen/screen" + String.valueOf(steps / 25)+ ".png"));
 				ImageIO.write(buff2, "png", new File("record/energy/screen" + String.valueOf(steps / 25)+ ".png"));
 				ImageIO.write(buff3, "png", new File("record/color/screen" + String.valueOf(steps / 25)+ ".png"));
-				ImageIO.write(buff4, "png", new File("record/predators-co2/screen" + String.valueOf(steps / 25)+ ".png"));
+				ImageIO.write(buff4, "png", new File("record/predators-org/screen" + String.valueOf(steps / 25)+ ".png"));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -340,6 +343,7 @@ public class World extends JPanel{
 		Map = new int[world_scale[0]][world_scale[1]];//0 - none, 1 - bot, 2 - organics
 		oxygen_map = new double[world_scale[0]][world_scale[1]];
 		org_map = new double[world_scale[0]][world_scale[1]];
+		mnr_map = new double[world_scale[0]][world_scale[1]];
 		for (int x = 0; x < world_scale[0]; x++) {
 			for (int y = 0; y < world_scale[1]; y++) {
 				oxygen_map[x][y] = 0.02;
@@ -417,6 +421,7 @@ public class World extends JPanel{
 				botpos[1] = e.getY() / 5;
 				count_ox = oxygen_map[botpos[0]][botpos[1]];
 				count_org = org_map[botpos[0]][botpos[1]];
+				count_mnr = mnr_map[botpos[0]][botpos[1]];
 				if (mouse == 1) {//set
 					//
 				}else if (mouse == 2) {//remove
@@ -444,7 +449,7 @@ public class World extends JPanel{
 				ListIterator<Bot> bot_iterator = objects.listIterator();
 				while (bot_iterator.hasNext()) {
 					Bot next_bot = bot_iterator.next();
-					next_bot.Update(bot_iterator, oxygen_map, org_map);
+					next_bot.Update(bot_iterator, oxygen_map, org_map, mnr_map);
 					if (selection != null) {
 						if (next_bot.xpos == selection.xpos && next_bot.ypos == selection.ypos) {
 							if (next_bot != selection) {
@@ -532,41 +537,27 @@ public class World extends JPanel{
 		}
 		return(pos);
 	}
-	private class dr1 implements ActionListener{
-		public void actionPerformed(ActionEvent e) {
-			draw_type = 0;
+	private class change_draw_type implements ActionListener{//смена режима отрисовки(берется из параметра)
+		int number;
+		private change_draw_type(int new_number){
+			number = new_number;
 		}
-	}
-	private class dr2 implements ActionListener{
 		public void actionPerformed(ActionEvent e) {
-			draw_type = 1;
-		}
-	}
-	private class dr3 implements ActionListener{
-		public void actionPerformed(ActionEvent e) {
-			draw_type = 2;
-		}
-	}
-	private class dr4 implements ActionListener{
-		public void actionPerformed(ActionEvent e) {
-			draw_type = 3;
-		}
-	}
-	private class dr5 implements ActionListener{
-		public void actionPerformed(ActionEvent e) {
-			draw_type = 4;
+			draw_type = number;
 		}
 	}
 	private class gas implements ActionListener{
 		public void actionPerformed(ActionEvent e) {
 			gas_draw_type++;
-			gas_draw_type %= 3;
+			gas_draw_type %= 4;
 			if (gas_draw_type == 0) {
-				gas_button.setText("none");
+				gas_button.setText("None");
 			}else if (gas_draw_type == 1) {
-				gas_button.setText("oxygen");
+				gas_button.setText("Oxygen");
 			}else if (gas_draw_type == 2) {
-				gas_button.setText("organics");
+				gas_button.setText("Organics");
+			}else if (gas_draw_type == 3) {
+				gas_button.setText("Minerals");
 			}
 		}
 	}
