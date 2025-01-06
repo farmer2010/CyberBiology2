@@ -9,6 +9,7 @@ import java.util.ListIterator;
 public class Bot{
 	ArrayList<Bot> objects;
 	Random rand = new Random();
+	private int size = 2;
 	private int x;
 	private int y;
 	public int xpos;
@@ -18,7 +19,7 @@ public class Bot{
 	public int organics;
 	public int minerals;
 	public int killed = 0;
-	public int[][] map;
+	public Bot[][] map;
 	public int[] commands = new int[64];
 	private int index = 0;
 	public int age = 1000;
@@ -52,18 +53,18 @@ public class Bot{
 		4,
 		3
 	};
-	private int[] world_scale = {324, 216};
+	private int[] world_scale = {500, 500};
 	private int c_red = 0;
 	private int c_green = 0;
 	private int c_blue = 0;
 	private int c_yellow = 0;
 	private int sector_len = world_scale[1] / 8;
 	private int pht_org_block = 0;//1 - фотосинтез, 2 - переработка органики
-	public Bot(int new_xpos, int new_ypos, Color new_color, int new_energy, int[][] new_map, ArrayList<Bot> new_objects) {
+	public Bot(int new_xpos, int new_ypos, Color new_color, int new_energy, Bot[][] new_map, ArrayList<Bot> new_objects) {
 		xpos = new_xpos;
 		ypos = new_ypos;
-		x = new_xpos * 5;
-		y = new_ypos * 5;
+		x = new_xpos * size;
+		y = new_ypos * size;
 		color = new_color;
 		energy = new_energy;
 		organics = 0;
@@ -91,8 +92,8 @@ public class Bot{
 					b = 128;
 				}else {
 					int y = (int)((c_yellow * 1.0) / all * 255.0);
-					r = max((int)(c_red * 1.0 / all * 255.0), y);
-					g = max((int)(c_green * 1.0 / all * 255.0), y);
+					r = Math.max((int)(c_red * 1.0 / all * 255.0), y);
+					g = Math.max((int)(c_green * 1.0 / all * 255.0), y);
 					b = (int)((c_blue * 1.0) / all * 255.0);
 				}
 				canvas.setColor(new Color(r, g, b));
@@ -118,7 +119,7 @@ public class Bot{
 				canvas.setColor(new Color((int)(age / 1000.0 * 255.0), (int)(age / 1000.0 * 255.0), 255 - (int)(age / 1000.0 * 255.0)));
 			}
 			//canvas.fillRect(x + 1, y + 1, 8, 8);
-			canvas.fillRect(x, y, 5, 5);
+			canvas.fillRect(x, y, size, size);
 		}else {//рисуем органику
 			canvas.setColor(new Color(0, 0, 0));
 			canvas.fillRect(x + 1, y + 1, 8, 8);
@@ -136,7 +137,7 @@ public class Bot{
 				for (int i = 0; i < 8; i++) {
 					int[] pos = get_rotate_position(i);
 					if (pos[1] > 0 & pos[1] < world_scale[1]) {
-						if (map[pos[0]][pos[1]] == 1) {
+						if (map[pos[0]][pos[1]] != null && map[pos[0]][pos[1]].state == 0) {
 							count++;
 						}
 					}
@@ -145,16 +146,15 @@ public class Bot{
 					oxygen_map[xpos][ypos] -= 0.002 * count;
 					update_commands(iterator, oxygen_map, org_map, mnr_map);
 					if (energy >= 800) {//автоматическое деление
-						multiply(rotate, iterator);
+						multiply(rotate, org_map, iterator);
 					}
 				}
-				age -= (int)(oxygen_map[xpos][ypos] * 10) * 2;
+				age -= (int)(oxygen_map[xpos][ypos] * 10);
 				//if (sector <= 7 & sector >= 5) {
 				//	minerals += minerals_list[sector - 5];
 				//}
 				if (energy <= 0) {
-					killed = 1;
-					map[xpos][ypos] = 0;
+					die_with_organics(org_map);
 					return(0);
 				}else if (energy > 1000) {
 					energy = 1000;
@@ -165,24 +165,6 @@ public class Bot{
 				}
 				if (minerals > 1000) {
 					minerals = 1000;
-				}
-			}else if (state == 1) {//падающая органика
-				int[] pos = get_rotate_position(4);
-				if (pos[1] >= 0 & pos[1] < world_scale[1]) {
-					if (map[pos[0]][pos[1]] == 0) {//если внизу свободно, падать
-						move(4);
-					}else {//если внизу занято, сыпаться
-						state = 2;
-						//int[] pos_left = get_rotate_position(5);//клетка слева снизу
-						//int[] pos_right = get_rotate_position(3);//клетка справа снизу
-						//if (map[pos_left[0]][pos_left[1]] == 0 && map[pos_right[0]][pos_right[1]] != 0) {//сыпаться влево
-						//	move(5);
-						//}else if (map[pos_left[0]][pos_left[1]] != 0 && map[pos_right[0]][pos_right[1]] == 0) {//сыпаться вправо
-						//	move(3);
-						//}else if (map[pos_left[0]][pos_left[1]] == 0 && map[pos_right[0]][pos_right[1]] == 0) {//сыпаться в случайную сторону
-						//	move(3 + rand.nextInt(2) * 2);
-						//}
-					}
 				}
 			}else {//стоящая органика
 				//
@@ -222,7 +204,7 @@ public class Bot{
 				for (i = 0; i < 8; i++) {
 					int[] pos = get_rotate_position(i);
 					if (pos[1] > 0 & pos[1] < world_scale[1]) {
-						if (map[pos[0]][pos[1]] == 1) {
+						if (map[pos[0]][pos[1]] != null && map[pos[0]][pos[1]].state == 0) {
 							count++;
 						}
 					}
@@ -242,7 +224,7 @@ public class Bot{
 				for (i = 0; i < 8; i++) {
 					int[] pos = get_rotate_position(i);
 					if (pos[1] > 0 & pos[1] < world_scale[1]) {
-						if (map[pos[0]][pos[1]] == 1) {
+						if (map[pos[0]][pos[1]] != null && map[pos[0]][pos[1]].state == 0) {
 							count++;
 						}
 					}
@@ -260,7 +242,7 @@ public class Bot{
 				for (i = 0; i < 8; i++) {
 					int[] pos = get_rotate_position(i);
 					if (pos[1] > 0 & pos[1] < world_scale[1]) {
-						if (map[pos[0]][pos[1]] == 1) {
+						if (map[pos[0]][pos[1]] != null && map[pos[0]][pos[1]].state == 0) {
 							count++;
 						}
 					}
@@ -277,7 +259,7 @@ public class Bot{
 				for (i = 0; i < 8; i++) {
 					int[] pos = get_rotate_position(i);
 					if (pos[1] > 0 & pos[1] < world_scale[1]) {
-						if (map[pos[0]][pos[1]] == 1) {
+						if (map[pos[0]][pos[1]] != null && map[pos[0]][pos[1]].state == 0) {
 							count++;
 						}
 					}
@@ -292,17 +274,11 @@ public class Bot{
 			}else if (command == 9) {//посмотреть относительно
 				int[] pos = get_rotate_position(commands[(index + 1) % 64] % 8);
 				if (pos[1] > 0 & pos[1] < world_scale[1]) {
-					if (map[pos[0]][pos[1]] == 0) {
+					if (map[pos[0]][pos[1]] == null) {
 						index = commands[(index + 3) % 64];//если ничего
-					}else if (map[pos[0]][pos[1]] == 1) {
-						Bot b = find(pos);
-						if (b != null) {
-							index = commands[(index + 4) % 64];//если бот
-						}else {
-							index = commands[(index + 3) % 64];//если ничего
-						}
-					}else if (map[pos[0]][pos[1]] == 2) {
-						index = commands[(index + 5) % 64];//если органика
+					}else if (map[pos[0]][pos[1]].state == 0) {
+						Bot b = map[pos[0]][pos[1]];
+						index = commands[(index + 4) % 64];//если бот
 					}
 				}else {
 					index = commands[(index + 2) % 64];//если граница
@@ -310,17 +286,11 @@ public class Bot{
 			}else if (command == 10) {//посмотреть абсолютно
 				int[] pos = get_rotate_position(rotate);
 				if (pos[1] > 0 & pos[1] < world_scale[1]) {
-					if (map[pos[0]][pos[1]] == 0) {
+					if (map[pos[0]][pos[1]] == null) {
 						index = commands[(index + 2) % 64];//если ничего
-					}else if (map[pos[0]][pos[1]] == 1) {
-						Bot b = find(pos);
-						if (b != null) {
-							index = commands[(index + 3) % 64];//если бот
-						}else {
-							index = commands[(index + 2) % 64];//если ничего
-						}
-					}else if (map[pos[0]][pos[1]] == 2) {
-						index = commands[(index + 4) % 64];//если органика
+					}else if (map[pos[0]][pos[1]].state == 0) {
+						Bot b = map[pos[0]][pos[1]];
+						index = commands[(index + 3) % 64];//если бот
 					}
 				}else {
 					index = commands[(index + 1) % 64];//если граница
@@ -373,12 +343,12 @@ public class Bot{
 					index = commands[(index + 2) % 64];
 				}
 			}else if (command == 20) {//поделиться относительно
-				multiply(commands[(index + 1) % 64] % 8, iterator);
+				multiply(commands[(index + 1) % 64] % 8, org_map, iterator);
 				index += 2;
 				index %= 64;
 				break;
 			}else if (command == 21) {//поделиться абсолютно
-				multiply(rotate, iterator);
+				multiply(rotate, org_map, iterator);
 				index += 1;
 				index %= 64;
 				break;
@@ -498,15 +468,15 @@ public class Bot{
 		if (pos[1] > 0 & pos[1] < world_scale[1]) {
 			double ox = oxygen_map[xpos][ypos];
 			if (org_map[pos[0]][pos[1]] > org) {
-				if (ox >= org * 0.000125) {
-					oxygen_map[xpos][ypos] -= org * 0.0000625;
+				if (ox >= org * 0.00005) {
+					oxygen_map[xpos][ypos] -= org * 0.00005;
 					energy += org;
 					org_map[pos[0]][pos[1]] -= org;
 					c_yellow++;
 				}
 			}else {
-				if (ox >= org_map[pos[0]][pos[1]] * 0.0000625) {
-					oxygen_map[xpos][ypos] -= org_map[pos[0]][pos[1]] * 0.0000625;
+				if (ox >= org_map[pos[0]][pos[1]] * 0.00005) {
+					oxygen_map[xpos][ypos] -= org_map[pos[0]][pos[1]] * 0.00005;
 					energy += org_map[pos[0]][pos[1]];
 					if (org_map[pos[0]][pos[1]] != 0) {
 						c_yellow++;
@@ -521,15 +491,15 @@ public class Bot{
 		if (pos[1] > 0 & pos[1] < world_scale[1]) {
 			double ox = oxygen_map[xpos][ypos];
 			if (org_map[pos[0]][pos[1]] > org) {
-				if (ox >= org * 0.000125) {
-					oxygen_map[xpos][ypos] -= org * 0.0000625;
+				if (ox >= org * 0.00005) {
+					oxygen_map[xpos][ypos] -= org * 0.00005;
 					energy += org;
 					org_map[pos[0]][pos[1]] -= org;
 					c_yellow++;
 				}
 			}else {
-				if (ox >= org_map[pos[0]][pos[1]] * 0.0000625) {
-					oxygen_map[xpos][ypos] -= org_map[pos[0]][pos[1]] * 0.0000625;
+				if (ox >= org_map[pos[0]][pos[1]] * 0.00005) {
+					oxygen_map[xpos][ypos] -= org_map[pos[0]][pos[1]] * 0.00005;
 					energy += org_map[pos[0]][pos[1]];
 					if (org_map[pos[0]][pos[1]] > 0) {
 						c_yellow++;
@@ -541,7 +511,7 @@ public class Bot{
 	}
 	public void die_with_organics(double[][] org_map) {//умереть с появлением органики
 		killed = 1;
-		map[xpos][ypos] = 0;
+		map[xpos][ypos] = null;
 		double enr = (energy + 150) / 9;
 		for (int i = 0; i < 8; i++) {
 			int[] pos = get_rotate_position(i);
@@ -560,8 +530,8 @@ public class Bot{
 	public void give(int rot) {
 		int[] pos = get_rotate_position(rot);
 		if (pos[1] > 0 & pos[1] < world_scale[1]) {
-			if (map[pos[0]][pos[1]] == 1) {
-				Bot relative = find(pos);
+			if (map[pos[0]][pos[1]] != null && map[pos[0]][pos[1]].state == 0) {
+				Bot relative = map[pos[0]][pos[1]];
 				if (relative.killed == 0) {
 					relative.energy += energy / 4;
 					relative.minerals += minerals / 4;
@@ -574,8 +544,8 @@ public class Bot{
 	public void give2(int rot) {
 		int[] pos = get_rotate_position(rot);
 		if (pos[1] > 0 & pos[1] < world_scale[1]) {
-			if (map[pos[0]][pos[1]] == 1) {
-				Bot relative = find(pos);
+			if (map[pos[0]][pos[1]] != null && map[pos[0]][pos[1]].state == 0) {
+				Bot relative = map[pos[0]][pos[1]];
 				if (relative.killed == 0) {
 					int enr = relative.energy + energy;
 					int mnr = relative.minerals + minerals;
@@ -590,24 +560,16 @@ public class Bot{
 	public void attack(int rot) {
 		int[] pos = get_rotate_position(rot);
 		if (pos[1] > 0 & pos[1] < world_scale[1]) {
-			if (map[pos[0]][pos[1]] != 0) {
-				Bot victim = find(pos);
+			if (map[pos[0]][pos[1]] != null) {
+				Bot victim = map[pos[0]][pos[1]];
 				if (victim != null) {
 					energy += victim.energy;
-					map[pos[0]][pos[1]] = 0;
+					map[pos[0]][pos[1]] = null;
 					victim.killed = 1;
 					c_red++;
 				}
 			}
 		}
-	}
-	public Bot find(int[] pos) {//только если есть сосед
-		for (Bot b: objects) {
-			if (b.killed == 0 & b.xpos == pos[0] & b.ypos == pos[1]) {
-				return(b);
-			}
-		}
-		return(null);
 	}
 	public boolean is_relative(int[] brain1, int[] brain2) {
 		int errors = 0;
@@ -635,28 +597,27 @@ public class Bot{
 	public int move(int rot) {
 		int[] pos = get_rotate_position(rot);
 		if (pos[1] > 0 & pos[1] < world_scale[1]) {
-			if (map[pos[0]][pos[1]] == 0) {
-				map[xpos][ypos] = 0;
+			if (map[pos[0]][pos[1]] == null) {
+				Bot self = map[xpos][ypos];
+				map[xpos][ypos] = null;
 				xpos = pos[0];
 				ypos = pos[1];
-				x = xpos * 5;
-				y = ypos * 5;
-				map[xpos][ypos] = state2;
+				x = xpos * size;
+				y = ypos * size;
+				map[xpos][ypos] = self;
 				return(1);
 			}
 		}
 		return(0);
 	}
-	public void multiply(int rot, ListIterator<Bot> iterator) {
+	public void multiply(int rot, double[][] org_map, ListIterator<Bot> iterator) {
 		int[] pos = get_rotate_position(rot);
 		if (pos[1] > 0 & pos[1] < world_scale[1]) {
-			if (map[pos[0]][pos[1]] == 0) {
+			if (map[pos[0]][pos[1]] == null) {
 				energy -= 150;
 				if (energy <= 0) {
-					killed = 1;
-					map[xpos][ypos] = 0;
+					die_with_organics(org_map);
 				}else {
-					map[pos[0]][pos[1]] = 1; 
 					Color new_color;
 					if (rand.nextInt(800) == 0) {//немного меняем(с шансом 1/100 - полностью)
 						new_color = new Color(rand.nextInt(256), rand.nextInt(256), rand.nextInt(256));
@@ -676,6 +637,7 @@ public class Bot{
 					minerals /= 2;
 					new_bot.commands = new_brain;
 					iterator.add(new_bot);
+					map[pos[0]][pos[1]] = new_bot;
 				}
 			}
 		}
@@ -694,14 +656,5 @@ public class Bot{
 			number = border2;
 		}
 		return(number);
-	}
-	public int max(int number1, int number2) {//максимальное из двух чисел
-		if (number1 > number2) {
-			return(number1);
-		}else if (number2 > number1) {
-			return(number2);
-		}else {
-			return(number1);
-		}
 	}
 }

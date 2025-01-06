@@ -24,11 +24,12 @@ import java.awt.Graphics2D;
 
 public class World extends JPanel{
 	ArrayList<Bot> objects;
-	int size = 25;
+	int[] world_scale = {500, 500};
+	int size = 2;
 	Timer timer;
 	int delay = 10;
 	Random rand = new Random();
-	int[][] Map = new int[162][108];//0 - none, 1 - bot, 2 - organics
+	Bot[][] Map = new Bot[world_scale[0]][world_scale[1]];
 	Color gray = new Color(100, 100, 100);
 	Color green = new Color(0, 255, 0);
 	Color red = new Color(255, 0, 0);
@@ -56,7 +57,6 @@ public class World extends JPanel{
 	JButton gas_button = new JButton("none");
 	boolean sh_brain = false;
 	boolean rec = false;
-	int[] world_scale = {324, 216};
 	int[][] movelist = {
 		{0, -1},
 		{1, -1},
@@ -167,6 +167,7 @@ public class World extends JPanel{
 			for (int y = 0; y < world_scale[1]; y++) {
 				oxygen_map[x][y] = 0.02;
 				org_map[x][y] = 200.0;
+				Map[x][y] = null;
 			}
 		}
         
@@ -174,27 +175,20 @@ public class World extends JPanel{
 	}
 	public void paintComponent(Graphics canvas) {
 		super.paintComponent(canvas);
-		//for (int x = 0; x < world_scale[0]; x++) {
-		//	for (int y = 0; y < world_scale[1]; y++) {
-		//		if (Map[x][y] == 1) {
-		//			canvas.setColor(green);
-		//			canvas.fillRect(x * 10, y * 10, 10, 10);
-		//		}else if (Map[x][y] == 2){
-		//			canvas.setColor(red);
-		//			canvas.fillRect(x * 10, y * 10, 10, 10);
-		//		}
-		//	}
-		//}
+		canvas.setColor(gray);
+		canvas.fillRect(0, 0, W, H);
+		canvas.setColor(new Color(255, 255, 255));
+		canvas.fillRect(0, 0, world_scale[0] * size, world_scale[1] * size);
 		if (render) {
 			if (gas_draw_type != 0) {
 				for (int x = 0; x < world_scale[0]; x++) {
 					for (int y = 0; y < world_scale[1]; y++) {
 						if (gas_draw_type == 1) {
 							canvas.setColor(new Color(255 - (int)(oxygen_map[x][y] * 128), 255 - (int)(oxygen_map[x][y] * 128), 255));
-							canvas.fillRect(x * 5, y * 5, 5, 5);
-						}else {
+							canvas.fillRect(x * size, y * size, size, size);
+						}else if (gas_draw_type == 2){
 							canvas.setColor(new Color(255 - (int)(org_map[x][y] / 1000 * 255), 255 - (int)(org_map[x][y] / 1000 * 255), 255 - (int)(org_map[x][y] / 1000 * 255)));
-							canvas.fillRect(x * 5, y * 5, 5, 5);
+							canvas.fillRect(x * size, y * size, size, size);
 						}
 					}
 				}
@@ -203,8 +197,6 @@ public class World extends JPanel{
 				b.Draw(canvas, draw_type);
 			}
 		}
-		canvas.setColor(gray);
-		canvas.fillRect(W - 300, 0, 300, 1080);
 		canvas.setColor(black);
 		canvas.setFont(new Font("arial", Font.BOLD, 18));
 		canvas.drawString("Main: ", W - 300, 20);
@@ -249,7 +241,7 @@ public class World extends JPanel{
 			canvas.setColor(new Color(90, 90, 90, 90));
 			canvas.fillRect(0, 0, W - 300, 1080);
 			canvas.setColor(new Color(255, 0, 0));
-			canvas.fillRect(selection.xpos * 5, selection.ypos * 5, 5, 5);
+			canvas.fillRect(selection.xpos * size, selection.ypos * size, size, size);
 		}else {
 			canvas.drawString("none", W - 300, 295);
 		}
@@ -275,7 +267,7 @@ public class World extends JPanel{
 				for (int x = 0; x < world_scale[0]; x++) {
 					for (int y = 0; y < world_scale[1]; y++) {
 						g2d.setColor(new Color(255 - (int)(oxygen_map[x][y] * 128), 255 - (int)(oxygen_map[x][y] * 128), 255));
-						g2d.fillRect(x * 5, y * 5, 5, 5);
+						g2d.fillRect(x * size, y * size, size, size);
 					}
 				}
 				for(Bot b: objects) {
@@ -290,7 +282,7 @@ public class World extends JPanel{
 				for (int x = 0; x < world_scale[0]; x++) {
 					for (int y = 0; y < world_scale[1]; y++) {
 						g2d.setColor(new Color(255 - (int)(org_map[x][y] / 1000 * 255), 255 - (int)(org_map[x][y] / 1000 * 255), 255 - (int)(org_map[x][y] / 1000 * 255)));
-						g2d.fillRect(x * 5, y * 5, 5, 5);
+						g2d.fillRect(x * size, y * size, size, size);
 					}
 				}
 				for(Bot b: objects) {
@@ -305,7 +297,7 @@ public class World extends JPanel{
 				for (int x = 0; x < world_scale[0]; x++) {
 					for (int y = 0; y < world_scale[1]; y++) {
 						g2d.setColor(new Color(255 - (int)(oxygen_map[x][y] * 255), 255 - (int)(oxygen_map[x][y] * 255), 255 - (int)(oxygen_map[x][y] * 255)));
-						g2d.fillRect(x * 5, y * 5, 5, 5);
+						g2d.fillRect(x * size, y * size, size, size);
 					}
 				}
 				for(Bot b: objects) {
@@ -320,7 +312,7 @@ public class World extends JPanel{
 				for (int x = 0; x < world_scale[0]; x++) {
 					for (int y = 0; y < world_scale[1]; y++) {
 						g2d.setColor(new Color(255 - (int)(oxygen_map[x][y] * 255), 255 - (int)(oxygen_map[x][y] * 255), 255 - (int)(oxygen_map[x][y] * 255)));
-						g2d.fillRect(x * 5, y * 5, 5, 5);
+						g2d.fillRect(x * size, y * size, size, size);
 					}
 				}
 				for(Bot b: objects) {
@@ -340,7 +332,7 @@ public class World extends JPanel{
 	public void newPopulation() {
 		steps = 0;
 		objects = new ArrayList<Bot>();
-		Map = new int[world_scale[0]][world_scale[1]];//0 - none, 1 - bot, 2 - organics
+		Map = new Bot[world_scale[0]][world_scale[1]];//0 - none, 1 - bot, 2 - organics
 		oxygen_map = new double[world_scale[0]][world_scale[1]];
 		org_map = new double[world_scale[0]][world_scale[1]];
 		mnr_map = new double[world_scale[0]][world_scale[1]];
@@ -348,22 +340,24 @@ public class World extends JPanel{
 			for (int y = 0; y < world_scale[1]; y++) {
 				oxygen_map[x][y] = 0.02;
 				org_map[x][y] = 200.0;
+				Map[x][y] = null;
 			}
 		}
-		for (int i = 0; i < 3000; i++) {
+		for (int i = 0; i < 40000; i++) {
 			while(true){
 				int x = rand.nextInt(world_scale[0]);
 				int y = rand.nextInt(world_scale[1]);
-				if (Map[x][y] == 0) {
-					objects.add(new Bot(
+				if (Map[x][y] == null) {
+					Bot new_bot = new Bot(
 						x,
 						y,
 						new Color(rand.nextInt(256),rand.nextInt(256), rand.nextInt(256)),
 						1000,
 						Map,
 						objects
-					));
-					Map[x][y] = 1;
+					);
+					objects.add(new_bot);
+					Map[x][y] = new_bot;
 					break;
 				}
 			}
@@ -373,12 +367,12 @@ public class World extends JPanel{
 	private class BotListener extends MouseAdapter implements ActionListener{
 		public void mousePressed(MouseEvent e) {
 			if (e.getX() < W - 300) {
-				botpos[0] = e.getX() / 5;
-				botpos[1] = e.getY() / 5;
+				botpos[0] = e.getX() / size;
+				botpos[1] = e.getY() / size;
 				count_ox = oxygen_map[botpos[0]][botpos[1]];
 				count_org = org_map[botpos[0]][botpos[1]];
 				if (mouse == 0) {//select
-					if (Map[botpos[0]][botpos[1]] == 1) {
+					if (Map[botpos[0]][botpos[1]] != null && Map[botpos[0]][botpos[1]].state == 0) {
 						for(Bot b: objects) {
 							if (b.xpos == botpos[0] && b.ypos == botpos[1]) {
 								selection = b;
@@ -394,18 +388,18 @@ public class World extends JPanel{
 					}
 				}else if (mouse == 1) {//set
 					if (for_set != null) {
-						if (Map[botpos[0]][botpos[1]] == 0) {
+						if (Map[botpos[0]][botpos[1]] == null) {
 							objects.add(for_set);
-							Map[botpos[0]][botpos[1]] = for_set.state2;
+							Map[botpos[0]][botpos[1]] = for_set;
 						}
 					}
 				}else {//remove
-					if (Map[botpos[0]][botpos[1]] != 0) {
+					if (Map[botpos[0]][botpos[1]] != null) {
 						for(Bot b: objects) {
 							if (b.xpos == botpos[0] && b.ypos == botpos[1]) {
 								b.energy = 0;
 								b.killed = 1;
-								Map[botpos[0]][botpos[1]] = 0;
+								Map[botpos[0]][botpos[1]] = null;
 							}
 						}
 					}
@@ -417,20 +411,25 @@ public class World extends JPanel{
 		}
 		public void mouseDragged(MouseEvent e) {
 			if (e.getX() < W - 300) {
-				botpos[0] = e.getX() / 5;
-				botpos[1] = e.getY() / 5;
+				botpos[0] = e.getX() / size;
+				botpos[1] = e.getY() / size;
 				count_ox = oxygen_map[botpos[0]][botpos[1]];
 				count_org = org_map[botpos[0]][botpos[1]];
 				count_mnr = mnr_map[botpos[0]][botpos[1]];
 				if (mouse == 1) {//set
-					//
+					if (for_set != null) {
+						if (Map[botpos[0]][botpos[1]] == null) {
+							objects.add(for_set);
+							Map[botpos[0]][botpos[1]] = for_set;
+						}
+					}
 				}else if (mouse == 2) {//remove
-					if (Map[botpos[0]][botpos[1]] != 0) {
+					if (Map[botpos[0]][botpos[1]] != null) {
 						for(Bot b: objects) {
 							if (b.xpos == botpos[0] && b.ypos == botpos[1]) {
 								b.energy = 0;
 								b.killed = 1;
-								Map[botpos[0]][botpos[1]] = 0;
+								Map[botpos[0]][botpos[1]] = null;
 							}
 						}
 					}
@@ -468,7 +467,7 @@ public class World extends JPanel{
 					}
 				}
 				if (selection != null) {
-					if (selection.killed == 1 || Map[selection.xpos][selection.ypos] != 1 || selection.state != 0){
+					if (selection.killed == 1 || Map[selection.xpos][selection.ypos] == null || selection.state != 0){
 						selection = null;
 						save_button.setEnabled(false);
 						show_brain_button.setEnabled(false);
@@ -625,7 +624,7 @@ public class World extends JPanel{
 		public void actionPerformed(ActionEvent e) {
 			steps = 0;
 			objects = new ArrayList<Bot>();
-			Map = new int[162][108];//0 - none, 1 - bot, 2 - organics
+			Map = new Bot[world_scale[0]][world_scale[1]];//0 - none, 1 - bot, 2 - organics
 		}
 	}
 }
