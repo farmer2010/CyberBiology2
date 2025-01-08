@@ -186,6 +186,10 @@ public class World extends JPanel{
 						if (gas_draw_type == 1) {
 							canvas.setColor(new Color(255 - (int)(oxygen_map[x][y] * 128), 255 - (int)(oxygen_map[x][y] * 128), 255));
 							canvas.fillRect(x * size, y * size, size, size);
+							if (org_map[x][y] >= 800) {
+								canvas.setColor(new Color(90, 0, 0));
+								canvas.fillRect(x * size, y * size, size, size);
+							}
 						}else if (gas_draw_type == 2){
 							canvas.setColor(new Color(255 - (int)(org_map[x][y] / 1000 * 255), 255 - (int)(org_map[x][y] / 1000 * 255), 255 - (int)(org_map[x][y] / 1000 * 255)));
 							canvas.fillRect(x * size, y * size, size, size);
@@ -260,14 +264,20 @@ public class World extends JPanel{
 		}
 		if (rec && steps % 25 == 0) {
 			try {
-				BufferedImage buff = new BufferedImage(1920, 1080, BufferedImage.TYPE_INT_RGB);
+				BufferedImage buff = new BufferedImage(1000, 1000, BufferedImage.TYPE_INT_RGB);//хищники-кислород
 				Graphics2D g2d = buff.createGraphics();
 				g2d.setColor(Color.WHITE);
-				g2d.fillRect(0, 0, 1920, 1080);
+				g2d.fillRect(0, 0, 1000, 1000);
 				for (int x = 0; x < world_scale[0]; x++) {
 					for (int y = 0; y < world_scale[1]; y++) {
-						g2d.setColor(new Color(255 - (int)(oxygen_map[x][y] * 128), 255 - (int)(oxygen_map[x][y] * 128), 255));
-						g2d.fillRect(x * size, y * size, size, size);
+						if (oxygen_map[x][y] >= 0.006) {
+							g2d.setColor(new Color(255 - (int)(oxygen_map[x][y] * 128), 255 - (int)(oxygen_map[x][y] * 128), 255));
+							g2d.fillRect(x * size, y * size, size, size);
+						}
+						if (org_map[x][y] >= 800) {
+							g2d.setColor(new Color(90, 0, 0));
+							g2d.fillRect(x * size, y * size, size, size);
+						}
 					}
 				}
 				for(Bot b: objects) {
@@ -275,10 +285,10 @@ public class World extends JPanel{
 				}
 				g2d.dispose();
 				//
-				BufferedImage buff4 = new BufferedImage(1920, 1080, BufferedImage.TYPE_INT_RGB);
+				BufferedImage buff4 = new BufferedImage(1000, 1000, BufferedImage.TYPE_INT_RGB);//хищники-органика
 				g2d = buff4.createGraphics();
 				g2d.setColor(Color.WHITE);
-				g2d.fillRect(0, 0, 1920, 1080);
+				g2d.fillRect(0, 0, 1000, 1000);
 				for (int x = 0; x < world_scale[0]; x++) {
 					for (int y = 0; y < world_scale[1]; y++) {
 						g2d.setColor(new Color(255 - (int)(org_map[x][y] / 1000 * 255), 255 - (int)(org_map[x][y] / 1000 * 255), 255 - (int)(org_map[x][y] / 1000 * 255)));
@@ -290,14 +300,20 @@ public class World extends JPanel{
 				}
 				g2d.dispose();
 				//
-				BufferedImage buff2 = new BufferedImage(1920, 1080, BufferedImage.TYPE_INT_RGB);
+				BufferedImage buff2 = new BufferedImage(1000, 1000, BufferedImage.TYPE_INT_RGB);//энергия
 				g2d = buff2.createGraphics();
 				g2d.setColor(Color.WHITE);
-				g2d.fillRect(0, 0, 1920, 1080);
+				g2d.fillRect(0, 0, 1000, 1000);
 				for (int x = 0; x < world_scale[0]; x++) {
 					for (int y = 0; y < world_scale[1]; y++) {
-						g2d.setColor(new Color(255 - (int)(oxygen_map[x][y] * 255), 255 - (int)(oxygen_map[x][y] * 255), 255 - (int)(oxygen_map[x][y] * 255)));
-						g2d.fillRect(x * size, y * size, size, size);
+						if (oxygen_map[x][y] >= 0.006) {
+							g2d.setColor(new Color(255 - (int)(oxygen_map[x][y] * 128), 255 - (int)(oxygen_map[x][y] * 128), 255));
+							g2d.fillRect(x * size, y * size, size, size);
+						}
+						if (org_map[x][y] >= 800) {
+							g2d.setColor(new Color(90, 0, 0));
+							g2d.fillRect(x * size, y * size, size, size);
+						}
 					}
 				}
 				for(Bot b: objects) {
@@ -305,14 +321,20 @@ public class World extends JPanel{
 				}
 				g2d.dispose();
 				//
-				BufferedImage buff3 = new BufferedImage(1920, 1080, BufferedImage.TYPE_INT_RGB);
+				BufferedImage buff3 = new BufferedImage(1000, 1000, BufferedImage.TYPE_INT_RGB);//цвет
 				g2d = buff3.createGraphics();
 				g2d.setColor(Color.WHITE);
-				g2d.fillRect(0, 0, 1920, 1080);
+				g2d.fillRect(0, 0, 1000, 1000);
 				for (int x = 0; x < world_scale[0]; x++) {
 					for (int y = 0; y < world_scale[1]; y++) {
-						g2d.setColor(new Color(255 - (int)(oxygen_map[x][y] * 255), 255 - (int)(oxygen_map[x][y] * 255), 255 - (int)(oxygen_map[x][y] * 255)));
-						g2d.fillRect(x * size, y * size, size, size);
+						if (oxygen_map[x][y] >= 0.006) {
+							g2d.setColor(new Color(255 - (int)(oxygen_map[x][y] * 128), 255 - (int)(oxygen_map[x][y] * 128), 255));
+							g2d.fillRect(x * size, y * size, size, size);
+						}
+						if (org_map[x][y] >= 800) {
+							g2d.setColor(new Color(90, 0, 0));
+							g2d.fillRect(x * size, y * size, size, size);
+						}
 					}
 				}
 				for(Bot b: objects) {
