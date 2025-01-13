@@ -2,7 +2,6 @@ package sct;
 import java.io.File;
 
 import javax.swing.*;
-//import java.awt.Dimension;
 
 public class Main{
 	public static void main(String[] args) {
