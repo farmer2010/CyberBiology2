@@ -9,28 +9,32 @@ import java.util.ListIterator;
 public class Bot{
 	ArrayList<Bot> objects;
 	Random rand = new Random();
-	private int x;
+	public Bot[][] map;
+	//
+	private int x;//позиция
 	private int y;
 	public int xpos;
 	public int ypos;
-	public Color color;
+	//
+	public Color color;//основные параметры
 	private Color clan_color = new Color(rand.nextInt(256), rand.nextInt(256), rand.nextInt(256));
 	public int energy;
-	public int killed = 0;
-	public Bot[][] map;
+	public int age = 1000;
+	public int memory = 0;
+	//public int type;
 	public int[] commands = new int[64];
 	private int index = 0;
-	public int age = 1000;
-	public int state = 0;//бот или органика
-	public int state2 = 1;//что ставить в массив с миром
 	private int rotate = rand.nextInt(8);
-	public int memory = 0;
-	public int type;
-	private int c_red = 0;
+	//
+	private int c_red = 0;//цвет в режиме отрисовки хищников
 	private int c_green = 0;
 	private int c_blue = 0;
 	private int c_yellow = 0;
-	private int pht_org_block = 0;//1 - фотосинтез, 2 - переработка органики
+	//
+	public int state = 0;//тип бота
+	private int pht_org_block = 0;//специализация: 1 - фотосинтез, 2 - переработка органики
+	private int seed_time;//сколько лететь(если семечко)
+	public int killed = 0;//убит ли бот
 	public Bot(int new_xpos, int new_ypos, Color new_color, int new_energy, Bot[][] new_map, ArrayList<Bot> new_objects) {
 		xpos = new_xpos;
 		ypos = new_ypos;
@@ -40,78 +44,79 @@ public class Bot{
 		energy = new_energy;
 		objects = new_objects;
 		map = new_map;
-		for (int i = 0; i < 64; i++) {
+		//
+		for (int i = 0; i < 64; i++) {//заполняем мозг случайными числами
 			commands[i] = rand.nextInt(64);
 		}
 	}
-	public void Draw(Graphics canvas, int draw_type) {
-		if (state == 0) {//рисуем бота
-			if (draw_type == 0) {//режим отрисовки хищников
-				int r = 0;
-				int g = 0;
-				int b = 0;
-				int all = c_red + c_green + c_blue + c_yellow;
-				if (all == 0) {
-					r = 128;
-					g = 128;
-					b = 128;
-				}else {
-					int y = (int)((c_yellow * 1.0) / all * 255.0);
-					r = Math.max((int)(c_red * 1.0 / all * 255.0), y);
-					g = Math.max((int)(c_green * 1.0 / all * 255.0), y);
-					b = (int)((c_blue * 1.0) / all * 255.0);
-				}
-				canvas.setColor(new Color(r, g, b));
-			}else if (draw_type == 1) {//цвета
-				canvas.setColor(color);
-			}else if (draw_type == 2) {//энергии
-				int g = 255 - (int)(energy / 1000.0 * 255.0);
-				if (g > 255) {
-					g = 255;
-				}else if (g < 0) {
-					g = 0;
-				}
-				canvas.setColor(new Color(255, g, 0));
-			}else if (draw_type == 3) {//кланов
-				canvas.setColor(clan_color);
-			}else if (draw_type == 4) {//возраста
-				canvas.setColor(new Color((int)(age / 1000.0 * 255.0), (int)(age / 1000.0 * 255.0), 255 - (int)(age / 1000.0 * 255.0)));
-			}
-			//canvas.fillRect(x + 1, y + 1, 8, 8);
+	public void Draw(Graphics canvas, int draw_type, int zoom) {
+		int[] pos = {0, 0};
+		if (zoom == 0) {//зум x1
+			canvas.setColor(get_color(draw_type));
 			canvas.fillRect(x, y, Constant.size, Constant.size);
-		}else {//рисуем органику
-			canvas.setColor(new Color(0, 0, 0));
-			canvas.fillRect(x + 1, y + 1, 8, 8);
-			canvas.setColor(new Color(128, 128, 128));
-			canvas.fillRect(x + 2, y + 2, 6, 6);
+		}else if (zoom == 1) {//зум x2.5
+			if (xpos >= pos[0] && xpos < pos[0] + Constant.world_scale[0] / 2.5 && ypos >= pos[1] && ypos < pos[1] + Constant.world_scale[1] / 2.5) {
+				canvas.setColor(get_color(draw_type));
+				canvas.fillRect(xpos * 5, ypos * 5, 5, 5);
+			}
+		}else if (zoom == 2) {//зум x5
+			if (xpos >= pos[0] && xpos < pos[0] + Constant.world_scale[0] / 5 && ypos >= pos[1] && ypos < pos[1] + Constant.world_scale[1] / 5) {
+				canvas.setColor(new Color(0, 0, 0));
+				canvas.fillRect(xpos * 10, ypos * 10, 10, 10);
+				canvas.setColor(get_color(draw_type));
+				canvas.fillRect(xpos * 10 + 1, ypos * 10 + 1, 8, 8);
+			}
 		}
 	}
 	public int Update(ListIterator<Bot> iterator, double[][] oxygen_map, double[][] org_map, double[][] mnr_map) {
 		if (killed == 0) {
-			if (state == 0) {//бот
-				age--;
+			if (state == 0) {//если бот
+				age -= (int)(oxygen_map[xpos][ypos] * Constant.age_minus_coeff) + 1;
 				energy -= Constant.energy_for_life;
-				int count = bot_count() + 1;
+				//
+				int count = bot_count() + 1;//автоматическое деление и мозг
 				if (oxygen_map[xpos][ypos] >= Constant.life_ox_coeff * count) {
 					oxygen_map[xpos][ypos] -= Constant.life_ox_coeff * count;
-					update_commands(iterator, oxygen_map, org_map, mnr_map);
-					if (energy >= 800) {//автоматическое деление
-						multiply(rotate, org_map, iterator);
+					update_commands(iterator, oxygen_map, org_map, mnr_map);//если хватило кислорода, выполняем команды
+					if (energy >= Constant.energy_for_auto_multiply) {//автоматическое деление
+						multiply(rotate, 0, 0, org_map, oxygen_map, iterator);
 					}
 				}
-				age -= (int)(oxygen_map[xpos][ypos] * Constant.age_minus_coeff);
-				if (energy <= 0) {
-					die_with_organics(org_map);
+				//
+				if (energy <= 0) {//смерть от недостатка энергии
+					die_with_organics(org_map, oxygen_map);
 					return(0);
-				}else if (energy > 1000) {
+				}else if (energy > 1000) {//ограничитель
 					energy = 1000;
 				}
-				if (age <= 0 || org_map[xpos][ypos] >= Constant.org_die_level) {
-					die_with_organics(org_map);
+				//
+				if (age <= 0 || org_map[xpos][ypos] >= Constant.org_die_level) {//смерть от старости или от органики
+					die_with_organics(org_map, oxygen_map);
 					return(0);
 				}
-			}else {//стоящая органика
+			}else if (state == 1){//если семечко
+				if (org_map[xpos][ypos] >= Constant.org_die_level) {//умираем от переизбытка органики
+					die_with_organics(org_map, oxygen_map);
+					return(0);
+				}
 				//
+				int res = move(rotate);//двигаемся
+				if (res == 0) {//столкновение
+					int[] pos = get_rotate_position(rotate);
+					if (pos[1] >= 0 & pos[1] < Constant.world_scale[1]) {
+						if (map[pos[0]][pos[1]] != null) {
+							die_with_organics(org_map, oxygen_map);//убить семечко
+							map[pos[0]][pos[1]].die_with_organics(org_map, oxygen_map);//убить бота
+							return(0);
+						}
+					}
+				}
+				//
+				seed_time--;//уменьшаем счетчик
+				if (seed_time == 0) {//если время вышло, превращаемся в бота
+					state = 0;
+					rotate = rand.nextInt(8);
+				}
 			}
 		}
 		return(0);
@@ -129,12 +134,12 @@ public class Bot{
 				index += 2;
 				index %= 64;
 			}else if (command == 2 || command == 3 || command == 4) {//фотосинтез
-				int sector = bot_in_sector();
+				int sector = Constant.sector(ypos);
 				if (sector <= 7 && pht_org_block != 2) {
 					pht_org_block = 1;
-					energy += Constant.pht_energy_list[sector] * (org_map[xpos][ypos] / Constant.pht_coeff);
+					energy += photo_energy(sector, org_map);
 					c_green++;
-					oxygen_map[xpos][ypos] += Constant.pht_ox_coeff * Constant.pht_energy_list[sector] * (org_map[xpos][ypos] / Constant.pht_coeff);
+					oxygen_map[xpos][ypos] += Constant.pht_ox_coeff * photo_energy(sector, org_map);
 					if (oxygen_map[xpos][ypos] > 1) {
 						oxygen_map[xpos][ypos] = 1;
 					}
@@ -168,7 +173,7 @@ public class Bot{
 				int count = bot_count() + 1;
 				if (oxygen_map[xpos][ypos] >= Constant.attack_ox_coeff * count) {
 					oxygen_map[xpos][ypos] -= Constant.attack_ox_coeff * count;
-					attack(commands[(index + 1) % 64] % 8, org_map);
+					attack(commands[(index + 1) % 64] % 8, org_map, oxygen_map);
 				}
 				index += 2;
 				index %= 64;
@@ -177,7 +182,7 @@ public class Bot{
 				int count = bot_count() + 1;
 				if (oxygen_map[xpos][ypos] >= Constant.attack_ox_coeff * count) {
 					oxygen_map[xpos][ypos] -= Constant.attack_ox_coeff * count;
-					attack(rotate, org_map);
+					attack(rotate, org_map, oxygen_map);
 				}
 				index += 1;
 				index %= 64;
@@ -205,26 +210,26 @@ public class Bot{
 					index = commands[(index + 3) % 64];
 				}
 			}else if (command == 16) {//есть ли фотосинтез
-				int sector = bot_in_sector();
+				int sector = Constant.sector(ypos);
 				if (sector <= 5) {
 					index = commands[(index + 1) % 64];
 				}else {
 					index = commands[(index + 2) % 64];
 				}
 			}else if (command == 17) {//есть ли приход минералов
-				int sector = bot_in_sector();
+				int sector = Constant.sector(ypos);
 				if (sector <= 7 & sector >= 5) {
 					index = commands[(index + 1) % 64];
 				}else {
 					index = commands[(index + 2) % 64];
 				}
 			}else if (command == 18) {//поделиться относительно
-				multiply(commands[(index + 1) % 64] % 8, org_map, iterator);
+				multiply(commands[(index + 1) % 64] % 8, 0, 0, org_map, oxygen_map, iterator);
 				index += 2;
 				index %= 64;
 				break;
 			}else if (command == 19) {//поделиться абсолютно
-				multiply(rotate, org_map, iterator);
+				multiply(rotate, 0, 0, org_map, oxygen_map, iterator);
 				index += 1;
 				index %= 64;
 				break;
@@ -250,12 +255,12 @@ public class Bot{
 					index = commands[(index + 3) % 64];
 				}
 			}else if (command == 23) {//равномерное распределение ресурсов относительно
-				give2(commands[(index + 1) % 64] % 8);
+				unif_distrib(commands[(index + 1) % 64] % 8);
 				index += 2;
 				index %= 64;
 				break;
 			}else if (command == 24) {//равномерное распределение ресурсов абсолютно
-				give2(rotate);
+				unif_distrib(rotate);
 				index += 1;
 				index %= 64;
 				break;
@@ -271,7 +276,7 @@ public class Bot{
 			}else if (command == 27 || command == 28) {//переработка органики под собой
 				if (pht_org_block != 1) {
 					pht_org_block = 2;
-					recycle_organics2(org_map, oxygen_map, commands[(index + 1) % 64] * 2);
+					recycle_organics_under(org_map, oxygen_map, (int)(commands[(index + 1) % 64] * Constant.org_recycle_coeff));
 				}
 				index += 2;
 				index %= 64;
@@ -279,7 +284,7 @@ public class Bot{
 			}else if (command == 29 || command == 30) {//переработка органики перед собой относительно
 				if (pht_org_block != 1) {
 					pht_org_block = 2;
-					recycle_organics(commands[(index + 1) % 64] % 8, org_map, oxygen_map, commands[(index + 2) % 64] * 2);
+					recycle_organics(commands[(index + 1) % 64] % 8, org_map, oxygen_map, (int)(commands[(index + 2) % 64] * Constant.org_recycle_coeff));
 				}
 				index += 3;
 				index %= 64;
@@ -287,7 +292,7 @@ public class Bot{
 			}else if (command == 31 || command == 32) {//переработка органики перед собой абсолютно
 				if (pht_org_block != 1) {
 					pht_org_block = 2;
-					recycle_organics(rotate, org_map, oxygen_map, commands[(index + 2) % 64] * 2);
+					recycle_organics(rotate, org_map, oxygen_map, (int)(commands[(index + 2) % 64] * Constant.org_recycle_coeff));
 				}
 				index += 2;
 				index %= 64;
@@ -329,28 +334,63 @@ public class Bot{
 				}else {
 					index = commands[(index + 4) % 64];
 				}
+			}else if (command == 39) {//стрелять семечком относительно
+				int rot = commands[(index + 1) % 64] % 8;
+				int time = commands[(index + 2) % 64] % 16 + 1;
+				multiply(rot, 1, time, org_map, oxygen_map, iterator);
+				index += 1;
+				index %= 64;
+				break;
+			}else if (command == 40) {//стрелять семечком абсолютно
+				int time = commands[(index + 1) % 64] % 16 + 1;
+				multiply(rotate, 1, time, org_map, oxygen_map, iterator);
+				index += 1;
+				index %= 64;
+				break;
 			}else {
 				index += command;
 				index %= 64;
 			}
 		}
 	}
-	public int see_org(int rot, int ind, double[][] org_map) {
-		int[] pos = get_rotate_position(rotate);
+	//
+	//КОМАНДЫ
+	//
+	public int move(int rot) {
+		int[] pos = get_rotate_position(rot);
 		if (pos[1] >= 0 & pos[1] < Constant.world_scale[1]) {
-			if (org_map[pos[0]][pos[1]] >= ind * 15) {
-				return(0);
-			}else {
+			if (map[pos[0]][pos[1]] == null) {
+				Bot self = map[xpos][ypos];
+				map[xpos][ypos] = null;
+				xpos = pos[0];
+				ypos = pos[1];
+				x = xpos * Constant.size;
+				y = ypos * Constant.size;
+				map[xpos][ypos] = self;
 				return(1);
 			}
-		}else {
-			return(2);
+		}
+		return(0);
+	}
+	//
+	public void attack(int rot, double[][] org_map, double[][] oxygen_map) {
+		int[] pos = get_rotate_position(rot);
+		if (pos[1] >= 0 & pos[1] < Constant.world_scale[1]) {
+			if (map[pos[0]][pos[1]] != null) {
+				Bot victim = map[pos[0]][pos[1]];
+				if (victim != null) {
+					energy += victim.energy;
+					victim.die_with_organics(org_map, oxygen_map);
+					c_red++;
+				}
+			}
 		}
 	}
+	//
 	public int see(int rot, double[][] org_map) {
 		int[] pos = get_rotate_position(rot);
 		if (pos[1] >= 0 & pos[1] < Constant.world_scale[1]) {
-			if (org_map[pos[0]][pos[1]] >= 500) {
+			if (org_map[pos[0]][pos[1]] >= Constant.org_die_level) {
 				return(3);//если переизбыток органики
 			}else {
 				if (map[pos[0]][pos[1]] == null) {
@@ -364,19 +404,35 @@ public class Bot{
 		}
 		return(0);
 	}
-	public int bot_count() {
-		int count = 0;
-		for (int i = 0; i < 8; i++) {
-			int[] pos = get_rotate_position(i);
-			if (pos[1] >= 0 & pos[1] < Constant.world_scale[1]) {
-				if (map[pos[0]][pos[1]] != null && map[pos[0]][pos[1]].state == 0) {
-					count++;
+	//
+	public void give(int rot) {
+		int[] pos = get_rotate_position(rot);
+		if (pos[1] >= 0 & pos[1] < Constant.world_scale[1]) {
+			if (map[pos[0]][pos[1]] != null && map[pos[0]][pos[1]].state == 0) {
+				Bot relative = map[pos[0]][pos[1]];
+				if (relative.killed == 0) {
+					relative.energy += energy / 4;
+					energy -= energy / 4;
 				}
 			}
 		}
-		return(count);
 	}
-	public void recycle_organics2(double[][] org_map, double[][] oxygen_map, int org) {
+	//
+	public void unif_distrib(int rot) {
+		int[] pos = get_rotate_position(rot);
+		if (pos[1] >= 0 & pos[1] < Constant.world_scale[1]) {
+			if (map[pos[0]][pos[1]] != null && map[pos[0]][pos[1]].state == 0) {
+				Bot relative = map[pos[0]][pos[1]];
+				if (relative.killed == 0) {
+					int enr = relative.energy + energy;
+					relative.energy = enr / 2;
+					energy = enr / 2;
+				}
+			}
+		}
+	}
+	//
+	public void recycle_organics_under(double[][] org_map, double[][] oxygen_map, int org) {
 		int[] pos = {xpos, ypos};
 		if (pos[1] >= 0 & pos[1] < Constant.world_scale[1]) {
 			double ox = oxygen_map[xpos][ypos];
@@ -399,6 +455,7 @@ public class Bot{
 			}
 		}
 	}
+	//
 	public void recycle_organics(int rot, double[][] org_map, double[][] oxygen_map, int org) {
 		int[] pos = get_rotate_position(rot);
 		if (pos[1] >= 0 & pos[1] < Constant.world_scale[1]) {
@@ -422,90 +479,27 @@ public class Bot{
 			}
 		}
 	}
-	public void die_with_organics(double[][] org_map) {//умереть с появлением органики
-		killed = 1;
-		map[xpos][ypos] = null;
-		double enr = (150) / 9;
-		for (int i = 0; i < 8; i++) {
-			int[] pos = get_rotate_position(i);
-			if (pos[1] >= 0 & pos[1] < Constant.world_scale[1]) {
-				org_map[pos[0]][pos[1]] += enr;
-			}
-		}
-		org_map[xpos][ypos] += enr;
-	}
-	public void give(int rot) {
-		int[] pos = get_rotate_position(rot);
+	//
+	public int see_org(int rot, int ind, double[][] org_map) {
+		int[] pos = get_rotate_position(rotate);
 		if (pos[1] >= 0 & pos[1] < Constant.world_scale[1]) {
-			if (map[pos[0]][pos[1]] != null && map[pos[0]][pos[1]].state == 0) {
-				Bot relative = map[pos[0]][pos[1]];
-				if (relative.killed == 0) {
-					relative.energy += energy / 4;
-					energy -= energy / 4;
-				}
-			}
-		}
-	}
-	public void give2(int rot) {
-		int[] pos = get_rotate_position(rot);
-		if (pos[1] >= 0 & pos[1] < Constant.world_scale[1]) {
-			if (map[pos[0]][pos[1]] != null && map[pos[0]][pos[1]].state == 0) {
-				Bot relative = map[pos[0]][pos[1]];
-				if (relative.killed == 0) {
-					int enr = relative.energy + energy;
-					relative.energy = enr / 2;
-					energy = enr / 2;
-				}
-			}
-		}
-	}
-	public void attack(int rot, double[][] org_map) {
-		int[] pos = get_rotate_position(rot);
-		if (pos[1] >= 0 & pos[1] < Constant.world_scale[1]) {
-			if (map[pos[0]][pos[1]] != null) {
-				Bot victim = map[pos[0]][pos[1]];
-				if (victim != null) {
-					energy += victim.energy;
-					victim.die_with_organics(org_map);
-					c_red++;
-				}
-			}
-		}
-	}
-	public int[] get_rotate_position(int rot){
-		int[] pos = new int[2];
-		pos[0] = (xpos + Constant.movelist[rot][0]) % Constant.world_scale[0];
-		pos[1] = ypos + Constant.movelist[rot][1];
-		if (pos[0] < 0) {
-			pos[0] = Constant.world_scale[0] - 1;
-		}else if(pos[0] >= Constant.world_scale[0]) {
-			pos[0] = 0;
-		}
-		return(pos);
-	}
-	public int move(int rot) {
-		int[] pos = get_rotate_position(rot);
-		if (pos[1] >= 0 & pos[1] < Constant.world_scale[1]) {
-			if (map[pos[0]][pos[1]] == null) {
-				Bot self = map[xpos][ypos];
-				map[xpos][ypos] = null;
-				xpos = pos[0];
-				ypos = pos[1];
-				x = xpos * Constant.size;
-				y = ypos * Constant.size;
-				map[xpos][ypos] = self;
+			if (org_map[pos[0]][pos[1]] >= ind * 15) {
+				return(0);
+			}else {
 				return(1);
 			}
+		}else {
+			return(2);
 		}
-		return(0);
 	}
-	public void multiply(int rot, double[][] org_map, ListIterator<Bot> iterator) {
+	//
+	public void multiply(int rot, int seed, int time, double[][] org_map, double[][] oxygen_map, ListIterator<Bot> iterator) {
 		int[] pos = get_rotate_position(rot);
 		if (pos[1] >= 0 & pos[1] < Constant.world_scale[1]) {
 			if (map[pos[0]][pos[1]] == null) {
-				energy -= 150;
+				energy -= Constant.energy_for_multiply;
 				if (energy <= 0) {
-					die_with_organics(org_map);
+					die_with_organics(org_map, oxygen_map);
 				}else {
 					Color new_color;
 					if (rand.nextInt(800) == 0) {//немного меняем(с шансом 1/800 - полностью)
@@ -524,17 +518,109 @@ public class Bot{
 					energy /= 2;
 					new_bot.commands = new_brain;
 					new_bot.clan_color = clan_color;
+					if (seed == 1) {
+						new_bot.state = 1;
+						new_bot.seed_time = time;
+						new_bot.rotate = rot;
+					}
 					iterator.add(new_bot);
 					map[pos[0]][pos[1]] = new_bot;
 				}
 			}
 		}
 	}
-	public int bot_in_sector() {
-		int sec = ypos / (Constant.world_scale[1] / 8);
-		if (sec > 7) {
-			sec = 7;
+	//
+	//ТЕХНИЧЕСКИЕ ФУНКЦИИ
+	//
+	public int photo_energy(int sector, double[][] org_map) {
+		int count = bot_count();
+		double n = ((9 - count) * Constant.pht_neighbours_coeff);
+		if (n > 1) {
+			n = 1;
 		}
-		return(sec);
+		int enr = (int)(Constant.pht_energy_list[sector] * (org_map[xpos][ypos] / Constant.pht_coeff) * n);
+		return(enr);
+	}
+	//
+	public int bot_count() {
+		int count = 0;
+		for (int i = 0; i < 8; i++) {
+			int[] pos = get_rotate_position(i);
+			if (pos[1] >= 0 & pos[1] < Constant.world_scale[1]) {
+				if (map[pos[0]][pos[1]] != null && map[pos[0]][pos[1]].state == 0) {
+					count++;
+				}
+			}
+		}
+		return(count);
+	}
+	//
+	public void die_with_organics(double[][] org_map, double[][] oxygen_map) {//умереть с появлением органики
+		killed = 1;
+		map[xpos][ypos] = null;
+		double enr = Constant.energy_for_multiply / 9;
+		for (int i = 0; i < 8; i++) {
+			int[] pos = get_rotate_position(i);
+			if (pos[1] >= 0 & pos[1] < Constant.world_scale[1]) {
+				org_map[pos[0]][pos[1]] += enr;
+			}
+		}
+		org_map[xpos][ypos] += enr;
+		oxygen_map[xpos][ypos] -= Constant.die_ox_coeff;
+		if (oxygen_map[xpos][ypos] < 0) {
+			oxygen_map[xpos][ypos] = 0;
+		}
+	}
+	//
+	public int[] get_rotate_position(int rot){
+		int[] pos = new int[2];
+		pos[0] = (xpos + Constant.movelist[rot][0]) % Constant.world_scale[0];
+		pos[1] = ypos + Constant.movelist[rot][1];
+		if (pos[0] < 0) {
+			pos[0] = Constant.world_scale[0] - 1;
+		}else if(pos[0] >= Constant.world_scale[0]) {
+			pos[0] = 0;
+		}
+		return(pos);
+	}
+	//
+	public Color get_color(int draw_type) {
+		Color c = new Color(0, 0, 0);
+		if (state == 0) {//рисуем бота
+			if (draw_type == 0) {//режим отрисовки хищников
+				int r = 0;
+				int g = 0;
+				int b = 0;
+				int all = c_red + c_green + c_blue + c_yellow;
+				if (all == 0) {
+					r = 128;
+					g = 128;
+					b = 128;
+				}else {
+					int y = (int)((c_yellow * 1.0) / all * 255.0);
+					r = Math.max((int)(c_red * 1.0 / all * 255.0), y);
+					g = Math.max((int)(c_green * 1.0 / all * 255.0), y);
+					b = (int)((c_blue * 1.0) / all * 255.0);
+				}
+				c = new Color(r, g, b);
+			}else if (draw_type == 1) {//цвета
+				return(color);
+			}else if (draw_type == 2) {//энергии
+				int g = 255 - (int)(energy / 1000.0 * 255.0);
+				if (g > 255) {
+					g = 255;
+				}else if (g < 0) {
+					g = 0;
+				}
+				c = new Color(255, g, 0);
+			}else if (draw_type == 3) {//кланов
+				c = clan_color;
+			}else if (draw_type == 4) {//возраста
+				c = new Color((int)(age / 1000.0 * 255.0), (int)(age / 1000.0 * 255.0), 255 - (int)(age / 1000.0 * 255.0));
+			}
+		}else if (state == 1){//рисуем семечко
+			c = new Color(127, 60, 0);
+		}
+		return(c);
 	}
 }
