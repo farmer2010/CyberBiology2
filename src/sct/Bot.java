@@ -49,22 +49,25 @@ public class Bot{
 			commands[i] = rand.nextInt(64);
 		}
 	}
-	public void Draw(Graphics canvas, int draw_type, int zoom) {
-		int[] pos = {0, 0};
+	public void Draw(Graphics canvas, int draw_type, int zoom, int[] pos) {
 		if (zoom == 0) {//зум x1
 			canvas.setColor(get_color(draw_type));
 			canvas.fillRect(x, y, Constant.size, Constant.size);
 		}else if (zoom == 1) {//зум x2.5
-			if (xpos >= pos[0] && xpos < pos[0] + Constant.world_scale[0] / 2.5 && ypos >= pos[1] && ypos < pos[1] + Constant.world_scale[1] / 2.5) {
+			int w = Constant.world_scale[0] * Constant.size / Constant.zoom_sizes[zoom];
+			int h = Constant.world_scale[1] * Constant.size / Constant.zoom_sizes[zoom];
+			if (xpos >= pos[0] - w / 2 && xpos < pos[0] + w / 2 && ypos >= pos[1] - h / 2 && ypos < pos[1] + h / 2) {
 				canvas.setColor(get_color(draw_type));
-				canvas.fillRect(xpos * 5, ypos * 5, 5, 5);
+				canvas.fillRect((xpos - pos[0] + w / 2) * 5, (ypos - pos[1] + h / 2) * 5, 5, 5);
 			}
 		}else if (zoom == 2) {//зум x5
-			if (xpos >= pos[0] && xpos < pos[0] + Constant.world_scale[0] / 5 && ypos >= pos[1] && ypos < pos[1] + Constant.world_scale[1] / 5) {
+			int w = Constant.world_scale[0] * Constant.size / Constant.zoom_sizes[zoom];
+			int h = Constant.world_scale[1] * Constant.size / Constant.zoom_sizes[zoom];
+			if (xpos >= pos[0] - w / 2 && xpos < pos[0] + w / 2 && ypos >= pos[1] - h / 2 && ypos < pos[1] + h / 2) {
 				canvas.setColor(new Color(0, 0, 0));
-				canvas.fillRect(xpos * 10, ypos * 10, 10, 10);
+				canvas.fillRect((xpos - pos[0] + w / 2) * 10, (ypos - pos[1] + h / 2) * 10, 10, 10);
 				canvas.setColor(get_color(draw_type));
-				canvas.fillRect(xpos * 10 + 1, ypos * 10 + 1, 8, 8);
+				canvas.fillRect((xpos - pos[0] + w / 2) * 10 + 1, (ypos - pos[1] + h / 2) * 10 + 1, 8, 8);
 			}
 		}
 	}

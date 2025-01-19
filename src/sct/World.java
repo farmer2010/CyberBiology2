@@ -40,6 +40,7 @@ public class World extends JPanel{
 	int draw_type = 0;//режим отрисовки
 	int gas_draw_type = 0;//режим отрисовки фона
 	int zoom = 0;//увеличение (0 - x1, 1 - x2.5, 2 - x5)
+	int[] zoom_disp_pos = {100, 100};
 	int delay = 10;//скорость
 	//запись, пауза, отрисовка
 	boolean pause = false;//пауза
@@ -48,7 +49,6 @@ public class World extends JPanel{
 	boolean rec = false;//запись
 	//сохранение/загрузка
 	Bot selection = null;
-	int[] botpos = new int [2];
 	Bot for_set = null;
 	//кнопки
 	JButton stop_button = new JButton("Stop");
@@ -216,6 +216,8 @@ public class World extends JPanel{
 		timer.start();
 	}
 	//
+	//
+	//
 	public void paintComponent(Graphics canvas) {
 		super.paintComponent(canvas);
 		canvas.setColor(gray);
@@ -226,15 +228,15 @@ public class World extends JPanel{
 		if (render) {//рисуем фон и ботов
 			if (gas_draw_type != 0) {
 				if (gas_draw_type == 1) {
-					draw_ox(canvas);
+					draw_ox(canvas, zoom);
 				}else if (gas_draw_type == 2){
-					draw_org(canvas);
+					draw_org(canvas, zoom);
 				}else if (gas_draw_type == 3) {
 					draw_mnr(canvas);
 				}
 			}
 			for(Bot b: objects) {
-				b.Draw(canvas, draw_type, zoom);
+				b.Draw(canvas, draw_type, zoom, zoom_disp_pos);
 			}
 		}
 		//
@@ -255,9 +257,9 @@ public class World extends JPanel{
 		canvas.drawString("enter name:", Constant.W - 300, 560);
 		canvas.drawString("Controls:", Constant.W - 300, 630);
 		canvas.drawString("Zoom:", Constant.W - 300, 700);
-		//canvas.drawString("Oxygen: " + String.valueOf(count_ox), Constant.W - 300, 700);
-		//canvas.drawString("Organics: " + String.valueOf(count_org), Constant.W - 300, 720);
-		//canvas.drawString("Minerals: " + String.valueOf(count_mnr), Constant.W - 300, 740);
+		canvas.drawString("Zoom position: " + String.valueOf(zoom_disp_pos[0]) + ", " + String.valueOf(zoom_disp_pos[1]), Constant.W - 300, 740);
+		canvas.drawString("Oxygen: " + String.valueOf(count_ox), Constant.W - 300, 760);
+		canvas.drawString("Organics: " + String.valueOf(count_org), Constant.W - 300, 780);
 		//
 		if (selection != null) {//данные о выбранном боте
 			canvas.drawString("energy: " + String.valueOf(selection.energy) + ", : " + String.valueOf(0), Constant.W - 300, 360);
@@ -267,7 +269,13 @@ public class World extends JPanel{
 			canvas.setColor(new Color(90, 90, 90, 90));
 			canvas.fillRect(0, 0, Constant.world_scale[0] * Constant.size, Constant.world_scale[1] * Constant.size);
 			canvas.setColor(new Color(255, 0, 0));
-			canvas.fillRect(selection.xpos * Constant.size, selection.ypos * Constant.size, Constant.size, Constant.size);
+			int w = Constant.world_scale[0] * Constant.size / Constant.zoom_sizes[zoom];
+			int h = Constant.world_scale[1] * Constant.size / Constant.zoom_sizes[zoom];
+			if (zoom == 0) {
+				canvas.fillRect(selection.xpos * Constant.size, selection.ypos * Constant.size, Constant.size, Constant.size);
+			}else {
+				canvas.fillRect((selection.xpos - zoom_disp_pos[0] + w / 2) * Constant.zoom_sizes[zoom], (selection.ypos - zoom_disp_pos[1] + h / 2) * Constant.zoom_sizes[zoom], Constant.zoom_sizes[zoom], Constant.zoom_sizes[zoom]);
+			}
 		}else {
 			canvas.drawString("none", Constant.W - 300, 295);
 		}
@@ -298,16 +306,16 @@ public class World extends JPanel{
 			g2d.setColor(Color.WHITE);
 			g2d.fillRect(0, 0, 1000, 1000);
 			if (i != 1) {
-				draw_ox(g2d);
+				draw_ox(g2d, 0);
 			}else {
-				draw_org(g2d);
+				draw_org(g2d, 0);
 			}
 			for(Bot b: objects) {
 				int dt = 0;
 				if (i > 1) {
 					dt = i - 1;
 				}
-				b.Draw(g2d, dt, 0);
+				b.Draw(g2d, dt, 0, zoom_disp_pos);
 			}
 			g2d.dispose();
 		}
@@ -324,30 +332,63 @@ public class World extends JPanel{
 	//
 	//ФУНКЦИИ ДЛЯ РИСОВАНИЯ
 	//
-	public void draw_ox(Graphics canvas) {
-		for (int x = 0; x < Constant.world_scale[0]; x++) {
-			for (int y = 0; y < Constant.world_scale[1]; y++) {
-				double ox = oxygen_map[x][y];
-				if (ox > Constant.ox_render_maximum_coeff) {
-					ox = Constant.ox_render_maximum_coeff;
-				}
-				canvas.setColor(new Color(255 - (int)(ox * 255 * (1 / Constant.ox_render_maximum_coeff)), 255 - (int)(ox * 255 * (1 / Constant.ox_render_maximum_coeff)), 255));
-				canvas.fillRect(x * Constant.size, y * Constant.size, Constant.size, Constant.size);
-				if (org_map[x][y] >= 500) {
-					canvas.setColor(new Color(90, 0, 0));
+	public void draw_ox(Graphics canvas, int z) {
+		int w = Constant.world_scale[0] * Constant.size / Constant.zoom_sizes[zoom];
+		int h = Constant.world_scale[1] * Constant.size / Constant.zoom_sizes[zoom];
+		for (int i = 0; i < Constant.world_scale[0] * Constant.size / Constant.zoom_sizes[zoom]; i++) {
+			for (int j = 0; j < Constant.world_scale[1] * Constant.size / Constant.zoom_sizes[zoom]; j++) {
+				if (zoom == 0) {//зум 1x
+					int x = i;
+					int y = j;
+					double ox = oxygen_map[x][y];
+					if (ox > Constant.ox_render_maximum_coeff) {
+						ox = Constant.ox_render_maximum_coeff;
+					}
+					canvas.setColor(new Color(255 - (int)(ox * 255 * (1 / Constant.ox_render_maximum_coeff)), 255 - (int)(ox * 255 * (1 / Constant.ox_render_maximum_coeff)), 255));
 					canvas.fillRect(x * Constant.size, y * Constant.size, Constant.size, Constant.size);
+					if (org_map[x][y] >= 500) {
+						canvas.setColor(new Color(90, 0, 0));
+						canvas.fillRect(x * Constant.size, y * Constant.size, Constant.size, Constant.size);
+					}
+				}else {//зум 2.5x - 5x
+					int x = i + zoom_disp_pos[0] - w / 2;
+					int y = j + zoom_disp_pos[1] - h / 2;
+					double ox = oxygen_map[x][y];
+					if (ox > Constant.ox_render_maximum_coeff) {
+						ox = Constant.ox_render_maximum_coeff;
+					}
+					canvas.setColor(new Color(255 - (int)(ox * 255 * (1 / Constant.ox_render_maximum_coeff)), 255 - (int)(ox * 255 * (1 / Constant.ox_render_maximum_coeff)), 255));
+					canvas.fillRect(i * Constant.zoom_sizes[zoom], j * Constant.zoom_sizes[zoom], Constant.zoom_sizes[zoom], Constant.zoom_sizes[zoom]);
+					if (org_map[x][y] >= 500) {
+						canvas.setColor(new Color(90, 0, 0));
+						canvas.fillRect(i * Constant.zoom_sizes[zoom], j * Constant.zoom_sizes[zoom], Constant.zoom_sizes[zoom], Constant.zoom_sizes[zoom]);
+					}
 				}
 			}
 		}
 	}
 	//
-	public void draw_org(Graphics canvas) {
-		for (int x = 0; x < Constant.world_scale[0]; x++) {
-			for (int y = 0; y < Constant.world_scale[1]; y++) {
-				int gr = Constant.border(255 - (int)(org_map[x][y] / 500 * 255), 255, 0);
-				if (gr < 255) {
-					canvas.setColor(new Color(gr, gr, gr));
-					canvas.fillRect(x * Constant.size, y * Constant.size, Constant.size, Constant.size);
+	public void draw_org(Graphics canvas, int z) {
+		int w = Constant.world_scale[0] * Constant.size / Constant.zoom_sizes[zoom];
+		int h = Constant.world_scale[1] * Constant.size / Constant.zoom_sizes[zoom];
+		for (int i = 0; i < Constant.world_scale[0] * Constant.size / Constant.zoom_sizes[zoom]; i++) {
+			for (int j = 0; j < Constant.world_scale[1] * Constant.size / Constant.zoom_sizes[zoom]; j++) {
+				if (zoom == 0) {//зум 1x
+					int x = i;
+					int y = j;
+					int gr = Constant.border(255 - (int)(org_map[x][y] / 500 * 255), 255, 0);
+					if (gr < 255) {
+						canvas.setColor(new Color(gr, gr, gr));
+						canvas.fillRect(x * Constant.zoom_sizes[zoom], y * Constant.zoom_sizes[zoom], Constant.zoom_sizes[zoom], Constant.zoom_sizes[zoom]);
+					}
+				}else {//зум 2.5x - 5x
+					int x = i + zoom_disp_pos[0] - w / 2;
+					int y = j + zoom_disp_pos[1] - h / 2;
+					int gr = Constant.border(255 - (int)(org_map[x][y] / 500 * 255), 255, 0);
+					if (gr < 255) {
+						canvas.setColor(new Color(gr, gr, gr));
+						canvas.fillRect(i * Constant.zoom_sizes[zoom], j * Constant.zoom_sizes[zoom], Constant.zoom_sizes[zoom], Constant.zoom_sizes[zoom]);
+					}
 				}
 			}
 		}
@@ -367,44 +408,21 @@ public class World extends JPanel{
 	private class BotListener extends MouseAdapter implements ActionListener{
 		public void mousePressed(MouseEvent e) {
 			if (e.getX() <= Constant.world_scale[0] * Constant.size && e.getY() <= Constant.world_scale[1] * Constant.size) {
-				botpos[0] = e.getX() / Constant.size;
-				botpos[1] = e.getY() / Constant.size;
+				int[] botpos = new int[2];
+				int w = Constant.world_scale[0] * Constant.size / Constant.zoom_sizes[zoom];
+				int h = Constant.world_scale[1] * Constant.size / Constant.zoom_sizes[zoom];
+				if (zoom == 0) {
+					botpos[0] = e.getX() / Constant.size;
+					botpos[1] = e.getY() / Constant.size;
+				}else {
+					botpos[0] = e.getX() / Constant.zoom_sizes[zoom] + zoom_disp_pos[0] - w / 2;
+					botpos[1] = e.getY() / Constant.zoom_sizes[zoom] + zoom_disp_pos[1] - h / 2;
+				}
 				count_ox = oxygen_map[botpos[0]][botpos[1]];
 				count_org = org_map[botpos[0]][botpos[1]];
 				count_mnr = mnr_map[botpos[0]][botpos[1]];
-				if (mouse == 0) {//select
-					if (Map[botpos[0]][botpos[1]] != null && Map[botpos[0]][botpos[1]].state == 0) {
-						for(Bot b: objects) {
-							if (b.xpos == botpos[0] && b.ypos == botpos[1]) {
-								selection = b;
-								save_button.setEnabled(true);
-								show_brain_button.setEnabled(true);
-							}
-						}
-					}else {
-						selection = null;
-						save_button.setEnabled(false);
-						show_brain_button.setEnabled(false);
-						sh_brain = false;
-					}
-				}else if (mouse == 1) {//set
-					if (for_set != null) {
-						if (Map[botpos[0]][botpos[1]] == null) {
-							objects.add(for_set);
-							Map[botpos[0]][botpos[1]] = for_set;
-						}
-					}
-				}else {//remove
-					if (Map[botpos[0]][botpos[1]] != null) {
-						for(Bot b: objects) {
-							if (b.xpos == botpos[0] && b.ypos == botpos[1]) {
-								b.energy = 0;
-								b.killed = 1;
-								Map[botpos[0]][botpos[1]] = null;
-							}
-						}
-					}
-				}
+				//
+				update_mouse(botpos, 1);
 			}else {
 				count_ox = -1;
 				count_org = -1;
@@ -414,29 +432,21 @@ public class World extends JPanel{
 		//
 		public void mouseDragged(MouseEvent e) {
 			if (e.getX() <= Constant.world_scale[0] * Constant.size && e.getY() <= Constant.world_scale[1] * Constant.size) {
-				botpos[0] = e.getX() / Constant.size;
-				botpos[1] = e.getY() / Constant.size;
+				int[] botpos = new int[2];
+				int w = Constant.world_scale[0] * Constant.size / Constant.zoom_sizes[zoom];
+				int h = Constant.world_scale[1] * Constant.size / Constant.zoom_sizes[zoom];
+				if (zoom == 0) {
+					botpos[0] = e.getX() / Constant.size;
+					botpos[1] = e.getY() / Constant.size;
+				}else {
+					botpos[0] = e.getX() / Constant.zoom_sizes[zoom] + zoom_disp_pos[0] - w / 2;
+					botpos[1] = e.getY() / Constant.zoom_sizes[zoom] + zoom_disp_pos[1] - h / 2;
+				}
 				count_ox = oxygen_map[botpos[0]][botpos[1]];
 				count_org = org_map[botpos[0]][botpos[1]];
 				count_mnr = mnr_map[botpos[0]][botpos[1]];
-				if (mouse == 1) {//set
-					if (for_set != null) {
-						if (Map[botpos[0]][botpos[1]] == null) {
-							objects.add(for_set);
-							Map[botpos[0]][botpos[1]] = for_set;
-						}
-					}
-				}else if (mouse == 2) {//remove
-					if (Map[botpos[0]][botpos[1]] != null) {
-						for(Bot b: objects) {
-							if (b.xpos == botpos[0] && b.ypos == botpos[1]) {
-								b.energy = 0;
-								b.killed = 1;
-								Map[botpos[0]][botpos[1]] = null;
-							}
-						}
-					}
-				}
+				//
+				update_mouse(botpos, 0);
 			}else {
 				count_ox = -1;
 				count_org = -1;
@@ -448,6 +458,15 @@ public class World extends JPanel{
 			if (!pause) {
 				update();
 			}
+			//
+			ListIterator<Bot> iterator = objects.listIterator();
+			while (iterator.hasNext()) {
+				Bot next_bot = iterator.next();
+				if (next_bot.killed == 1) {
+					iterator.remove();
+				}
+			}
+			//
 			repaint();
 		}
 	}
@@ -481,14 +500,6 @@ public class World extends JPanel{
 				}
 			}
 			//
-			ListIterator<Bot> iterator = objects.listIterator();
-			while (iterator.hasNext()) {
-				Bot next_bot = iterator.next();
-				if (next_bot.killed == 1) {
-					iterator.remove();
-				}
-			}
-			//
 			if (selection != null) {
 				if (selection.killed == 1 || Map[selection.xpos][selection.ypos] == null || selection.state != 0){
 					selection = null;
@@ -503,6 +514,51 @@ public class World extends JPanel{
 			//
 			if (rec && steps % 25 == 0) {
 				record();
+			}
+		}
+	}
+	//
+	public void update_mouse(int[] botpos, int select_work) {
+		if (mouse == 0 && select_work == 1) {//select
+			if (Map[botpos[0]][botpos[1]] != null && Map[botpos[0]][botpos[1]].state == 0) {
+				for(Bot b: objects) {
+					if (b.xpos == botpos[0] && b.ypos == botpos[1]) {
+						selection = b;
+						save_button.setEnabled(true);
+						show_brain_button.setEnabled(true);
+					}
+				}
+			}else {
+				selection = null;
+				save_button.setEnabled(false);
+				show_brain_button.setEnabled(false);
+				sh_brain = false;
+			}
+			if (zoom == 0) {
+				zoom_disp_pos[0] = botpos[0];
+				zoom_disp_pos[1] = botpos[1];
+			}else {
+				int w = Constant.world_scale[0] * Constant.size / Constant.zoom_sizes[zoom];
+				int h = Constant.world_scale[1] * Constant.size / Constant.zoom_sizes[zoom];
+				zoom_disp_pos[0] = Constant.border(botpos[0], Constant.world_scale[0] - w / 2, w / 2);
+				zoom_disp_pos[1] = Constant.border(botpos[1], Constant.world_scale[1] - h / 2, h / 2);
+			}
+		}else if (mouse == 1) {//set
+			if (for_set != null) {
+				if (Map[botpos[0]][botpos[1]] == null) {
+					objects.add(for_set);
+					Map[botpos[0]][botpos[1]] = for_set;
+				}
+			}
+		}else if (mouse == 2){//remove
+			if (Map[botpos[0]][botpos[1]] != null) {
+				for(Bot b: objects) {
+					if (b.xpos == botpos[0] && b.ypos == botpos[1]) {
+						b.energy = 0;
+						b.killed = 1;
+						Map[botpos[0]][botpos[1]] = null;
+					}
+				}
 			}
 		}
 	}
@@ -686,6 +742,12 @@ public class World extends JPanel{
 		}
 		public void actionPerformed(ActionEvent e) {
 			zoom = number;
+			if (zoom != 0) {
+				int w = Constant.world_scale[0] * Constant.size / Constant.zoom_sizes[zoom];
+				int h = Constant.world_scale[1] * Constant.size / Constant.zoom_sizes[zoom];
+				zoom_disp_pos[0] = Constant.border(zoom_disp_pos[0], Constant.world_scale[0] - w / 2, w / 2);
+				zoom_disp_pos[1] = Constant.border(zoom_disp_pos[1], Constant.world_scale[1] - h / 2, h / 2);
+			}
 		}
 	}
 }

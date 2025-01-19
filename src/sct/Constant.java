@@ -11,6 +11,7 @@ public class Constant {
 	public static double ox_render_maximum_coeff = 0.25;
 	public static String[] draw_type_names = {"predators", "energy", "color", "clans", "age"};
 	public static String[] mouse_func_names = {"select", "set", "remove"};
+	public static int[] zoom_sizes = {2, 5, 10};
 	//
 	public static double org_recycle_ox_coeff = 0.00003;
 	public static double life_ox_coeff = 0.002;
