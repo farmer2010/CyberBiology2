@@ -34,11 +34,25 @@ public class Bot{
 		{-1, 0},
 		{-1, -1}
 	};
+	private int[] minerals_list = {
+		1,
+		2,
+		3
+	};
+	private int[] photo_list = {
+		10,
+		8,
+		6,
+		5,
+		4,
+		3
+	};
 	private int[] world_scale = {162, 108};
 	private int c_red = 0;
 	private int c_green = 0;
 	private int c_blue = 0;
 	private int sector_len = world_scale[1] / 8;
+	private int c = 3;//Количество свободных клеток для получения энергии
 	public Bot(int new_xpos, int new_ypos, Color new_color, int new_energy, int[][] new_map, ArrayList<Bot> new_objects) {
 		xpos = new_xpos;
 		ypos = new_ypos;
@@ -107,6 +121,11 @@ public class Bot{
 			if (state == 0) {//бот
 				energy -= 1;
 				age -= 1;
+				int sector = bot_in_sector();
+				int count = count_of_neighbours();
+				if (sector >= 5 && 8 - count >= c) {
+					minerals += minerals_list[sector - 5];
+				}
 				update_commands(iterator);
 				if (energy <= 0) {
 					killed = 1;
@@ -155,8 +174,15 @@ public class Bot{
 				index %= 64;
 			}else if (command == 25) {//фотосинтез
 				int count = count_of_neighbours();
-				energy += 8 - count;
-				c_green++;
+				//energy += 8 - count;
+				//if (count < 8) {
+				//	c_green++;
+				//}
+				int sector = bot_in_sector();
+				if (sector <= 5 && 8 - count >= c) {
+					energy += photo_list[sector];
+					c_green++;
+				}
 				index += 1;
 				index %= 64;
 				break;
@@ -462,5 +488,12 @@ public class Bot{
 		}else {
 			return(number1);
 		}
+	}
+	public int bot_in_sector() {//для фотосинтеза и минералов
+		int sec = ypos / (world_scale[1] / 8);
+		if (sec > 7) {
+			sec = 7;
+		}
+		return(sec);
 	}
 }
