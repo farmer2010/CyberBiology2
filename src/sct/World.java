@@ -10,16 +10,9 @@ import javax.swing.*;
 import java.awt.Font;
 //
 import java.io.File;
-import java.awt.Robot;
-import java.awt.Toolkit;
-import java.awt.Rectangle;
 import java.io.IOException;
-import java.awt.AWTException;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.awt.image.RenderedImage;
-
-import javax.swing.filechooser.FileSystemView;
 import java.awt.Graphics2D;
 
 public class World extends JPanel{
@@ -444,7 +437,7 @@ public class World extends JPanel{
 					}
 				}
 				if (b_count == 0 && !pause) {
-					file_index++;
+					//file_index++;
 					if (rec) {
 						new File("record" + String.valueOf(file_index) + "/predators").mkdirs();
 						new File("record" + String.valueOf(file_index) + "/energy").mkdirs();

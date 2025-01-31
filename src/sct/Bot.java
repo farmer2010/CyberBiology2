@@ -183,9 +183,9 @@ public class Bot{
 				int sector = bot_in_sector();
 				if (sector <= 5) {
 					if (organics_map[xpos][ypos] >= 5) {
-						energy += (int)(photo_list[sector] * gen[1]);
+						energy += (int)(photo_list[sector] * gen[1] * (organics_map[xpos][ypos] / 1000.0 + 1));
 					}else {
-						energy += 3;
+						energy += 2;
 					}
 					c_green += 1;
 				}
@@ -353,19 +353,19 @@ public class Bot{
 				break;
 			}else if (command == 48) {//безусловный переход
 				index = commands[(index + 1) % 64];
-			}else if (command == 49) {//переработка органики абсолютно
+			}else if (command == 49 || command == 55) {//переработка органики абсолютно
 				gen[1] = 0.25;
 				recycle_organics(rotate, organics_map);
 				index += 1;
 				index %= 64;
 				break;
-			}else if (command == 51) {//переработка органики относительно
+			}else if (command == 51 || command == 56) {//переработка органики относительно
 				gen[1] = 0.25;
 				recycle_organics(commands[(index + 1) % 64] % 8, organics_map);
 				index += 2;
 				index %= 64;
 				break;
-			}else if (command == 53) {//переработка органики под собой
+			}else if (command == 53 || command == 57) {//переработка органики под собой
 				gen[1] = 0.25;
 				recycle_organics2(organics_map);
 				index += 1;

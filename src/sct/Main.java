@@ -14,5 +14,4 @@ public class Main{
 		frame.setUndecorated(true);
 		frame.setVisible(true);
 	}
-
 }
