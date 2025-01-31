@@ -113,9 +113,6 @@ public class Bot{
 				energy -= 1;
 				age -= 1;
 				int lasty = ypos;
-				//if (sector <= 7 & sector >= 5) {
-				//	minerals += minerals_list[sector - 5];
-				//}
 				update_commands(iterator, adaptation);
 				if (ypos != lasty) {
 					tm = 0;
