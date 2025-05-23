@@ -491,9 +491,9 @@ public class World extends JPanel{
 				//}
 			}
 		}
-		gas_map[100][215] += 100;
-		gas_map[200][215] += 100;
-		gas_map[300][215] += 100;
+		gas_map[100][215] += Constant.hydro_pl;
+		gas_map[200][215] += Constant.hydro_pl;
+		gas_map[300][215] += Constant.hydro_pl;
 	}
 	public void crystal(double[][] crystal_map) {
 		double[][] new_map = new double[world_scale[0]][world_scale[1]];

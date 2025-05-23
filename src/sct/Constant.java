@@ -15,6 +15,8 @@ public class Constant {
 	public static double[] up = new double[] {0, 0, 0, 0, 0.5, 0, 0, 0, 0, 0};
 	public static double[] collect_speed = new double[] {0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1};
 	//
+	public static int hydro_pl = 100;//приход водорода
+	//
 	//Реакции
 	//
 	//массив реакций: [тип реакции][трата, производство][параметры реакции][вещества]
