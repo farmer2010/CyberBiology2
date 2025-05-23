@@ -208,6 +208,13 @@ public class World extends JPanel{
 						}else if (gas_draw_type == 2) {//кристаллы
 							canvas.setColor(Constant.gradient(new Color(255, 255, 255), new Color(85, 255, 255), Math.min(ch[1][x][y] / 1000, 1)));
 							canvas.fillRect(x * 5, y * 5, 5, 5);
+						}else if (gas_draw_type == 5) {//водород
+							canvas.setColor(Constant.gradient(new Color(255, 255, 255), new Color(200, 176, 250), Math.min(ch[4][x][y] / 1000, 1)));
+							canvas.fillRect(x * 5, y * 5, 5, 5);
+						}
+						if (ch[1][x][y] > 500) {
+							canvas.setColor(Constant.gradient(new Color(255, 255, 255), new Color(85, 255, 255), Math.min(ch[1][x][y] / 1000, 1)));
+							canvas.fillRect(x * 5, y * 5, 5, 5);
 						}
 					}
 				}
@@ -293,7 +300,7 @@ public class World extends JPanel{
 	}
 	public void new_population() {
 		kill_all();
-		for (int i = 0; i < 4000; i++) {
+		for (int i = 0; i < 8000; i++) {
 			while(true){
 				int x = rand.nextInt(world_scale[0]);
 				int y = rand.nextInt(world_scale[1]);
@@ -373,8 +380,13 @@ public class World extends JPanel{
 						sh_brain = false;
 					}
 				}
-				gas(ch[0]);
+				for (int i = 0; i < 10; i++) {
+					if (Constant.viscosity[i] > 0) {
+						gas(ch[i], i);
+					}
+				}
 				crystal(ch[1]);
+				hydrogenium(ch[4], 4);
 			}
 			ListIterator<Bot> iterator = objects.listIterator();
 			while (iterator.hasNext()) {
@@ -424,20 +436,20 @@ public class World extends JPanel{
 			e.printStackTrace();
 		}
 	}
-	public void gas(double[][] gas_map) {//распространение кислорода
+	public void gas(double[][] gas_map, int gas_type) {//распространение кислорода
 		double[][] new_map = new double[world_scale[0]][world_scale[1]];
 		for (int x = 0; x < world_scale[0]; x++) {
 			for (int y = 0; y < world_scale[1]; y++) {
 				if (gas_map[x][y] >= 0.009) {
-					gas_map[x][y] -= gas_map[x][y] * Constant.evaporation[0];//испарение
-					double g = gas_map[x][y] * Constant.viscosity[0];
+					gas_map[x][y] -= gas_map[x][y] * Constant.evaporation[gas_type];//испарение
+					double g = gas_map[x][y] * Constant.viscosity[gas_type];
 					double ox = g / 9;
 					new_map[x][y] += gas_map[x][y] - g + ox;
 					int count = 0;
 					for (int i = 0; i < 8; i++) {
 						int[] f = {x, y};
 						int[] pos = Constant.get_rotate_position(i, f);
-						if (pos[1] >= 0 && pos[1] < world_scale[1] && Map[pos[0]][pos[1]] == null) {
+						if (pos[1] >= 0 && pos[1] < world_scale[1] && Map[pos[0]][pos[1]] == null && ch[1][pos[0]][pos[1]] < 500) {
 							new_map[pos[0]][pos[1]] += ox;
 						}else {
 							count++;
@@ -457,6 +469,31 @@ public class World extends JPanel{
 				gas_map[x][y] += Math.max(100 - gas_map[x][y], 0) * (1 / 100);
 			}
 		}
+	}
+	public void hydrogenium(double[][] gas_map, int gas_type) {
+		double[][] new_map = new double[world_scale[0]][world_scale[1]];
+		for (int x = 0; x < world_scale[0]; x++) {
+			for (int y = 0; y < world_scale[1]; y++) {
+				int[] pos = Constant.get_rotate_position(0, new int[] {x, y});
+				if (pos[1] >= 0 && pos[1] < world_scale[1] && Map[pos[0]][pos[1]] == null && ch[1][pos[0]][pos[1]] < 500 && ch[gas_type][x][y] - ch[gas_type][pos[0]][pos[1]] > ch[gas_type][x][y]/10 && ch[gas_type][pos[0]][pos[1]] < 1000) {
+					new_map[pos[0]][pos[1]] += gas_map[x][y] * Constant.up[gas_type];
+					new_map[x][y] += gas_map[x][y] * (1 - Constant.up[gas_type]);
+				}else {
+					new_map[x][y] += gas_map[x][y];
+				}
+			}
+		}
+		for (int x = 0; x < world_scale[0]; x++) {
+			for (int y = 0; y < world_scale[1]; y++) {
+				gas_map[x][y] = new_map[x][y];
+				//if (y > 135) {
+				//	gas_map[x][y] += 200;
+				//}
+			}
+		}
+		gas_map[100][215] += 100;
+		gas_map[200][215] += 100;
+		gas_map[300][215] += 100;
 	}
 	public void crystal(double[][] crystal_map) {
 		double[][] new_map = new double[world_scale[0]][world_scale[1]];
@@ -486,7 +523,7 @@ public class World extends JPanel{
 		}
 		for (int x = 0; x < world_scale[0]; x++) {
 			for (int y = 0; y < world_scale[1]; y++) {
-				crystal_map[x][y] = new_map[x][y];
+				//crystal_map[x][y] = new_map[x][y];
 			}
 		}
 	}
