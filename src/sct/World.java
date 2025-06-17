@@ -25,7 +25,7 @@ public class World extends JPanel{
 	ArrayList<Bot> objects;
 	Timer timer;
 	int delay = 10;
-	int[] world_scale = {324, 216};
+	int[] world_scale = {540, 360};
 	Random rand = new Random();
 	Bot[][] Map = new Bot[world_scale[0]][world_scale[1]];
 	Color gray = new Color(100, 100, 100);
@@ -37,8 +37,6 @@ public class World extends JPanel{
 	int b_count = 0;
 	int obj_count = 0;
 	int org_count = 0;
-	String txt;
-	String txt2;
 	int mouse = 0;
 	int W = 1920;
 	int H = 1080;
@@ -57,9 +55,9 @@ public class World extends JPanel{
 	boolean sh_brain = false;
 	boolean rec = false;
 	double[][][] ch = new double[10][world_scale[0]][world_scale[1]];
+	double[][] temp_map = new double[world_scale[0]][world_scale[1]];
 	int gas_draw_type = 0;
-	JRadioButton[] bs = new JRadioButton[11];
-	JRadioButton[] drbs = new JRadioButton[10];
+	JRadioButton[] bs = new JRadioButton[12];
 	public World() {
 		setLayout(null);
 		timer = new Timer(delay, new BotListener());
@@ -70,26 +68,11 @@ public class World extends JPanel{
 		stop_button.addActionListener(e -> start_stop());
 		stop_button.setBounds(W - 300, 125, 250, 35);
         add(stop_button);
-        JButton predators_button = new JButton("Predators");
-        predators_button.addActionListener(e -> change_draw_type(0));
-		predators_button.setBounds(W - 300, 190, 125, 20);
-        add(predators_button);
-        JButton energy_button = new JButton("Energy");
-        energy_button.addActionListener(e -> change_draw_type(2));
-		energy_button.setBounds(W - 170, 190, 125, 20);
-        add(energy_button);
-        JButton age_button = new JButton("Age");
-        age_button.addActionListener(e -> change_draw_type(3));
-		age_button.setBounds(W - 170, 215, 125, 20);
-        add(age_button);
-        JButton color_button = new JButton("Color");
-        color_button.addActionListener(e -> change_draw_type(1));
-		color_button.setBounds(W - 300, 215, 125, 20);
-        add(color_button);
-        JButton gas_button = new JButton("Gas");
-        gas_button.addActionListener(e -> change_draw_type(4));
-        gas_button.setBounds(W - 300, 240, 125, 20);
-        add(gas_button);
+        add_dr_button(W - 300, 190, "Predators", 0);
+        add_dr_button(W - 170, 190, "Energy", 2);
+        add_dr_button(W - 170, 215, "Age", 3);;
+        add_dr_button(W - 300, 215, "Color", 1);
+        add_dr_button(W - 300, 240, "Temp", 14);
         JButton select_button = new JButton("Select");
         select_button.addActionListener(e -> change_mouse(0));
 		select_button.setBounds(W - 300, 455, 95, 20);
@@ -164,21 +147,27 @@ public class World extends JPanel{
         add_radio_button(W - 300, 820, group, "H", 8, false, bs);
         add_radio_button(W - 300, 840, group, "I", 9, false, bs);
         add_radio_button(W - 300, 860, group, "J", 10, false, bs);
+        add_radio_button(W - 300, 880, group, "temp", 11, false, bs);
         //
-        ButtonGroup group2 = new ButtonGroup();
-        add_radio_button(W - 150, 680, group2, "A", 0, true, drbs);
-        add_radio_button(W - 150, 700, group2, "B", 1, false, drbs);
-        add_radio_button(W - 150, 720, group2, "C", 2, false, drbs);
-        add_radio_button(W - 150, 740, group2, "D", 3, false, drbs);
-        add_radio_button(W - 150, 760, group2, "E", 4, false, drbs);
-        add_radio_button(W - 150, 780, group2, "F", 5, false, drbs);
-        add_radio_button(W - 150, 800, group2, "G", 6, false, drbs);
-        add_radio_button(W - 150, 820, group2, "H", 7, false, drbs);
-        add_radio_button(W - 150, 840, group2, "I", 8, false, drbs);
-        add_radio_button(W - 150, 860, group2, "J", 9, false, drbs);
+        add_dr_button(W - 150, 680, "A", 4);
+        add_dr_button(W - 150, 700, "B", 5);
+        add_dr_button(W - 150, 720, "C", 6);
+        add_dr_button(W - 150, 740, "D", 7);
+        add_dr_button(W - 150, 760, "E", 8);
+        add_dr_button(W - 150, 780, "F", 9);
+        add_dr_button(W - 150, 800, "G", 10);
+        add_dr_button(W - 150, 820, "H", 11);
+        add_dr_button(W - 150, 840, "I", 12);
+        add_dr_button(W - 150, 860, "J", 13);
         //
 		kill_all();
 		timer.start();
+	}
+	public void add_dr_button(int x, int y, String name, int dtype) {
+		JButton button = new JButton(name);
+        button.addActionListener(e -> change_draw_type(dtype));
+		button.setBounds(x, y, 125, 20);
+        add(button);
 	}
 	public void add_radio_button(int x, int y, ButtonGroup g, String name, int i, boolean selected, JRadioButton[] lst) {
 		JRadioButton c = new JRadioButton(name, selected);
@@ -204,17 +193,22 @@ public class World extends JPanel{
 						if (gas_draw_type == 1) {//глюкоза
 							int gr = Math.max(0, 255 - (int)(ch[0][x][y] / 1000.0 * 255));
 							canvas.setColor(new Color(gr, gr, gr));
-							canvas.fillRect(x * 5, y * 5, 5, 5);
 						}else if (gas_draw_type == 2) {//кристаллы
-							canvas.setColor(Constant.gradient(new Color(255, 255, 255), new Color(85, 255, 255), Math.min(ch[1][x][y] / 1000, 1)));
-							canvas.fillRect(x * 5, y * 5, 5, 5);
+							canvas.setColor(Constant.gradient(new Color(255, 255, 255), new Color(129, 164, 240), Math.min(ch[1][x][y] / 1000, 1)));
+						}else if (gas_draw_type == 3) {//кислород
+							canvas.setColor(Constant.gradient(new Color(255, 255, 255), new Color(112, 219, 235), Math.min(ch[2][x][y] / 1000, 1)));
+						}else if (gas_draw_type == 4) {//углекислота
+							canvas.setColor(Constant.gradient(new Color(255, 255, 255), new Color(38, 36, 235), Math.min(ch[3][x][y] / 1000, 1)));
 						}else if (gas_draw_type == 5) {//водород
 							canvas.setColor(Constant.gradient(new Color(255, 255, 255), new Color(200, 176, 250), Math.min(ch[4][x][y] / 1000, 1)));
-							canvas.fillRect(x * 5, y * 5, 5, 5);
+						}else if (gas_draw_type == 11) {//температура
+							canvas.setColor(Constant.gradient(new Color(255, 255, 0), new Color(255, 0, 0), temp_map[x][y] / 100.0));
 						}
-						if (ch[1][x][y] > 500) {
+						//th - 246 122 236
+						canvas.fillRect(x * 3, y * 3, 3, 3);
+						if (ch[1][x][y] > 500 && gas_draw_type < 11) {
 							canvas.setColor(Constant.gradient(new Color(255, 255, 255), new Color(85, 255, 255), Math.min(ch[1][x][y] / 1000, 1)));
-							canvas.fillRect(x * 5, y * 5, 5, 5);
+							canvas.fillRect(x * 3, y * 3, 3, 3);
 						}
 					}
 				}
@@ -231,6 +225,7 @@ public class World extends JPanel{
 		canvas.drawString("version 1.9.1", W - 300, 40);
 		canvas.drawString("steps: " + String.valueOf(steps), W - 300, 60);
 		canvas.drawString("objects: " + String.valueOf(obj_count) + ", bots: " + String.valueOf(b_count), W - 300, 80);
+		String txt = "";
 		if (draw_type == 0) {
 			txt = "predators view";
 		}else if (draw_type == 1) {
@@ -241,16 +236,36 @@ public class World extends JPanel{
 			txt = "age view";
 		}else if (draw_type == 4){
 			txt = "A view";
+		}else if (draw_type == 5){
+			txt = "B view";
+		}else if (draw_type == 6){
+			txt = "C view";
+		}else if (draw_type == 7){
+			txt = "D view";
+		}else if (draw_type == 8){
+			txt = "E view";
+		}else if (draw_type == 9){
+			txt = "F view";
+		}else if (draw_type == 10){
+			txt = "G view";
+		}else if (draw_type == 11){
+			txt = "H view";
+		}else if (draw_type == 12){
+			txt = "I view";
+		}else if (draw_type == 13){
+			txt = "J view";
+		}else if (draw_type == 14){
+			txt = "temp view";
 		}
 		canvas.drawString("render type: " + txt, W - 300, 100);
 		if (mouse == 0) {
-			txt2 = "select";
+			txt = "select";
 		}else if (mouse == 1) {
-			txt2 = "set";
+			txt = "set";
 		}else {
-			txt2 = "remove";
+			txt = "remove";
 		}
-		canvas.drawString("mouse function: " + txt2, W - 300, 120);
+		canvas.drawString("mouse function: " + txt, W - 300, 120);
 		canvas.drawString("Render types:", W - 300, 180);
 		canvas.drawString("Selection:", W - 300, 275);
 		canvas.drawString("enter name:", W - 300, 405);
@@ -260,14 +275,14 @@ public class World extends JPanel{
 		canvas.drawString("Controls:", W - 300, 580);
 		canvas.drawString("Gas draw type:", W - 300, 655);
 		if (selection != null) {
-			canvas.drawString("energy: " + String.valueOf((int)selection.energy), W - 300, 295);
+			canvas.drawString("energy: " + String.valueOf((int)selection.energy) + ", temp: " + String.valueOf((int)selection.temp), W - 300, 295);
 			canvas.drawString("age: " + String.valueOf(selection.age), W - 300, 315);
 			canvas.drawString("position: " + "[" + String.valueOf(selection.xpos) + ", " + String.valueOf(selection.ypos) + "]", W - 300, 335);
 			canvas.drawString("color: " + "(" + String.valueOf(selection.color.getRed()) + ", " + String.valueOf(selection.color.getGreen()) + ", " + String.valueOf(selection.color.getBlue()) + ")", W - 300, 355);
 			canvas.setColor(new Color(0, 0, 0, 200));
 			canvas.fillRect(0, 0, W - 300, 1080);
 			canvas.setColor(new Color(255, 0, 0));
-			canvas.fillRect(selection.xpos * 5, selection.ypos * 5, 5, 5);
+			canvas.fillRect(selection.xpos * 3, selection.ypos * 3, 3, 3);
 		}else {
 			canvas.drawString("none", W - 300, 295);
 		}
@@ -292,6 +307,7 @@ public class World extends JPanel{
 		ch = new double[10][world_scale[0]][world_scale[1]];
 		for (int x = 0; x < world_scale[0]; x++) {
 			for (int y = 0; y < world_scale[1]; y++) {
+				temp_map[x][y] = Constant.temp;
 				for (int i = 0; i < 10; i++) {
 					ch[i][x][y] = Constant.start_count[i];
 				}
@@ -300,7 +316,7 @@ public class World extends JPanel{
 	}
 	public void new_population() {
 		kill_all();
-		for (int i = 0; i < 8000; i++) {
+		for (int i = 0; i < 10000; i++) {
 			while(true){
 				int x = rand.nextInt(world_scale[0]);
 				int y = rand.nextInt(world_scale[1]);
@@ -310,8 +326,10 @@ public class World extends JPanel{
 						y,
 						new Color(rand.nextInt(256),rand.nextInt(256), rand.nextInt(256)),
 						1000,
+						Constant.temp,
 						Map,
 						ch,
+						temp_map,
 						objects
 					);
 					objects.add(new_bot);
@@ -330,16 +348,9 @@ public class World extends JPanel{
 			update_mouse(e, false);
 		}
 		public void actionPerformed(ActionEvent e) {
-			for (int i = 0; i < 11; i++) {
+			for (int i = 0; i < 12; i++) {
 				if (bs[i].isSelected()) {
 					gas_draw_type = i;
-				}
-			}
-			if (draw_type > 3) {
-				for (int i = 0; i < 10; i++) {
-					if (drbs[i].isSelected()) {
-						draw_type = i + 4;
-					}
 				}
 			}
 			if (!pause) {
@@ -385,8 +396,9 @@ public class World extends JPanel{
 						gas(ch[i], i);
 					}
 				}
-				crystal(ch[1]);
+				//crystal(ch[1]);
 				hydrogenium(ch[4], 4);
+				temp();
 			}
 			ListIterator<Bot> iterator = objects.listIterator();
 			while (iterator.hasNext()) {
@@ -436,7 +448,7 @@ public class World extends JPanel{
 			e.printStackTrace();
 		}
 	}
-	public void gas(double[][] gas_map, int gas_type) {//распространение кислорода
+	public void gas(double[][] gas_map, int gas_type) {//распространение газа
 		double[][] new_map = new double[world_scale[0]][world_scale[1]];
 		for (int x = 0; x < world_scale[0]; x++) {
 			for (int y = 0; y < world_scale[1]; y++) {
@@ -486,14 +498,14 @@ public class World extends JPanel{
 		for (int x = 0; x < world_scale[0]; x++) {
 			for (int y = 0; y < world_scale[1]; y++) {
 				gas_map[x][y] = new_map[x][y];
-				//if (y > 135) {
-				//	gas_map[x][y] += 200;
-				//}
+				if (y > world_scale[1] * 0.625 && gas_map[x][y] < 60) {
+					gas_map[x][y] += (60 - gas_map[x][y]) / 50;
+				}
 			}
 		}
-		gas_map[100][215] += Constant.hydro_pl;
-		gas_map[200][215] += Constant.hydro_pl;
-		gas_map[300][215] += Constant.hydro_pl;
+		//gas_map[100][215] += Constant.hydro_pl;
+		//gas_map[200][215] += Constant.hydro_pl;
+		//gas_map[300][215] += Constant.hydro_pl;
 	}
 	public void crystal(double[][] crystal_map) {
 		double[][] new_map = new double[world_scale[0]][world_scale[1]];
@@ -503,9 +515,9 @@ public class World extends JPanel{
 			}
 		}
 		for (int i = 0; i < 1000; i++) {
-			int x = rand.nextInt(324);
-			int y = rand.nextInt(81) + 135;
-			if (crystal_map[x][y] > 10 || Map[x][y] != null && rand.nextInt(3000) == 0) {
+			int x = rand.nextInt(world_scale[0]);
+			int y = rand.nextInt((int)(world_scale[1] * 0.625), world_scale[1]);
+			if (crystal_map[x][y] > 10 || Map[x][y] != null && rand.nextInt(40000) == 0) {
 				new_map[x][y] += rand.nextInt(10, 30);
 			}else {
 				int count = 0;
@@ -516,21 +528,49 @@ public class World extends JPanel{
 						count++;
 					}
 				}
-				if (rand.nextInt(1000) < Constant.crystal_chances[count]) {
+				if (rand.nextInt(10000) < Constant.crystal_chances[count]) {
 					new_map[x][y] += rand.nextInt(10, 15);
 				}
 			}
 		}
 		for (int x = 0; x < world_scale[0]; x++) {
 			for (int y = 0; y < world_scale[1]; y++) {
-				//crystal_map[x][y] = new_map[x][y];
+				crystal_map[x][y] = new_map[x][y];
+			}
+		}
+	}
+	public void temp() {
+		double[][] new_map = new double[world_scale[0]][world_scale[1]];
+		for (int x = 0; x < world_scale[0]; x++) {
+			for (int y = 0; y < world_scale[1]; y++) {
+				double ox = temp_map[x][y] / 9;
+				new_map[x][y] += ox;
+				int count = 0;
+				for (int i = 0; i < 8; i++) {
+					int[] f = {x, y};
+					int[] pos = Constant.get_rotate_position(i, f);
+					if (pos[1] >= 0 && pos[1] < world_scale[1]) {
+						new_map[pos[0]][pos[1]] += ox;
+					}else {
+						count++;
+					}
+				}
+				for (int i = 0; i < count; i++) {
+					new_map[x][y] += ox;
+				}
+			}
+		}
+		for (int x = 0; x < world_scale[0]; x++) {
+			for (int y = 0; y < world_scale[1]; y++) {
+				temp_map[x][y] = new_map[x][y];
+				temp_map[x][y] += (30 - temp_map[x][y]) / 50;
 			}
 		}
 	}
 	public void update_mouse(MouseEvent e, boolean do_select) {
 		if (e.getX() < W - 300) {
-			botpos[0] = e.getX() / 5;
-			botpos[1] = e.getY() / 5;
+			botpos[0] = e.getX() / 3;
+			botpos[1] = e.getY() / 3;
 			if (mouse == 0) {//select
 				if (do_select) {
 					if (find_map_pos(botpos, 0)) {
@@ -549,7 +589,7 @@ public class World extends JPanel{
 				if (for_set != null) {
 					if (Map[botpos[0]][botpos[1]] == null) {
 						if (for_set != null) {
-							Bot new_bot = new Bot(botpos[0], botpos[1], new Color(rand.nextInt(256), rand.nextInt(256), rand.nextInt(256)), 1000, Map, ch, objects);
+							Bot new_bot = new Bot(botpos[0], botpos[1], new Color(rand.nextInt(256), rand.nextInt(256), rand.nextInt(256)), 1000, Constant.temp, Map, ch, temp_map, objects);
 							for (int i = 0; i < 64; i++) {
 								new_bot.commands[i] = for_set[i];
 							}
@@ -645,7 +685,6 @@ public class World extends JPanel{
 			for(Bot b: objects) {//bot length - 78
 				bufferedWriter.write(String.valueOf(b.energy) + ":");//0
 				bufferedWriter.write(String.valueOf(b.age) + ":");//1
-				bufferedWriter.write(String.valueOf(b.minerals) + ":");//2
 				bufferedWriter.write(String.valueOf(b.xpos) + ":");//3
 				bufferedWriter.write(String.valueOf(b.ypos) + ":");//4
 				bufferedWriter.write(String.valueOf(b.rotate) + ":");//5
@@ -686,12 +725,13 @@ public class World extends JPanel{
 	    			Integer.parseInt(bot_data[4]),
 	    			new Color(Integer.parseInt(bot_data[10]), Integer.parseInt(bot_data[11]), Integer.parseInt(bot_data[12])),
 	    			Integer.parseInt(bot_data[0]),
+	    			Constant.temp,
 	    			Map,
 	    			ch,
+	    			temp_map,
 	    			objects
 	    		);
 	    		new_bot.age = Integer.parseInt(bot_data[1]);
-	    		new_bot.minerals = Integer.parseInt(bot_data[2]);
 	    		new_bot.rotate = Integer.parseInt(bot_data[5]);
 	    		new_bot.state = Integer.parseInt(bot_data[6]);
 	    		new_bot.c_red = Integer.parseInt(bot_data[7]);

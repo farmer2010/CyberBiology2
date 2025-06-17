@@ -11,7 +11,7 @@ public class Main{
 		new File("saved objects").mkdirs(); 
 		new File("saved worlds").mkdirs();
 		//
-		JFrame frame = new JFrame("Cyber biology 2 v1.9.1 new genome test");
+		JFrame frame = new JFrame("Cyber biology 2 v1.9.1 chemistry");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.add(new World());
 		frame.setSize(1920, 1080);

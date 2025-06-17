@@ -15,7 +15,7 @@ public class Bot{
 	public int ypos;
 	public Color color;
 	public double energy;
-	public int minerals;
+	public double temp;
 	public int killed = 0;
 	public Bot[][] map;
 	public int[] commands = new int[64];
@@ -33,26 +33,27 @@ public class Bot{
 		{-1, 0},
 		{-1, -1}
 	};
-	private int[] minerals_list = {1, 2, 3};
 	private int[] photo_list = {8, 7, 6, 5, 4, 3, 0, 0};
-	private int[] world_scale = {324, 216};
+	private int[] world_scale = {540, 360};
 	public int c_red = -1;
 	public int c_green = -1;
 	public int c_blue = -1;
 	private double[][][] ch;
 	public double[] my_ch = new double[10];
+	public double[][] temp_map;
 	public int[][] genes = new int[2][3];
-	public Bot(int new_xpos, int new_ypos, Color new_color, double new_energy, Bot[][] new_map, double[][][] new_ch, ArrayList<Bot> new_objects) {
+	public Bot(int new_xpos, int new_ypos, Color new_color, double new_energy, double new_temp, Bot[][] new_map, double[][][] new_ch, double[][] new_temp_map, ArrayList<Bot> new_objects) {
 		ch = new_ch;
 		xpos = new_xpos;
 		ypos = new_ypos;
-		x = new_xpos * 5;
-		y = new_ypos * 5;
+		x = new_xpos * 3;
+		y = new_ypos * 3;
 		color = new_color;
 		energy = new_energy;
-		minerals = 0;
+		temp = new_temp;
 		objects = new_objects;
 		map = new_map;
+		temp_map = new_temp_map;
 		for (int i = 0; i < 64; i++) {
 			commands[i] = rand.nextInt(64);
 		}
@@ -61,25 +62,10 @@ public class Bot{
 				genes[i][j] = rand.nextInt(64);
 			}
 		}
-		//genes[0][0] = 0;
-		//genes[1][0] = 1;
 	}
 	public void Draw(Graphics canvas, int draw_type) {
 		if (state == 0) {//рисуем бота
 			if (draw_type == 0) {//режим отрисовки хищников
-				//int r = 0;
-				//int g = 0;
-				//int b = 0;
-				//if (c_red + c_green + c_blue == 0) {
-				//	r = 128;
-				//	g = 128;
-				//	b = 128;
-				//}else {
-				//	r = (int)((c_red * 1.0) / (c_red + c_green + c_blue) * 255.0);
-				//	g = (int)((c_green * 1.0) / (c_red + c_green + c_blue) * 255.0);
-				//	b = (int)((c_blue * 1.0) / (c_red + c_green + c_blue) * 255.0);
-				//}
-				//canvas.setColor(new Color(r, g, b));
 				if (c_red == -1 || c_green == -1 || c_blue == -1) {
 					canvas.setColor(new Color(128, 128, 128));
 				}else {
@@ -103,8 +89,10 @@ public class Bot{
 				canvas.setColor(Constant.gradient(new Color(255, 255, 0), new Color(60, 255, 128), Math.min(my_ch[1] / 1000, 1)));
 			}else if (draw_type == 8) {//водорода
 				canvas.setColor(Constant.gradient(new Color(0, 255, 0), new Color(200, 176, 250), Math.min(my_ch[4] / 1000, 1)));
+			}else if (draw_type == 14) {//температуры
+				
 			}
-			canvas.fillRect(x, y, 5, 5);
+			canvas.fillRect(x, y, 3, 3);
 		}else {//рисуем органику
 			canvas.setColor(new Color(128, 128, 128));
 			canvas.fillRect(x + 1, y + 1, 3, 3);
@@ -120,11 +108,12 @@ public class Bot{
 						ch[i][xpos][ypos] -= c;
 					}
 				}
+				double t = temp;
+				double tm = temp_map[xpos][ypos];
+				temp += (tm - t) / 30;
+				temp_map[xpos][ypos] += (t - tm) / 30;
 				energy -= 1;
 				age -= 1;
-				//if (sector <= 7 & sector >= 5) {
-				//	minerals += minerals_list[sector - 5];
-				//}
 				update_genes();
 				update_commands(iterator);
 				if (energy <= 0) {
@@ -144,9 +133,6 @@ public class Bot{
 					map[xpos][ypos] = null;
 					return(0);
 				}
-				if (minerals > 1000) {
-					minerals = 1000;
-				}
 			}else if (state == 1) {//падающая органика
 				move(4);
 				int[] pos = get_rotate_position(4);
@@ -158,15 +144,13 @@ public class Bot{
 			}else {//стоящая органика
 				//
 			}
-		}else {
-			
 		}
 		return(0);
 	}
 	public void update_genes() {//органеллы
 		for (int i = 0; i < 2; i++) {
 			if (gene_condition(genes[i][1], genes[i][2]) && genes[i][0] < Constant.reactions.length) {
-				reaction(genes[i][0] % 2);
+				reaction(genes[i][0] % 5);
 			}
 		}
 	}
@@ -230,6 +214,7 @@ public class Bot{
 				int sens = move(commands[(index + 1) % 64] % 8);
 				if (sens == 1) {
 					energy -= 1;
+					temp += 3;
 				}
 				index += 2;
 				index %= 64;
@@ -238,6 +223,7 @@ public class Bot{
 				int sens = move(rotate);
 				if (sens == 1) {
 					energy -= 1;
+					temp += 3;
 				}
 				index += 1;
 				index %= 64;
@@ -274,22 +260,10 @@ public class Bot{
 				}else {
 					index = commands[(index + 3) % 64];
 				}
-			}else if (command == 37) {//сколько у меня минералов
-				int ind = commands[(index + 1) % 64] * 15;
-				if (minerals >= ind) {
-					index = commands[(index + 2) % 64];
-				}else {
-					index = commands[(index + 3) % 64];
-				}
-			}else if (command == 38) {//преобразовать минералы в энергию
-				if (minerals > 0) {
-					go_blue();
-				}
-				energy += minerals * 4;
-				minerals = 0;
-				index += 1;
-				index %= 64;
-				break;
+			}else if (command == 37) {//
+				index = commands[(index + 1) % 64];
+			}else if (command == 38) {//
+				index = commands[(index + 1) % 64];
 			}else if (command == 39) {//есть ли фотосинтез
 				int sector = bot_in_sector();
 				if (sector <= 5) {
@@ -393,6 +367,7 @@ public class Bot{
 		if (is_free(rot)) {
 			ch[ch_type][pos[0]][pos[1]] += ch[ch_type][xpos][ypos];
 			ch[ch_type][xpos][ypos] = 0;
+			temp += 3;
 		}
 	}
 	public int count_neighbours() {
@@ -432,9 +407,8 @@ public class Bot{
 					Bot relative = map[pos[0]][pos[1]];
 					if (relative.killed == 0) {
 						relative.energy += energy / 4;
-						relative.minerals += minerals / 4;
 						energy -= energy / 4;
-						minerals -= minerals / 4;
+						temp += 2;
 					}
 				}
 			}
@@ -449,11 +423,9 @@ public class Bot{
 					Bot relative = map[pos[0]][pos[1]];
 					if (relative.killed == 0) {
 						double enr = relative.energy + energy;
-						int mnr = relative.minerals + minerals;
 						relative.energy = enr / 2;
-						relative.minerals = mnr / 2;
 						energy = enr / 2;
-						minerals = mnr / 2;
+						temp += 2;
 					}
 				}
 			}
@@ -472,6 +444,7 @@ public class Bot{
 					map[pos[0]][pos[1]] = null;
 					victim.die();
 					go_red();
+					temp += 4;
 				}
 			}
 		}
@@ -486,12 +459,14 @@ public class Bot{
 					if (victim.energy >= strength) {
 						energy += strength;
 						victim.energy -= strength;
+						temp += 3;
 					}else {
 						energy += victim.energy;
 						victim.energy = 0;
 						victim.killed = 1;
 						map[pos[0]][pos[1]] = null;
 						victim.die();
+						temp += 3;
 					}
 					go_red();
 				}
@@ -506,8 +481,8 @@ public class Bot{
 			map[xpos][ypos] = null;
 			xpos = pos[0];
 			ypos = pos[1];
-			x = xpos * 5;
-			y = ypos * 5;
+			x = xpos * 3;
+			y = ypos * 3;
 			map[xpos][ypos] = self;
 			return(1);
 		}
@@ -522,7 +497,7 @@ public class Bot{
 				killed = 1;
 				map[xpos][ypos] = null;
 				die();
-			}else { 
+			}else {
 				Color new_color = color;
 				int[] new_brain = new int[64];
 				for (int i = 0; i < 64; i++) {
@@ -541,18 +516,17 @@ public class Bot{
 						new_genes[rand.nextInt(2)][rand.nextInt(3)] = rand.nextInt(64);
 					}
 				}
-				Bot new_bot = new Bot(pos[0], pos[1], new_color, energy / 2, map, ch, objects);
+				Bot new_bot = new Bot(pos[0], pos[1], new_color, energy / 2, temp, map, ch, temp_map, objects);
 				for (int i = 0; i < 10; i++) {
 					new_bot.my_ch[i] = my_ch[i] / 2;
 					my_ch[i] /= 2;
 				}
-				new_bot.minerals = minerals / 2;
 				energy /= 2;
-				minerals /= 2;
 				new_bot.commands = new_brain;
 				new_bot.genes = new_genes;
 				map[pos[0]][pos[1]] = new_bot;
 				iterator.add(new_bot);
+				temp += 5;
 			}
 		}
 	}
@@ -576,12 +550,21 @@ public class Bot{
 					count = my_ch[ch_type - 3];
 				}else if (ch_type == 0) {
 					count = photo_list[bot_in_sector()];
+				}else if (ch_type == 1) {
+					count = energy;
+				}else if (ch_type == 2) {
+					count = temp;
 				}
 				count = Math.min(count, spmax);
 				speed *= Math.max(count * coeff, spmin);
 			}
 			for (int j = 0; j < Constant.reactions[reaction_type][0][0].length; j++) {
-				my_ch[(int)(Constant.reactions[reaction_type][0][1][j]) - 3] -= Constant.reactions[reaction_type][0][0][j] * speed;
+				int ch_type = (int)(Constant.reactions[reaction_type][0][1][j]);
+				if (ch_type >= 3) {
+					my_ch[(int)(Constant.reactions[reaction_type][0][1][j]) - 3] -= Constant.reactions[reaction_type][0][0][j] * speed;
+				}else if (ch_type == 1) {
+					
+				}
 			}
 			for (int j = 0; j < Constant.reactions[reaction_type][1][0].length; j++) {
 				if ((int)(Constant.reactions[reaction_type][1][1][j]) >= 3) {
