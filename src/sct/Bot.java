@@ -84,11 +84,11 @@ public class Bot{
 			}else if (draw_type == 3) {//возраста
 				canvas.setColor(Constant.gradient(new Color(0, 0, 255), new Color(255, 255, 0), (age * 1.0) / 1000));
 			}else if (draw_type == 4) {//глюкозы
-				canvas.setColor(Constant.gradient(new Color(128, 128, 128), new Color(255, 255, 0), Math.min(my_ch[0] / 1000, 1)));
+				canvas.setColor(Constant.gradient(new Color(128, 128, 128), new Color(255, 255, 0), Math.min(my_ch[0] / 80, 1)));
 			}else if (draw_type == 5) {//кристалла
-				canvas.setColor(Constant.gradient(new Color(255, 255, 0), new Color(60, 255, 128), Math.min(my_ch[1] / 1000, 1)));
+				canvas.setColor(Constant.gradient(new Color(255, 255, 0), new Color(60, 255, 128), Math.min(my_ch[1] / 80, 1)));
 			}else if (draw_type == 8) {//водорода
-				canvas.setColor(Constant.gradient(new Color(0, 255, 0), new Color(200, 176, 250), Math.min(my_ch[4] / 1000, 1)));
+				canvas.setColor(Constant.gradient(new Color(0, 255, 0), new Color(200, 176, 250), Math.min(my_ch[4] / 80, 1)));
 			}else if (draw_type == 14) {//температуры
 				
 			}
@@ -110,8 +110,8 @@ public class Bot{
 				}
 				double t = temp;
 				double tm = temp_map[xpos][ypos];
-				temp += (tm - t) / 30;
-				temp_map[xpos][ypos] += (t - tm) / 30;
+				temp += (tm - t) / 10;
+				temp_map[xpos][ypos] += (t - tm) / 10;
 				energy -= 1;
 				age -= 1;
 				update_genes();
@@ -150,7 +150,7 @@ public class Bot{
 	public void update_genes() {//органеллы
 		for (int i = 0; i < 2; i++) {
 			if (gene_condition(genes[i][1], genes[i][2]) && genes[i][0] < Constant.reactions.length) {
-				reaction(genes[i][0] % 5);
+				reaction(genes[i][0] % 8);
 			}
 		}
 	}
@@ -536,7 +536,16 @@ public class Bot{
 	public void reaction(int reaction_type) {
 		boolean inp = true;
 		for (int j = 0; j < Constant.reactions[reaction_type][0][0].length; j++) {
-			inp = inp && my_ch[(int)(Constant.reactions[reaction_type][0][1][j]) - 3] > Constant.reactions[reaction_type][0][0][j];
+			double c = 0;
+			int ch_type = (int)(Constant.reactions[reaction_type][0][1][j]);
+			if (ch_type >= 3) {
+				c = my_ch[ch_type - 3];
+			}else if (ch_type == 1) {
+				c = energy;
+			}else if (ch_type == 2) {
+				c = temp;
+			}
+			inp = inp && c >= Constant.reactions[reaction_type][0][0][j];
 		}
 		if (inp) {
 			double speed = 1;
@@ -563,7 +572,9 @@ public class Bot{
 				if (ch_type >= 3) {
 					my_ch[(int)(Constant.reactions[reaction_type][0][1][j]) - 3] -= Constant.reactions[reaction_type][0][0][j] * speed;
 				}else if (ch_type == 1) {
-					
+					energy -= Constant.reactions[reaction_type][0][0][j] * speed;
+				}else if (ch_type == 2) {
+					temp -= Constant.reactions[reaction_type][0][0][j] * speed;
 				}
 			}
 			for (int j = 0; j < Constant.reactions[reaction_type][1][0].length; j++) {
@@ -571,6 +582,8 @@ public class Bot{
 					my_ch[(int)(Constant.reactions[reaction_type][1][1][j]) - 3] += Constant.reactions[reaction_type][1][0][j] * speed;
 				}else if ((int)(Constant.reactions[reaction_type][1][1][j]) == 1) {
 					energy += Constant.reactions[reaction_type][1][0][j] * speed;
+				}else if ((int)(Constant.reactions[reaction_type][1][1][j]) == 2) {
+					temp += Constant.reactions[reaction_type][1][0][j] * speed;
 				}
 			}
 			go_color(Constant.reactions_color[reaction_type]);

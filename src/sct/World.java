@@ -563,7 +563,7 @@ public class World extends JPanel{
 		for (int x = 0; x < world_scale[0]; x++) {
 			for (int y = 0; y < world_scale[1]; y++) {
 				temp_map[x][y] = new_map[x][y];
-				temp_map[x][y] += (30 - temp_map[x][y]) / 50;
+				temp_map[x][y] += (30 - temp_map[x][y]) / 100;
 			}
 		}
 	}

@@ -38,15 +38,25 @@ public class Constant {
 		//
 		//массив: 0 - количество, 1 - тип
 		//для катализаторов: 0 - ускорение за единицу катализатора, 1 - тип, 2 - минимальное значение коефф скорости, 3 - максимальное количество катализатора
-		new double[][][] {//фотосинтез
-			new double[][] {new double[] {0.2}, new double[] {7}},//тратим
-			new double[][] {new double[] {1, 5}, new double[] {3, 5}},//производим
-			new double[][] {new double[] {1}, new double[] {0}, new double[] {1}, new double[] {100}},//катализаторы
-		},
 		new double[][][] {//гликолиз
 			new double[][] {new double[] {5}, new double[] {3}},//тратим
-			new double[][] {new double[] {4}, new double[] {1}},//производим
+			new double[][] {new double[] {2}, new double[] {1}},//производим
 			new double[][] {new double[] {}, new double[] {}, new double[] {}, new double[] {}},//катализаторы
+		},
+		new double[][][] {//анаэробное дыхание
+			new double[][] {new double[] {5, 3}, new double[] {3, 6}},//тратим
+			new double[][] {new double[] {3}, new double[] {1}},//производим
+			new double[][] {new double[] {}, new double[] {}, new double[] {}, new double[] {}},//катализаторы
+		},
+		new double[][][] {//аэробное дыхание
+			new double[][] {new double[] {5, 1.8}, new double[] {3, 5}},//тратим
+			new double[][] {new double[] {5, 5, 5}, new double[] {1, 2, 6}},//производим
+			new double[][] {new double[] {}, new double[] {}, new double[] {}, new double[] {}},//катализаторы
+		},
+		new double[][][] {//фотосинтез
+			new double[][] {new double[] {0.2, 0.5}, new double[] {7, 6}},//тратим
+			new double[][] {new double[] {1.5, 5}, new double[] {3, 5}},//производим
+			new double[][] {new double[] {1}, new double[] {0}, new double[] {1}, new double[] {100}},//катализаторы
 		},
 		new double[][][] {//переработка кристалла
 			new double[][] {new double[] {1, 0.1}, new double[] {4, 7}},//тратим
@@ -63,13 +73,21 @@ public class Constant {
 			new double[][] {new double[] {3}, new double[] {1}},//производим
 			new double[][] {new double[] {}, new double[] {}, new double[] {}, new double[] {}},//катализаторы
 		},
+		new double[][][] {//нагрев
+			new double[][] {new double[] {5, 3}, new double[] {1, 5}},//тратим
+			new double[][] {new double[] {14}, new double[] {2}},//производим
+			new double[][] {new double[] {}, new double[] {}, new double[] {}, new double[] {}},//катализаторы
+		},
 	};
 	public static Color[] reactions_color = new Color[]{
-		new Color(0, 255, 0),
-		new Color(255, 255, 0),
-		new Color(87, 173, 233),
-		new Color(251, 117, 255),
-		new Color(0, 0, 255),
+		new Color(255, 255, 0),//гликолиз
+		new Color(255, 255, 0),//анаэробное дыхание
+		new Color(255, 255, 0),//аэробное дыхание
+		new Color(0, 255, 0),//фотосинтез
+		new Color(87, 173, 233),//переработка кристалла
+		new Color(251, 117, 255),//синтез тория
+		new Color(0, 0, 255),//окисление водорода
+		new Color(255, 255, 255),//нагрев
 	};
 	//
 	//Тех. функции
