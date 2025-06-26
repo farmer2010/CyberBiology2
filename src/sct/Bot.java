@@ -87,6 +87,10 @@ public class Bot{
 				canvas.setColor(Constant.gradient(new Color(128, 128, 128), new Color(255, 255, 0), Math.min(my_ch[0] / 80, 1)));
 			}else if (draw_type == 5) {//кристалла
 				canvas.setColor(Constant.gradient(new Color(255, 255, 0), new Color(60, 255, 128), Math.min(my_ch[1] / 80, 1)));
+			}else if (draw_type == 6) {//кислорода
+				canvas.setColor(Constant.gradient(new Color(255, 0, 0), new Color(112, 219, 235), Math.min(my_ch[2] / 80, 1)));
+			}else if (draw_type == 7) {//углекислоты
+				canvas.setColor(Constant.gradient(new Color(112, 219, 235), new Color(38, 36, 235), Math.min(my_ch[3] / 80, 1)));
 			}else if (draw_type == 8) {//водорода
 				canvas.setColor(Constant.gradient(new Color(0, 255, 0), new Color(200, 176, 250), Math.min(my_ch[4] / 80, 1)));
 			}else if (draw_type == 14) {//температуры
@@ -103,7 +107,7 @@ public class Bot{
 			if (state == 0) {//бот
 				for (int i = 0; i < 10; i++) {
 					if (ch[i][xpos][ypos] > my_ch[i]) {
-						double c = (ch[i][xpos][ypos] - my_ch[i]) * Constant.collect_speed[i];
+						double c = Math.max(Math.min((ch[i][xpos][ypos] - my_ch[i]) * Constant.collect_speed[i], Constant.ch_bot_limit - my_ch[1]), 0);
 						my_ch[i] += c;
 						ch[i][xpos][ypos] -= c;
 					}
@@ -116,33 +120,18 @@ public class Bot{
 				age -= 1;
 				update_genes();
 				update_commands(iterator);
-				if (energy <= 0) {
+				if (energy <= 0 || age <= 0 || ch[1][xpos][ypos] >= 500) {
 					killed = 1;
 					map[xpos][ypos] = null;
 					die();
 					return(0);
-				}else if (energy > 1000) {
+				}
+				if (energy > 1000) {
 					energy = 1000;
 				}
 				if (energy >= 800) {//автоматическое деление
 					multiply(rotate, iterator);
 				}
-				if (age <= 0) {
-					die();
-					killed = 1;
-					map[xpos][ypos] = null;
-					return(0);
-				}
-			}else if (state == 1) {//падающая органика
-				move(4);
-				int[] pos = get_rotate_position(4);
-				if (pos[1] >= 0 & pos[1] < world_scale[1]) {
-					if (map[pos[0]][pos[1]] != null) {
-						state = 2;
-					}
-				}
-			}else {//стоящая органика
-				//
 			}
 		}
 		return(0);
@@ -608,7 +597,7 @@ public class Bot{
 			}
 			for (int j = 0; j < 8; j++) {
 				int[] pos = get_rotate_position(j);
-				if (pos[1] >= 0 && pos[1] < world_scale[1]) {
+				if (is_free(j)) {
 					ch[i][pos[0]][pos[1]] += c;
 				}else {
 					ch[i][xpos][ypos] += c;

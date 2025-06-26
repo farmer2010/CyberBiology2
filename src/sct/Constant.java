@@ -4,16 +4,18 @@ import java.awt.Color;
 
 public class Constant {
 	public static double temp = 30;
+	public static int ch_bot_limit = 80;
 	//Вещества и их свойства
 	//A - органика/глюкоза. После смерти бота его энергия превращается в глюкозу.
 	//
 	//B - кристаллы
 	//
-	public static double[] start_count = new double[] {200, 0, 200, 200, 50, 0, 0, 0, 0, 0};
+	public static double[] start_count = new double[] {200, 0, 200, 200, 50, 200, 200, 200, 200, 200};
 	public static double[] viscosity = new double[] {0.01, 0, 1, 1, 0.5, 0, 0, 0, 0, 0};
 	public static double[] evaporation = new double[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 	public static double[] up = new double[] {0, 0, 0, 0, 0.3, 0, 0, 0, 0, 0};
-	public static double[] collect_speed = new double[] {0.1, 0, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1};
+	public static double[] up_max = new double[] {0, 0, 0, 0, 300, 0, 0, 0, 0, 0};
+	public static double[] collect_speed = new double[] {0.04, 0, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04};
 	public static int[] crystal_chances = new int[] {0, 10, 7, 6, 5, 4, 3, 2, 1};
 	//
 	public static int hydro_pl = 100;//приход водорода
@@ -40,32 +42,32 @@ public class Constant {
 		//для катализаторов: 0 - ускорение за единицу катализатора, 1 - тип, 2 - минимальное значение коефф скорости, 3 - максимальное количество катализатора
 		new double[][][] {//гликолиз
 			new double[][] {new double[] {5}, new double[] {3}},//тратим
-			new double[][] {new double[] {2}, new double[] {1}},//производим
+			new double[][] {new double[] {3}, new double[] {1}},//производим
 			new double[][] {new double[] {}, new double[] {}, new double[] {}, new double[] {}},//катализаторы
 		},
 		new double[][][] {//анаэробное дыхание
 			new double[][] {new double[] {5, 3}, new double[] {3, 6}},//тратим
-			new double[][] {new double[] {3}, new double[] {1}},//производим
+			new double[][] {new double[] {4}, new double[] {1}},//производим
 			new double[][] {new double[] {}, new double[] {}, new double[] {}, new double[] {}},//катализаторы
 		},
 		new double[][][] {//аэробное дыхание
 			new double[][] {new double[] {5, 1.8}, new double[] {3, 5}},//тратим
-			new double[][] {new double[] {5, 5, 5}, new double[] {1, 2, 6}},//производим
+			new double[][] {new double[] {6, 5, 3}, new double[] {1, 2, 6}},//производим
 			new double[][] {new double[] {}, new double[] {}, new double[] {}, new double[] {}},//катализаторы
 		},
 		new double[][][] {//фотосинтез
-			new double[][] {new double[] {0.2, 0.5}, new double[] {7, 6}},//тратим
-			new double[][] {new double[] {1.5, 5}, new double[] {3, 5}},//производим
+			new double[][] {new double[] {0.4, 0.3}, new double[] {7, 6}},//тратим
+			new double[][] {new double[] {1.5, 0.3}, new double[] {3, 5}},//производим
 			new double[][] {new double[] {1}, new double[] {0}, new double[] {1}, new double[] {100}},//катализаторы
 		},
 		new double[][][] {//переработка кристалла
-			new double[][] {new double[] {1, 0.1}, new double[] {4, 7}},//тратим
-			new double[][] {new double[] {1, 1, 1, 2}, new double[] {6, 8, 9, 1}},//производим
+			new double[][] {new double[] {3, 1}, new double[] {4, 7}},//тратим
+			new double[][] {new double[] {2.5, 1, 1, 2.5}, new double[] {6, 8, 9, 1}},//производим
 			new double[][] {new double[] {}, new double[] {}, new double[] {}, new double[] {}},//катализаторы
 		},
 		new double[][][] {//синтез тория
-			new double[][] {new double[] {1, 1, 1}, new double[] {9, 7, 6}},//тратим
-			new double[][] {new double[] {1, 1}, new double[] {10, 1}},//производим
+			new double[][] {new double[] {1, 1, 4}, new double[] {9, 7, 6}},//тратим
+			new double[][] {new double[] {1, 2}, new double[] {10, 1}},//производим
 			new double[][] {new double[] {}, new double[] {}, new double[] {}, new double[] {}},//катализаторы
 		},
 		new double[][][] {//окисление водорода
@@ -80,8 +82,8 @@ public class Constant {
 		},
 	};
 	public static Color[] reactions_color = new Color[]{
-		new Color(255, 255, 0),//гликолиз
-		new Color(255, 255, 0),//анаэробное дыхание
+		new Color(203, 242, 68),//гликолиз
+		new Color(255, 255, 128),//анаэробное дыхание
 		new Color(255, 255, 0),//аэробное дыхание
 		new Color(0, 255, 0),//фотосинтез
 		new Color(87, 173, 233),//переработка кристалла

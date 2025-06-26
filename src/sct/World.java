@@ -200,14 +200,23 @@ public class World extends JPanel{
 						}else if (gas_draw_type == 4) {//углекислота
 							canvas.setColor(Constant.gradient(new Color(255, 255, 255), new Color(38, 36, 235), Math.min(ch[3][x][y] / 1000, 1)));
 						}else if (gas_draw_type == 5) {//водород
-							canvas.setColor(Constant.gradient(new Color(255, 255, 255), new Color(200, 176, 250), Math.min(ch[4][x][y] / 1000, 1)));
+							canvas.setColor(Constant.gradient(new Color(255, 255, 255), new Color(200, 176, 250), Math.min(ch[4][x][y] / 500, 1)));
+						}else if (gas_draw_type == 6) {//вольфрам
+							canvas.setColor(Constant.gradient(new Color(255, 255, 255), new Color(168, 194, 209), Math.min(ch[5][x][y] / 500, 1)));
+						}else if (gas_draw_type == 7) {//катализатор
+							canvas.setColor(Constant.gradient(new Color(255, 255, 255), new Color(83, 42, 92), Math.min(ch[6][x][y] / 500, 1)));
+						}else if (gas_draw_type == 8) {//торий
+							canvas.setColor(Constant.gradient(new Color(255, 255, 255), new Color(246, 122, 236), Math.min(ch[7][x][y] / 500, 1)));
+						}else if (gas_draw_type == 9) {//яд
+							canvas.setColor(Constant.gradient(new Color(255, 255, 255), new Color(153, 0, 0), Math.min(ch[8][x][y] / 500, 1)));
+						}else if (gas_draw_type == 10) {//железо
+							canvas.setColor(Constant.gradient(new Color(255, 255, 255), new Color(105, 73, 62), Math.min(ch[9][x][y] / 500, 1)));
 						}else if (gas_draw_type == 11) {//температура
 							canvas.setColor(Constant.gradient(new Color(255, 255, 0), new Color(255, 0, 0), temp_map[x][y] / 100.0));
 						}
-						//th - 246 122 236
 						canvas.fillRect(x * 3, y * 3, 3, 3);
 						if (ch[1][x][y] > 500 && gas_draw_type < 11) {
-							canvas.setColor(Constant.gradient(new Color(255, 255, 255), new Color(85, 255, 255), Math.min(ch[1][x][y] / 1000, 1)));
+							canvas.setColor(Constant.gradient(new Color(255, 255, 255), new Color(129, 164, 240), Math.min(ch[1][x][y] / 1000, 1)));
 							canvas.fillRect(x * 3, y * 3, 3, 3);
 						}
 					}
@@ -275,10 +284,10 @@ public class World extends JPanel{
 		canvas.drawString("Controls:", W - 300, 580);
 		canvas.drawString("Gas draw type:", W - 300, 655);
 		if (selection != null) {
-			canvas.drawString("energy: " + String.valueOf((int)selection.energy) + ", temp: " + String.valueOf((int)selection.temp), W - 300, 295);
-			canvas.drawString("age: " + String.valueOf(selection.age), W - 300, 315);
-			canvas.drawString("position: " + "[" + String.valueOf(selection.xpos) + ", " + String.valueOf(selection.ypos) + "]", W - 300, 335);
-			canvas.drawString("color: " + "(" + String.valueOf(selection.color.getRed()) + ", " + String.valueOf(selection.color.getGreen()) + ", " + String.valueOf(selection.color.getBlue()) + ")", W - 300, 355);
+			canvas.drawString("energy: " + String.valueOf((int)selection.energy) + ", temp: " + String.valueOf((int)selection.temp) + ", age: " + String.valueOf(selection.age), W - 300, 295);
+			canvas.drawString("position: " + "[" + String.valueOf(selection.xpos) + ", " + String.valueOf(selection.ypos) + "]", W - 300, 315);
+			canvas.drawString("color: " + "(" + String.valueOf(selection.c_red) + ", " + String.valueOf(selection.c_green) + ", " + String.valueOf(selection.c_blue) + ")", W - 300, 335);
+			canvas.drawString("sp: " + String.valueOf(selection.genes[0][0] % Constant.reactions.length) + ", " + String.valueOf(selection.genes[1][0] % Constant.reactions.length), W - 300, 355);
 			canvas.setColor(new Color(0, 0, 0, 200));
 			canvas.fillRect(0, 0, W - 300, 1080);
 			canvas.setColor(new Color(255, 0, 0));
@@ -396,7 +405,7 @@ public class World extends JPanel{
 						gas(ch[i], i);
 					}
 				}
-				//crystal(ch[1]);
+				crystal(ch[1]);
 				hydrogenium(ch[4], 4);
 				temp();
 			}
@@ -487,7 +496,12 @@ public class World extends JPanel{
 		for (int x = 0; x < world_scale[0]; x++) {
 			for (int y = 0; y < world_scale[1]; y++) {
 				int[] pos = Constant.get_rotate_position(0, new int[] {x, y});
-				if (pos[1] >= 0 && pos[1] < world_scale[1] && Map[pos[0]][pos[1]] == null && ch[1][pos[0]][pos[1]] < 500 && ch[gas_type][x][y] - ch[gas_type][pos[0]][pos[1]] > ch[gas_type][x][y]/10 && ch[gas_type][pos[0]][pos[1]] < 1000) {
+				if (pos[1] >= 0 && pos[1] < world_scale[1] && 
+						Map[pos[0]][pos[1]] == null && 
+						ch[1][pos[0]][pos[1]] < 500 && 
+						ch[gas_type][x][y] - ch[gas_type][pos[0]][pos[1]] > ch[gas_type][x][y] / 10 && 
+						ch[gas_type][pos[0]][pos[1]] < Constant.up_max[gas_type]) 
+				{
 					new_map[pos[0]][pos[1]] += gas_map[x][y] * Constant.up[gas_type];
 					new_map[x][y] += gas_map[x][y] * (1 - Constant.up[gas_type]);
 				}else {
@@ -514,10 +528,10 @@ public class World extends JPanel{
 				new_map[x][y] = crystal_map[x][y];
 			}
 		}
-		for (int i = 0; i < 1000; i++) {
+		for (int i = 0; i < 10; i++) {
 			int x = rand.nextInt(world_scale[0]);
 			int y = rand.nextInt((int)(world_scale[1] * 0.625), world_scale[1]);
-			if (crystal_map[x][y] > 10 || Map[x][y] != null && rand.nextInt(40000) == 0) {
+			if (crystal_map[x][y] > 10 || Map[x][y] != null && rand.nextInt(3000) == 0) {
 				new_map[x][y] += rand.nextInt(10, 30);
 			}else {
 				int count = 0;
@@ -528,7 +542,7 @@ public class World extends JPanel{
 						count++;
 					}
 				}
-				if (rand.nextInt(10000) < Constant.crystal_chances[count]) {
+				if (rand.nextInt(1000) < Constant.crystal_chances[count]) {
 					new_map[x][y] += rand.nextInt(10, 15);
 				}
 			}
