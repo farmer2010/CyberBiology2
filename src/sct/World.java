@@ -38,7 +38,7 @@ public class World extends JPanel{
 	boolean pause = false;//
 	boolean render = true;//
 	boolean sh_brain = false;//
-	boolean settigs = false;//
+	boolean settings = false;//
 	boolean rec = false;//
 	Bot selection = null;//
 	int[] botpos = new int[2];//
@@ -85,24 +85,36 @@ public class World extends JPanel{
         next_button.addActionListener(e -> next());
         next_button.setBounds(Constant.display_W - 125, 1040, 125, 20);
         add(next_button);
-		//
-		add_buttons_to_panel0();
+        //
+        add_buttons_to_panel0();
         add(panels[0]);
         //
-		timer.start();
-	}
-	public boolean find_map_pos(int[] pos, int state) {
-		if (Map[pos[0]][pos[1]] != null) {
-			if (Map[pos[0]][pos[1]].state == state) {
-				return(true);
-			}
+        //
+		//
+        for (int i = 0; i < settings_panels.length; i++) {
+			settings_panels[i] = new OptionsPanel(this, i);
+			settings_panels[i].setBackground(new Color(90, 90, 90));
+			//settings_panels[i].setLayout(null);
+			settings_panels[i].setBounds(0, 0, 1620, 1080);
 		}
-		return(false);
+        //
+        st_back_button.addActionListener(e -> st_back());
+        st_back_button.setBounds(685, 1040, 125, 20);
+        st_back_button.setEnabled(false);
+        st_back_button.setVisible(false);
+        add(st_back_button);
+        //
+        st_next_button.addActionListener(e -> st_next());
+        st_next_button.setBounds(860, 1040, 125, 20);
+        st_next_button.setVisible(false);
+        add(st_next_button);
+        //
+		timer.start();
 	}
 	public void paintComponent(Graphics canvas) {
 		super.paintComponent(canvas);
 		canvas.setColor(new Color(255, 255, 255));
-		canvas.fillRect(0, 0, Constant.W * 10, Constant.H * 10);
+		canvas.fillRect(0, 0, Constant.W * Constant.bot_scale, Constant.H * Constant.bot_scale);
 		if (render) {
 			for(Bot b: objects) {
 				b.Draw(canvas, draw_type);
@@ -112,7 +124,7 @@ public class World extends JPanel{
 			canvas.setColor(new Color(0, 0, 0, 200));
 			canvas.fillRect(0, 0, Constant.display_W - 300, 1080);
 			canvas.setColor(new Color(255, 0, 0));
-			canvas.fillRect(selection.xpos * 10, selection.ypos * 10, 10, 10);
+			canvas.fillRect(selection.xpos * Constant.bot_scale, selection.ypos * Constant.bot_scale, Constant.bot_scale, Constant.bot_scale);
 		}
 		if (sh_brain) {
 			canvas.setFont(new Font("arial", Font.BOLD, 18));
@@ -179,7 +191,7 @@ public class World extends JPanel{
 						x,
 						y,
 						new Color(rand.nextInt(256),rand.nextInt(256), rand.nextInt(256)),
-						1000,
+						999,
 						Map,
 						objects
 					);
@@ -192,52 +204,22 @@ public class World extends JPanel{
 		repaint();
 	}
 	public void kill_all() {
-		Constant.W = Integer.parseInt(panels[1].get_OptionsPanel(2).get_JTextField(0).getText());
-		Constant.H = Integer.parseInt(panels[1].get_OptionsPanel(2).get_JTextField(1).getText());
-		Constant.starting_bots = Integer.parseInt(panels[1].get_OptionsPanel(2).get_JTextField(2).getText());
-		Constant.energy_for_life = Integer.parseInt(panels[1].get_OptionsPanel(2).get_JTextField(3).getText());
-		Constant.energy_for_multiply = Integer.parseInt(panels[1].get_OptionsPanel(2).get_JTextField(4).getText());
-		Constant.energy_for_auto_multiply = Integer.parseInt(panels[1].get_OptionsPanel(2).get_JTextField(5).getText());
-		Constant.max_energy = Integer.parseInt(panels[1].get_OptionsPanel(2).get_JTextField(6).getText());
-		Constant.child_mutation_chance = panels[1].get_OptionsPanel(2).get_JSlider(7).getValue();
-		Constant.parent_mutation_chance = panels[1].get_OptionsPanel(2).get_JSlider(8).getValue();
-		Constant.color_range = Integer.parseInt(panels[1].get_OptionsPanel(2).get_JTextField(9).getText());
-		Constant.allow_organics = panels[1].get_OptionsPanel(2).get_JRadioButton(10).isSelected();
-		if (panels[1].get_OptionsPanel(2).get_JRadioButton(11).isSelected()) {
-			Constant.org_fall_type = 0;
-		}else if (panels[1].get_OptionsPanel(2).get_JRadioButton(12).isSelected()) {
-			Constant.org_fall_type = 1;
-		}else if (panels[1].get_OptionsPanel(2).get_JRadioButton(13).isSelected()) {
-			Constant.org_fall_type = 2;
-		}else if (panels[1].get_OptionsPanel(2).get_JRadioButton(14).isSelected()) {
-			Constant.org_fall_type = 3;
-		}
-		Constant.full_color_change_without_mul = panels[1].get_OptionsPanel(2).get_JRadioButton(15).isSelected();
-		Constant.color_change_without_mul = panels[1].get_OptionsPanel(2).get_JRadioButton(16).isSelected();
-		//
-		Constant.full_color_change_with_mul = panels[1].get_OptionsPanel(2).get_JRadioButton(18).isSelected();
-		Constant.color_change_with_mul = panels[1].get_OptionsPanel(2).get_JRadioButton(19).isSelected();
-		//
-		Constant.full_color_change_chance = panels[1].get_OptionsPanel(2).get_JSlider(21).getValue();
-		Constant.max_age = (double)(panels[1].get_OptionsPanel(2).get_JSlider(22).getValue());
-		Constant.draw_rotate = panels[1].get_OptionsPanel(2).get_JRadioButton(23).isSelected();
-		//
 		steps = 0;
 		objects = new ArrayList<Bot>();
 		Map = new Bot[Constant.W][Constant.H];
 	}
 	private class BotListener extends MouseAdapter implements ActionListener{
 		public void mousePressed(MouseEvent e) {
-			if (e.getX() < Constant.display_W - 300) {
-				botpos[0] = e.getX() / 10;
-				botpos[1] = e.getY() / 10;
+			if (e.getX() < Constant.display_W - 300 && e.getX() < Constant.W * Constant.bot_scale && e.getY() < Constant.H * Constant.bot_scale) {
+				botpos[0] = e.getX() / Constant.bot_scale;
+				botpos[1] = e.getY() / Constant.bot_scale;
 				update_mouse(botpos, false);
 			}
 		}
 		public void mouseDragged(MouseEvent e) {
-			if (e.getX() < Constant.display_W - 300) {
-				botpos[0] = e.getX() / 10;
-				botpos[1] = e.getY() / 10;
+			if (e.getX() < Constant.display_W - 300 && e.getX() < Constant.W * Constant.bot_scale && e.getY() < Constant.H * Constant.bot_scale) {
+				botpos[0] = e.getX() / Constant.bot_scale;
+				botpos[1] = e.getY() / Constant.bot_scale;
 				update_mouse(botpos, true);
 			}
 		}
@@ -267,7 +249,7 @@ public class World extends JPanel{
 				}
 				if (selection != null) {
 					int[] pos = {selection.xpos, selection.ypos};
-					if (selection.killed == 1 || !find_map_pos(pos, 0) || selection.state != 0){
+					if (selection.killed == 1 || Map[pos[0]][pos[1]] == null || selection.state != 0){
 						selection = null;
 						save_button.setEnabled(false);
 						show_brain_button.setEnabled(false);
@@ -286,8 +268,8 @@ public class World extends JPanel{
 		}
 	}
 	public void update_mouse(int[] pos, boolean block_select) {
-		if (mouse == 0 && !block_select) {//select
-			if (find_map_pos(pos, 0)) {
+		if (mouse == 0 && !block_select && !settings) {//select
+			if (Map[pos[0]][pos[1]] != null && Map[pos[0]][pos[1]].state == 0) {
 				Bot b = Map[pos[0]][pos[1]];
 				selection = b;
 				save_button.setEnabled(true);
@@ -306,14 +288,14 @@ public class World extends JPanel{
 						for (int i = 0; i < 64; i++) {
 							new_bot.commands[i] = for_set[i];
 						}
-						new_bot.energy = panels[2].get_JSlider(3).getValue();
-						new_bot.minerals = panels[2].get_JSlider(4).getValue();
-						new_bot.age = panels[2].get_JSlider(5).getValue();
-						new_bot.color = new Color(panels[2].get_JSlider(0).getValue(), panels[2].get_JSlider(1).getValue(), panels[2].get_JSlider(2).getValue());
+						new_bot.energy = panels[1].get_JSlider(3).getValue();
+						new_bot.minerals = panels[1].get_JSlider(4).getValue();
+						new_bot.age = panels[1].get_JSlider(5).getValue();
+						new_bot.color = new Color(panels[1].get_JSlider(0).getValue(), panels[1].get_JSlider(1).getValue(), panels[1].get_JSlider(2).getValue());
 						int s = 0;
-						if (panels[2].get_JRadioButton(7).isSelected()) {
+						if (panels[1].get_JRadioButton(7).isSelected()) {
 							s = 1;
-						}else if (panels[2].get_JRadioButton(8).isSelected()) {
+						}else if (panels[1].get_JRadioButton(8).isSelected()) {
 							s = 2;
 						}
 						new_bot.state = s;
@@ -333,6 +315,9 @@ public class World extends JPanel{
 	}
 	public void change_draw_type(int num) {
 		draw_type = num;
+	}
+	public void change_mouse(int num) {
+		mouse = num;
 	}
 	public void back() {
 		remove(panels[panel_index]);
@@ -358,64 +343,101 @@ public class World extends JPanel{
 		}
 		add(panels[panel_index]);
 	}
-	private class start_stop implements ActionListener{
-		public void actionPerformed(ActionEvent e) {
-			pause = !pause;
-			if (pause) {
-				stop_button.setText("Start");
-			}else {
-				stop_button.setText("Stop");
-			}
+	public void st_back() {
+		remove(settings_panels[settings_panel_index]);
+		settings_panel_index--;
+		st_next_button.setEnabled(true);
+		if (settings_panel_index <= 0) {
+			settings_panel_index = 0;
+			st_back_button.setEnabled(false);
+		}else {
+			st_back_button.setEnabled(true);
+		}
+		add(settings_panels[settings_panel_index]);
+	}
+	public void st_next() {
+		remove(settings_panels[settings_panel_index]);
+		settings_panel_index++;
+		st_back_button.setEnabled(true);
+		if (settings_panel_index >= settings_panels.length - 1) {
+			settings_panel_index = settings_panels.length - 1;
+			st_next_button.setEnabled(false);
+		}else {
+			st_next_button.setEnabled(true);
+		}
+		add(settings_panels[settings_panel_index]);
+	}
+	public void open_settings() {
+		settings = !settings;
+		if (settings) {
+			add(settings_panels[settings_panel_index]);
+			pause = true;
+			st_back_button.setVisible(true);
+			st_next_button.setVisible(true);
+		}else {
+			remove(settings_panels[settings_panel_index]);
+			pause = false;
+			st_back_button.setVisible(false);
+			st_next_button.setVisible(false);
+		}
+		//
+		Constant.W = Integer.parseInt(settings_panels[0].width.getText());
+		Constant.H = Integer.parseInt(settings_panels[0].height.getText());
+		Constant.starting_bots = Constant.W*Constant.H/17;
+		Constant.energy_for_life = Double.parseDouble(settings_panels[0].energy_for_life.getText());
+		Constant.energy_for_multiply = Double.parseDouble(settings_panels[0].energy_for_multiply.getText());
+		Constant.energy_for_auto_multiply = Double.parseDouble(settings_panels[0].energy_for_auto_multiply.getText());
+		Constant.max_energy = Double.parseDouble(settings_panels[0].max_energy.getText());
+		Constant.child_mutation_chance = settings_panels[0].mut_chance_slider.getValue();
+		Constant.parent_mutation_chance = settings_panels[0].parent_mut_chance_slider.getValue();
+		Constant.allow_organics = settings_panels[0].organics_button.isSelected();
+		Constant.draw_rotate = settings_panels[0].draw_rotate_button.isSelected();
+		Constant.upd_parent_index = settings_panels[0].index_button.isSelected();
+		Constant.upd_parent_age = settings_panels[0].age_button.isSelected();
+		//
+		String[] pl = settings_panels[0].sun_levels.getText().split(";");
+		Constant.photo_list = new int[pl.length];
+		for (int i = 0; i < pl.length; i++) {
+			Constant.photo_list[i] = Integer.parseInt(pl[i]);
+		}
+		//
+		String[] ml = settings_panels[0].minerals_levels.getText().split(";");
+		Constant.minerals_list = new int[ml.length];
+		for (int i = 0; i < ml.length; i++) {
+			Constant.minerals_list[i] = Integer.parseInt(ml[i]);
+		}
+		//
+	}
+	public void start_stop() {
+		pause = !pause;
+		if (pause) {
+			stop_button.setText("Start");
+		}else {
+			stop_button.setText("Stop");
 		}
 	}
-	private class select implements ActionListener{
-		public void actionPerformed(ActionEvent e) {
-			mouse = 0;
+	public void rndr() {
+		render = !render;
+		if (render) {
+			render_button.setText("Render: on");
+		}else {
+			render_button.setText("Render: off");
 		}
 	}
-	private class set implements ActionListener{
-		public void actionPerformed(ActionEvent e) {
-			mouse = 1;
+	public void rcrd() {
+		rec = !rec;
+		if (rec) {
+			record_button.setText("Record: on");
+		}else {
+			record_button.setText("Record: off");
 		}
 	}
-	private class remove implements ActionListener{
-		public void actionPerformed(ActionEvent e) {
-			mouse = 2;
-		}
-	}
-	private class nwp implements ActionListener{
-		public void actionPerformed(ActionEvent e) {
-			new_population();
-		}
-	}
-	private class rndr implements ActionListener{
-		public void actionPerformed(ActionEvent e) {
-			render = !render;
-			if (render) {
-				render_button.setText("Render: on");
-			}else {
-				render_button.setText("Render: off");
-			}
-		}
-	}
-	private class rcrd implements ActionListener{
-		public void actionPerformed(ActionEvent e) {
-			rec = !rec;
-			if (rec) {
-				record_button.setText("Record: on");
-			}else {
-				record_button.setText("Record: off");
-			}
-		}
-	}
-	private class shbr implements ActionListener{
-		public void actionPerformed(ActionEvent e) {
-			sh_brain = !sh_brain;
-			if (pause == false) {
-				pause = true;
-			}else if (sh_brain == false) {
-				pause = false;
-			}
+	public void shbr() {
+		sh_brain = !sh_brain;
+		if (pause == false) {
+			pause = true;
+		}else if (sh_brain == false) {
+			pause = false;
 		}
 	}
 	private class save_bot implements ActionListener{
@@ -541,7 +563,7 @@ public class World extends JPanel{
 	}
 	//
 	public void add_buttons_to_panel0() {
-		stop_button.addActionListener(new start_stop());
+		stop_button.addActionListener(e -> start_stop());
 		stop_button.setBounds(0, 125, 250, 35);
         panels[0].add(stop_button);
         //
@@ -571,17 +593,17 @@ public class World extends JPanel{
 		panels[0].add(color_button);
         //
         JButton select_button = new JButton("Select");
-        select_button.addActionListener(new select());
+        select_button.addActionListener(e -> change_mouse(0));
 		select_button.setBounds(0, 455, 95, 20);
 		panels[0].add(select_button);
         //
         JButton set_button = new JButton("Set");
-        set_button.addActionListener(new set());
+        set_button.addActionListener(e -> change_mouse(1));
         set_button.setBounds(100, 455, 95, 20);
         panels[0].add(set_button);
         //
         JButton remove_button = new JButton("Remove");
-        remove_button.addActionListener(new remove());
+        remove_button.addActionListener(e -> change_mouse(2));
         remove_button.setBounds(200, 455, 95, 20);
         panels[0].add(remove_button);
         //
@@ -590,7 +612,7 @@ public class World extends JPanel{
         save_button.setEnabled(false);
         panels[0].add(save_button);
         //
-        show_brain_button.addActionListener(new shbr());
+        show_brain_button.addActionListener(e -> shbr());
         show_brain_button.setBounds(130, 365, 125, 20);
         show_brain_button.setEnabled(false);
         panels[0].add(show_brain_button);
@@ -617,15 +639,15 @@ public class World extends JPanel{
         panels[0].add(save_world_button);
         //
         JButton new_population_button = new JButton("New population");
-        new_population_button.addActionListener(new nwp());
+        new_population_button.addActionListener(e -> new_population());
         new_population_button.setBounds(0, 590, 125, 20);
         panels[0].add(new_population_button);
         //
-        render_button.addActionListener(new rndr());
+        render_button.addActionListener(e -> rndr());
         render_button.setBounds(0, 615, 125, 20);
         panels[0].add(render_button);
         //
-        record_button.addActionListener(new rcrd());
+        record_button.addActionListener(e -> rcrd());
         record_button.setBounds(130, 615, 125, 20);
         panels[0].add(record_button);
         //
@@ -633,5 +655,9 @@ public class World extends JPanel{
         kill_button.addActionListener(e -> kill_all());
         kill_button.setBounds(130, 590, 125, 20);
         panels[0].add(kill_button);
+        //
+        settings_button.setBounds(0, 640, 250, 35);
+        settings_button.addActionListener(e -> open_settings());
+        panels[0].add(settings_button);
 	}
 }

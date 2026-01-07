@@ -33,28 +33,17 @@ public class Bot{
 		{-1, 0},
 		{-1, -1}
 	};
-	private int[] minerals_list = {
-		0,
-		0,
-		0
-	};
-	private int[] photo_list = {
-		3,//10
-		3,//8
-		3,//6
-		3,//5
-		3,//4
-		3//3
-	};
 	public int c_red = -1;
 	public int c_green = -1;
 	public int c_blue = -1;
-	private int sector_len = Constant.H / 8;
+	//
+	public int mutations = 0;
+	public int generation = 0;
 	public Bot(int new_xpos, int new_ypos, Color new_color, double new_energy, Bot[][] new_map, ArrayList<Bot> new_objects) {
 		xpos = new_xpos;
 		ypos = new_ypos;
-		x = new_xpos * 10;
-		y = new_ypos * 10;
+		x = new_xpos * Constant.bot_scale;
+		y = new_ypos * Constant.bot_scale;
 		color = new_color;
 		energy = new_energy;
 		minerals = 0;
@@ -66,8 +55,8 @@ public class Bot{
 	}
 	public void Draw(Graphics canvas, int draw_type) {
 		if (state == 0) {//рисуем бота
-			canvas.setColor(new Color(0, 0, 0));
-			canvas.fillRect(x, y, 10, 10);
+			//canvas.setColor(new Color(0, 0, 0));
+			//canvas.fillRect(x, y, Constant.bot_scale, Constant.bot_scale);
 			if (draw_type == 0) {//режим отрисовки хищников
 				if (c_red == -1 || c_green == -1 || c_blue == -1) {
 					canvas.setColor(new Color(128, 128, 128));
@@ -93,31 +82,28 @@ public class Bot{
 				}
 				canvas.setColor(new Color(rg, rg, 255));
 			}else if (draw_type == 4) {//возраста
-				canvas.setColor(new Color((int)(age / Constant.max_age * 255.0), (int)(age / Constant.max_age * 255.0), 255 - (int)(age / Constant.max_age * 255.0)));
+				canvas.setColor(new Color((int)(age / (Constant.max_age * 1.0) * 255.0), (int)(age / (Constant.max_age * 1.0) * 255.0), 255 - (int)(age / (Constant.max_age * 1.0) * 255.0)));
 			}else if (draw_type == 5) {
 				//
 			}
-			canvas.fillRect(x + 1, y + 1, 8, 8);
+			canvas.fillRect(x, y, Constant.bot_scale, Constant.bot_scale);
 			if (Constant.draw_rotate) {
 				canvas.setColor(new Color(0, 0, 0));
 				canvas.drawLine(x + 5, y + 5, x + 5 + movelist[rotate][0] * 4, y + 5 + movelist[rotate][1] * 4);
 			}
 		}else {//рисуем органику
 			canvas.setColor(new Color(0, 0, 0));
-			canvas.fillRect(x + 1, y + 1, 8, 8);
+			//canvas.fillRect(x + 1, y + 1, Constant.bot_scale, Constant.bot_scale);
 			canvas.setColor(new Color(128, 128, 128));
-			canvas.fillRect(x + 2, y + 2, 6, 6);
+			canvas.fillRect(x + 1, y + 1, Constant.bot_scale - 2, Constant.bot_scale - 2);
 		}
 	}
 	public int Update(ListIterator<Bot> iterator) {
 		if (killed == 0) {
-			if (state == 0) {//бот
-				int sector = bot_in_sector();
+			if (state == 0) {//ботbot_in_sector();
 				energy -= Constant.energy_for_life;
-				//age--;
-				if (sector <= 7 & sector >= 5) {
-					minerals += minerals_list[sector - 5];
-				}
+				age--;
+				minerals += Constant.minerals_list[sector(Constant.minerals_list.length)];
 				update_commands(iterator);
 				if (energy < 1) {
 					killed = 1;
@@ -186,9 +172,8 @@ public class Bot{
 				index += 2;
 				index %= 64;
 			}else if (command == 25) {//фотосинтез
-				int sector = bot_in_sector();
-				if (sector <= 5) {
-					energy += photo_list[sector];
+				if (Constant.photo_list[sector(Constant.photo_list.length)] > 0) {
+					energy += Constant.photo_list[sector(Constant.photo_list.length)];
 					go_green();
 				}
 				index += 1;
@@ -259,15 +244,13 @@ public class Bot{
 				index %= 64;
 				break;
 			}else if (command == 39) {//есть ли фотосинтез
-				int sector = bot_in_sector();
-				if (sector <= 5) {
+				if (Constant.photo_list[sector(Constant.photo_list.length)] > 0) {
 					index = commands[(index + 1) % 64];
 				}else {
 					index = commands[(index + 2) % 64];
 				}
 			}else if (command == 40) {//есть ли приход минералов
-				int sector = bot_in_sector();
-				if (sector <= 7 & sector >= 5) {
+				if (Constant.minerals_list[sector(Constant.minerals_list.length)] > 0) {
 					index = commands[(index + 1) % 64];
 				}else {
 					index = commands[(index + 2) % 64];
@@ -415,8 +398,8 @@ public class Bot{
 				map[xpos][ypos] = null;
 				xpos = pos[0];
 				ypos = pos[1];
-				x = xpos * 10;
-				y = ypos * 10;
+				x = xpos * Constant.bot_scale;
+				y = ypos * Constant.bot_scale;
 				map[xpos][ypos] = self;
 				return(1);
 			}
@@ -433,40 +416,29 @@ public class Bot{
 					map[xpos][ypos] = null;
 				}else { 
 					Color new_color = color;
+					int new_genr = generation + 1;
+					int new_mut = mutations;
 					int[] new_brain = new int[64];
 					for (int i = 0; i < 64; i++) {
 						new_brain[i] = commands[i];
 					}
 					if (rand.nextInt(100) < Constant.child_mutation_chance) {//мутация
-						if (Constant.full_color_change_with_mul && Constant.full_color_change_chance > 0 && rand.nextInt(Constant.full_color_change_chance) == 0) {//смена цвета
-							new_color = new Color(rand.nextInt(256), rand.nextInt(256), rand.nextInt(256));
-						}else if (Constant.color_change_with_mul) {
-							int b = Constant.color_range;
-							new_color = new Color(border(color.getRed() + rand.nextInt(-b, b + 1), 255, 0), border(color.getGreen() + rand.nextInt(-b, b + 1), 255, 0), border(color.getBlue() + rand.nextInt(-b, b + 1), 255, 0));
-						}
+						new_color = new Color(rand.nextInt(256), rand.nextInt(256), rand.nextInt(256));
 						new_brain[rand.nextInt(64)] = rand.nextInt(64);
-					}else {
-						if (Constant.full_color_change_without_mul && Constant.full_color_change_chance > 0 && rand.nextInt(Constant.full_color_change_chance) == 0) {//смена цвета
-							new_color = new Color(rand.nextInt(256), rand.nextInt(256), rand.nextInt(256));
-						}else if (Constant.color_change_without_mul) {
-							int b = Constant.color_range;
-							new_color = new Color(border(color.getRed() + rand.nextInt(-b, b + 1), 255, 0), border(color.getGreen() + rand.nextInt(-b, b + 1), 255, 0), border(color.getBlue() + rand.nextInt(-b, b + 1), 255, 0));
-						}
+						new_mut++;
 					}
 					if (rand.nextInt(100) < Constant.parent_mutation_chance) {//мутация родителя
-						if (Constant.full_color_change_with_mul && Constant.full_color_change_chance > 0 && rand.nextInt(Constant.full_color_change_chance) == 0) {//смена цвета
-							color = new Color(rand.nextInt(256), rand.nextInt(256), rand.nextInt(256));
-						}else if (Constant.color_change_with_mul) {
-							int b = Constant.color_range;
-							color = new Color(border(color.getRed() + rand.nextInt(-b, b + 1), 255, 0), border(color.getGreen() + rand.nextInt(-b, b + 1), 255, 0), border(color.getBlue() + rand.nextInt(-b, b + 1), 255, 0));
-						}
+						color = new Color(rand.nextInt(256), rand.nextInt(256), rand.nextInt(256));
 						commands[rand.nextInt(64)] = rand.nextInt(64);
 					}
-					index = 0;
+					if (Constant.upd_parent_index) index = 0;
+					if (Constant.upd_parent_age) age = Constant.max_age;
 					Bot new_bot = new Bot(pos[0], pos[1], new_color, energy / 2, map, objects);
 					new_bot.minerals = minerals / 2;
 					energy /= 2;
 					minerals /= 2;
+					new_bot.generation = new_genr;
+					new_bot.mutations = new_mut;
 					new_bot.commands = new_brain;
 					map[pos[0]][pos[1]] = new_bot;
 					iterator.add(new_bot);
@@ -530,10 +502,10 @@ public class Bot{
 		}
 		return(pos);
 	}
-	public int bot_in_sector() {
-		int sec = ypos / sector_len;
-		if (sec > 7) {
-			sec = 7;
+	public int sector(int num) {
+		int sec = ypos / (Constant.H / num);
+		if (sec > num - 1) {
+			sec = num - 1;
 		}
 		return(sec);
 	}

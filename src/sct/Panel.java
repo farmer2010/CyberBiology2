@@ -1,16 +1,12 @@
 package sct;
 
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.Random;
+import javax.swing.*;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Random;
-
-import javax.swing.*;
 
 public class Panel extends JPanel {
 	Random rand = new Random();
@@ -24,8 +20,6 @@ public class Panel extends JPanel {
 	public Panel(World w, int new_panel_type) {
 		world = w;
 		panel_type = new_panel_type;
-		//
-		//timer = new Timer(10, new Listener());
 		//
 		if (panel_type == 1) {
 			JSlider red_slider = new JSlider(0, 255, rand.nextInt(256));
