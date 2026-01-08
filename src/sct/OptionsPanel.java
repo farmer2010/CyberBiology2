@@ -12,6 +12,8 @@ public class OptionsPanel extends JPanel {
 	public World world;
 	public int panel_type;
 	//
+	//type 0
+	//
 	JTextField width = new JTextField();
 	JTextField height = new JTextField();
 	JTextField energy_for_life = new JTextField();
@@ -35,22 +37,27 @@ public class OptionsPanel extends JPanel {
 	JRadioButton organics_level_button = new JRadioButton("enable organics level", false);
 	JTextField organics_die_level = new JTextField();
 	//
+	//type 1
+	//
+	
+	//
 	public OptionsPanel(World w, int new_panel_type) {
 		world = w;
 		panel_type = new_panel_type;
 		//
 		setLayout(null);
 		//
-		if (panel_type == 0) {
-			JPanel panel1 = new JPanel();
-			panel1.setLayout(new BoxLayout(panel1, BoxLayout.PAGE_AXIS));
-			panel1.setBounds(0, 0, 300, 1080);
-			add(panel1);
-			//
-			JPanel panel2 = new JPanel();
-			panel2.setLayout(new BoxLayout(panel2, BoxLayout.PAGE_AXIS));
-			panel2.setBounds(300, 0, 300, 1080);
-			add(panel2);
+		JPanel panel1 = new JPanel();
+		panel1.setLayout(new BoxLayout(panel1, BoxLayout.PAGE_AXIS));
+		panel1.setBounds(0, 0, 300, 1080);
+		add(panel1);
+		//
+		JPanel panel2 = new JPanel();
+		panel2.setLayout(new BoxLayout(panel2, BoxLayout.PAGE_AXIS));
+		panel2.setBounds(300, 0, 300, 1080);
+		add(panel2);
+		//
+		if (panel_type == 0) {//базовые параметры и эксперименты
 			//
 			panel1.add(new JLabel("MAIN SETTINGS:"));
 			//
@@ -163,7 +170,14 @@ public class OptionsPanel extends JPanel {
 			organics_die_level.setText("800");
 			organics_die_level.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
 			panel2.add(organics_die_level);
-		}else if (panel_type == 1) {
+		}else if (panel_type == 1) {//адаптация
+			panel1.add(new JLabel("ADAPTATION:"));
+			panel1.add(new JLabel("Divers:"));
+			//
+			panel2.add(new JLabel("organics die level:"));
+			organics_die_level.setText("800");
+			organics_die_level.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
+			panel2.add(organics_die_level);
 		}
 		//
 	}
@@ -178,10 +192,6 @@ public class OptionsPanel extends JPanel {
 		canvas.fillRect(900, 0, 2, 1080);
 		canvas.fillRect(1200, 0, 2, 1080);
 		canvas.fillRect(1500, 0, 2, 1080);
-		if (panel_type == 0) {
-			canvas.drawString("Main settings:", 0, 20);
-		}else if (panel_type == 1) {
-		}
 	}
 	//
 	public JTextField get_JTextField(int index) {
