@@ -23,13 +23,15 @@ public class OptionsPanel extends JPanel {
 	JRadioButton index_button = new JRadioButton("set parent index to 0", Constant.upd_parent_index);
 	JRadioButton age_button = new JRadioButton("set parent age to maximum", Constant.upd_parent_age);
 	JRadioButton organics_button = new JRadioButton("enable organics", Constant.allow_organics);
-	JRadioButton organics_no_fall_button = new JRadioButton("no fall", false);
-	JRadioButton organics_fall_button = new JRadioButton("fall for first time", true);
-	JRadioButton organics_always_fall_button = new JRadioButton("always fall", false);
-	JRadioButton organics_sand_fall_button = new JRadioButton("sand fall", false);
+	JRadioButton organics_no_fall_button = new JRadioButton("no fall", Constant.org_fall_type == 0);
+	JRadioButton organics_fall_button = new JRadioButton("fall for first time", Constant.org_fall_type == 1);
+	JRadioButton organics_always_fall_button = new JRadioButton("always fall", Constant.org_fall_type == 2);
+	JRadioButton organics_sand_fall_button = new JRadioButton("sand fall", Constant.org_fall_type == 3);
 	JTextField sun_levels = new JTextField();
 	JTextField minerals_levels = new JTextField();
+	JTextField max_age = new JTextField();
 	JRadioButton draw_rotate_button = new JRadioButton("draw rotate", Constant.draw_rotate);
+	JRadioButton draw_frame_button = new JRadioButton("draw frame", Constant.draw_frame);
 	JRadioButton organics_level_button = new JRadioButton("enable organics level", false);
 	JTextField organics_die_level = new JTextField();
 	//
@@ -138,9 +140,18 @@ public class OptionsPanel extends JPanel {
 			minerals_levels.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
 			panel1.add(minerals_levels);
 			//
+			panel1.add(new JLabel("AGE:"));
+			//
+			panel1.add(new JLabel("maximum age:"));
+			max_age.setText(String.valueOf(Constant.max_age));
+			max_age.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
+			panel1.add(max_age);
+			//
 			panel1.add(new JLabel("DRAW:"));
 			//
 			panel1.add(draw_rotate_button);
+			//
+			panel1.add(draw_frame_button);
 			//
 			//
 			//

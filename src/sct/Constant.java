@@ -1,5 +1,7 @@
 package sct;
 
+import java.awt.Color;
+
 public class Constant {
 	static int display_W = 1920;
 	static int display_H = 1080;
@@ -33,4 +35,12 @@ public class Constant {
 	
 	//
 	static boolean draw_rotate = false;
+	static boolean draw_frame = true;
+	//
+	public static Color gradient(Color color1, Color color2, double grad) {
+		int r = Math.min(Math.max((int)(color1.getRed() * (1 - grad) + color2.getRed() * grad), 0), 255);
+		int g = Math.min(Math.max((int)(color1.getGreen() * (1 - grad) + color2.getGreen() * grad), 0), 255);
+		int b = Math.min(Math.max((int)(color1.getBlue() * (1 - grad) + color2.getBlue() * grad), 0), 255);
+		return(new Color(r, g, b));
+	}
 }

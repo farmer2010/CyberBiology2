@@ -55,8 +55,10 @@ public class Bot{
 	}
 	public void Draw(Graphics canvas, int draw_type) {
 		if (state == 0) {//рисуем бота
-			//canvas.setColor(new Color(0, 0, 0));
-			//canvas.fillRect(x, y, Constant.bot_scale, Constant.bot_scale);
+			if (Constant.draw_frame) {
+				canvas.setColor(new Color(0, 0, 0));
+				canvas.fillRect(x, y, Constant.bot_scale, Constant.bot_scale);
+			}
 			if (draw_type == 0) {//режим отрисовки хищников
 				if (c_red == -1 || c_green == -1 || c_blue == -1) {
 					canvas.setColor(new Color(128, 128, 128));
@@ -74,28 +76,33 @@ public class Bot{
 				}
 				canvas.setColor(new Color(255, g, 0));
 			}else if (draw_type == 3) {//минералов
-				int rg = 255 - (int)(minerals / 1000.0 * 255.0);
-				if (rg > 255) {
-					rg = 255;
-				}else if (rg < 0) {
-					rg = 0;
-				}
-				canvas.setColor(new Color(rg, rg, 255));
+				canvas.setColor(Constant.gradient(new Color(0, 255, 0), new Color(0, 255, 255), minerals / 1000.0));
 			}else if (draw_type == 4) {//возраста
-				canvas.setColor(new Color((int)(age / (Constant.max_age * 1.0) * 255.0), (int)(age / (Constant.max_age * 1.0) * 255.0), 255 - (int)(age / (Constant.max_age * 1.0) * 255.0)));
+				canvas.setColor(Constant.gradient(new Color(0, 0, 255), new Color(255, 255, 0), age / (Constant.max_age * 1.0)));
 			}else if (draw_type == 5) {
 				//
 			}
-			canvas.fillRect(x, y, Constant.bot_scale, Constant.bot_scale);
+			if (Constant.draw_frame) {
+				canvas.fillRect(x + 1, y + 1, Constant.bot_scale - 2, Constant.bot_scale - 2);
+			}else {
+				canvas.fillRect(x, y, Constant.bot_scale, Constant.bot_scale);
+			}
 			if (Constant.draw_rotate) {
 				canvas.setColor(new Color(0, 0, 0));
-				canvas.drawLine(x + 5, y + 5, x + 5 + movelist[rotate][0] * 4, y + 5 + movelist[rotate][1] * 4);
+				int b = Constant.bot_scale / 2;
+				canvas.drawLine(x + b, y + b, x + b + movelist[rotate][0] * (b - 1), y + b + movelist[rotate][1] * (b - 1));
 			}
 		}else {//рисуем органику
-			canvas.setColor(new Color(0, 0, 0));
-			//canvas.fillRect(x + 1, y + 1, Constant.bot_scale, Constant.bot_scale);
-			canvas.setColor(new Color(128, 128, 128));
-			canvas.fillRect(x + 1, y + 1, Constant.bot_scale - 2, Constant.bot_scale - 2);
+			if (Constant.draw_frame) {
+				canvas.setColor(new Color(0, 0, 0));
+				canvas.fillRect(x + 1, y + 1, Constant.bot_scale - 2, Constant.bot_scale - 2);
+				canvas.setColor(new Color(100, 100, 100));
+				canvas.fillRect(x + 2, y + 2, Constant.bot_scale - 4, Constant.bot_scale - 4);
+			}else {
+				canvas.setColor(new Color(0, 0, 0));
+				canvas.setColor(new Color(100, 100, 100));
+				canvas.fillRect(x + 1, y + 1, Constant.bot_scale - 2, Constant.bot_scale - 2);
+			}
 		}
 	}
 	public int Update(ListIterator<Bot> iterator) {

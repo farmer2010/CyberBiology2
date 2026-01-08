@@ -204,6 +204,11 @@ public class World extends JPanel{
 		repaint();
 	}
 	public void kill_all() {
+		Constant.W = Integer.parseInt(settings_panels[0].width.getText());
+		Constant.H = Integer.parseInt(settings_panels[0].height.getText());
+		Constant.bot_scale = Math.min(Constant.scr_W/Constant.W, Constant.scr_H/Constant.H);
+		Constant.starting_bots = Constant.W*Constant.H/17;
+		//
 		steps = 0;
 		objects = new ArrayList<Bot>();
 		Map = new Bot[Constant.W][Constant.H];
@@ -381,9 +386,6 @@ public class World extends JPanel{
 			st_next_button.setVisible(false);
 		}
 		//
-		Constant.W = Integer.parseInt(settings_panels[0].width.getText());
-		Constant.H = Integer.parseInt(settings_panels[0].height.getText());
-		Constant.starting_bots = Constant.W*Constant.H/17;
 		Constant.energy_for_life = Double.parseDouble(settings_panels[0].energy_for_life.getText());
 		Constant.energy_for_multiply = Double.parseDouble(settings_panels[0].energy_for_multiply.getText());
 		Constant.energy_for_auto_multiply = Double.parseDouble(settings_panels[0].energy_for_auto_multiply.getText());
@@ -391,9 +393,19 @@ public class World extends JPanel{
 		Constant.child_mutation_chance = settings_panels[0].mut_chance_slider.getValue();
 		Constant.parent_mutation_chance = settings_panels[0].parent_mut_chance_slider.getValue();
 		Constant.allow_organics = settings_panels[0].organics_button.isSelected();
-		Constant.draw_rotate = settings_panels[0].draw_rotate_button.isSelected();
 		Constant.upd_parent_index = settings_panels[0].index_button.isSelected();
 		Constant.upd_parent_age = settings_panels[0].age_button.isSelected();
+		Constant.max_age = Integer.parseInt(settings_panels[0].max_age.getText());
+		//
+		if (settings_panels[0].organics_no_fall_button.isSelected()) {
+			Constant.org_fall_type = 0;
+		}else if (settings_panels[0].organics_fall_button.isSelected()) {
+			Constant.org_fall_type = 1;
+		}else if (settings_panels[0].organics_always_fall_button.isSelected()) {
+			Constant.org_fall_type = 2;
+		}else if (settings_panels[0].organics_sand_fall_button.isSelected()) {
+			Constant.org_fall_type = 3;
+		}
 		//
 		String[] pl = settings_panels[0].sun_levels.getText().split(";");
 		Constant.photo_list = new int[pl.length];
@@ -407,6 +419,8 @@ public class World extends JPanel{
 			Constant.minerals_list[i] = Integer.parseInt(ml[i]);
 		}
 		//
+		Constant.draw_rotate = settings_panels[0].draw_rotate_button.isSelected();
+		Constant.draw_frame = settings_panels[0].draw_frame_button.isSelected();
 	}
 	public void start_stop() {
 		pause = !pause;
