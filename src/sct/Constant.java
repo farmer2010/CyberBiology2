@@ -32,10 +32,25 @@ public class Constant {
 	static boolean upd_parent_age = false;
 	static int[] minerals_list = {0, 0, 0, 0, 0, 1, 2, 3};
 	static int[] photo_list = {10, 8, 6, 5, 4, 3, 0, 0};
-	
 	//
 	static boolean draw_rotate = false;
 	static boolean draw_frame = true;
+	//
+	//adaptation
+	//divers
+	static boolean enable_divers = false;
+	static int sea_level = 0;
+	static int mud_level = 0;
+	static boolean block_auto_multiply = false;
+	static int no_multiply_in_surface = 0;
+	static int no_multiply_in_sea = 0;
+	static int no_pht_in_sea = 0;
+	static int no_pht_in_mud = 0;
+	static int on_land = 0;
+	static int force_move_y = 0;
+	//
+	//
+	//
 	//
 	public static Color gradient(Color color1, Color color2, double grad) {
 		int r = Math.min(Math.max((int)(color1.getRed() * (1 - grad) + color2.getRed() * grad), 0), 255);

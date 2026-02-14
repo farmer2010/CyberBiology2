@@ -39,13 +39,24 @@ public class OptionsPanel extends JPanel {
 	//
 	//type 1
 	//
-	
+	JRadioButton divers_button = new JRadioButton("enable divers", false);
+	JSlider sea_level_slider = new JSlider(0, Constant.H, Constant.sea_level);
+	JSlider mud_level_slider = new JSlider(0, Constant.H, Constant.mud_level);
+	JRadioButton block_auto_mul_button = new JRadioButton("block auto multiply", Constant.block_auto_multiply);
+	JSlider no_mul_in_surface_slider = new JSlider(0, 1000, Constant.no_multiply_in_surface);
+	JSlider no_mul_in_sea_slider = new JSlider(0, 1000, Constant.no_multiply_in_sea);
+	JSlider no_pht_in_sea_slider = new JSlider(0, 1000, Constant.no_pht_in_sea);
+	JSlider no_pht_in_mud_slider = new JSlider(0, 1000, Constant.no_pht_in_mud);
+	JSlider on_land_slider = new JSlider(0, 1000, Constant.on_land);
+	JSlider move_y_slider = new JSlider(0, 1000, Constant.force_move_y);
 	//
 	public OptionsPanel(World w, int new_panel_type) {
 		world = w;
 		panel_type = new_panel_type;
 		//
 		setLayout(null);
+		setBackground(new Color(90, 90, 90));
+		setBounds(0, 0, 1620, 1080);
 		//
 		JPanel panel1 = new JPanel();
 		panel1.setLayout(new BoxLayout(panel1, BoxLayout.PAGE_AXIS));
@@ -171,13 +182,49 @@ public class OptionsPanel extends JPanel {
 			organics_die_level.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
 			panel2.add(organics_die_level);
 		}else if (panel_type == 1) {//адаптация
+			//
 			panel1.add(new JLabel("ADAPTATION:"));
+			//
 			panel1.add(new JLabel("Divers:"));
 			//
-			panel2.add(new JLabel("organics die level:"));
-			organics_die_level.setText("800");
-			organics_die_level.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
-			panel2.add(organics_die_level);
+			panel1.add(divers_button);
+			//
+			panel1.add(new JLabel("sea level:"));
+			sea_level_slider.setPaintLabels(true);
+			sea_level_slider.setMajorTickSpacing(25);
+			panel1.add(sea_level_slider);
+			//
+			panel1.add(new JLabel("mud level:"));
+			mud_level_slider.setPaintLabels(true);
+			mud_level_slider.setMajorTickSpacing(25);
+			panel1.add(mud_level_slider);
+			//
+			panel1.add(block_auto_mul_button);
+			//
+			panel1.add(new JLabel("block multiply in surface:"));
+			no_mul_in_surface_slider.setPaintLabels(true);
+			no_mul_in_surface_slider.setMajorTickSpacing(100);
+			panel1.add(no_mul_in_surface_slider);
+			//
+			panel1.add(new JLabel("block multiply in sea:"));
+			no_mul_in_sea_slider.setPaintLabels(true);
+			no_mul_in_sea_slider.setMajorTickSpacing(100);
+			panel1.add(no_mul_in_sea_slider);
+			//
+			panel1.add(new JLabel("block pht in sea:"));
+			no_pht_in_sea_slider.setPaintLabels(true);
+			no_pht_in_sea_slider.setMajorTickSpacing(100);
+			panel1.add(no_pht_in_sea_slider);
+			//
+			panel1.add(new JLabel("on land at least once:"));
+			on_land_slider.setPaintLabels(true);
+			on_land_slider.setMajorTickSpacing(100);
+			panel1.add(on_land_slider);
+			//
+			panel1.add(new JLabel("force movements y:"));
+			move_y_slider.setPaintLabels(true);
+			move_y_slider.setMajorTickSpacing(100);
+			panel1.add(move_y_slider);
 		}
 		//
 	}

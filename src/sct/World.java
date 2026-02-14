@@ -93,9 +93,6 @@ public class World extends JPanel{
 		//
         for (int i = 0; i < settings_panels.length; i++) {
 			settings_panels[i] = new OptionsPanel(this, i);
-			settings_panels[i].setBackground(new Color(90, 90, 90));
-			//settings_panels[i].setLayout(null);
-			settings_panels[i].setBounds(0, 0, 1620, 1080);
 		}
         //
         st_back_button.addActionListener(e -> st_back());
@@ -115,7 +112,7 @@ public class World extends JPanel{
 		super.paintComponent(canvas);
 		canvas.setColor(new Color(255, 255, 255));
 		canvas.fillRect(0, 0, Constant.W * Constant.bot_scale, Constant.H * Constant.bot_scale);
-		if (render) {
+		if (render && !settings) {
 			for(Bot b: objects) {
 				b.Draw(canvas, draw_type);
 			}
@@ -208,6 +205,8 @@ public class World extends JPanel{
 		Constant.H = Integer.parseInt(settings_panels[0].height.getText());
 		Constant.bot_scale = Math.min(Constant.scr_W/Constant.W, Constant.scr_H/Constant.H);
 		Constant.starting_bots = Constant.W*Constant.H/17;
+		settings_panels[1].sea_level_slider.setMaximum(Constant.H);
+		settings_panels[1].mud_level_slider.setMaximum(Constant.H);
 		//
 		steps = 0;
 		objects = new ArrayList<Bot>();
@@ -359,6 +358,8 @@ public class World extends JPanel{
 			st_back_button.setEnabled(true);
 		}
 		add(settings_panels[settings_panel_index]);
+		settings_panels[settings_panel_index].revalidate();
+		settings_panels[settings_panel_index].repaint();
 	}
 	public void st_next() {
 		remove(settings_panels[settings_panel_index]);
@@ -371,6 +372,8 @@ public class World extends JPanel{
 			st_next_button.setEnabled(true);
 		}
 		add(settings_panels[settings_panel_index]);
+		settings_panels[settings_panel_index].revalidate();
+		settings_panels[settings_panel_index].repaint();
 	}
 	public void open_settings() {
 		settings = !settings;
@@ -385,6 +388,8 @@ public class World extends JPanel{
 			st_back_button.setVisible(false);
 			st_next_button.setVisible(false);
 		}
+		//
+		//panel0
 		//
 		Constant.energy_for_life = Double.parseDouble(settings_panels[0].energy_for_life.getText());
 		Constant.energy_for_multiply = Double.parseDouble(settings_panels[0].energy_for_multiply.getText());
@@ -421,6 +426,19 @@ public class World extends JPanel{
 		//
 		Constant.draw_rotate = settings_panels[0].draw_rotate_button.isSelected();
 		Constant.draw_frame = settings_panels[0].draw_frame_button.isSelected();
+		//
+		//panel1
+		//
+		Constant.enable_divers = settings_panels[1].divers_button.isSelected();
+		Constant.sea_level = settings_panels[1].sea_level_slider.getValue();
+		Constant.mud_level = settings_panels[1].mud_level_slider.getValue();
+		Constant.block_auto_multiply = settings_panels[1].block_auto_mul_button.isSelected();
+		Constant.no_multiply_in_surface = settings_panels[1].no_mul_in_surface_slider.getValue();
+		Constant.no_multiply_in_sea = settings_panels[1].no_mul_in_sea_slider.getValue();
+		Constant.no_pht_in_sea = settings_panels[1].no_pht_in_sea_slider.getValue();
+		Constant.no_pht_in_mud = settings_panels[1].no_pht_in_mud_slider.getValue();
+		Constant.on_land = settings_panels[1].on_land_slider.getValue();
+		Constant.force_move_y = settings_panels[1].move_y_slider.getValue();
 	}
 	public void start_stop() {
 		pause = !pause;

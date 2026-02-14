@@ -36,6 +36,18 @@ public class Bot{
 	public int c_red = -1;
 	public int c_green = -1;
 	public int c_blue = -1;
+	public int[][] pred_colors = new int[][] {//цвет в режиме отрисовки хищников
+		{-1, -1, -1},
+		{-1, -1, -1},
+		{-1, -1, -1},
+		{-1, -1, -1},
+		{-1, -1, -1},
+		{-1, -1, -1},
+		{-1, -1, -1},
+		{-1, -1, -1},
+		{-1, -1, -1},
+		{-1, -1, -1}
+	};
 	//
 	public int mutations = 0;
 	public int generation = 0;
@@ -99,9 +111,13 @@ public class Bot{
 				canvas.setColor(new Color(100, 100, 100));
 				canvas.fillRect(x + 2, y + 2, Constant.bot_scale - 4, Constant.bot_scale - 4);
 			}else {
-				canvas.setColor(new Color(0, 0, 0));
-				canvas.setColor(new Color(100, 100, 100));
-				canvas.fillRect(x + 1, y + 1, Constant.bot_scale - 2, Constant.bot_scale - 2);
+				if (Constant.bot_scale <= 2) {
+					canvas.setColor(new Color(100, 100, 100));
+					canvas.fillRect(x, y, 1, 1);
+				}else {
+					canvas.setColor(new Color(100, 100, 100));
+					canvas.fillRect(x + 1, y + 1, Constant.bot_scale - 2, Constant.bot_scale - 2);
+				}
 			}
 		}
 	}
@@ -181,7 +197,7 @@ public class Bot{
 			}else if (command == 25) {//фотосинтез
 				if (Constant.photo_list[sector(Constant.photo_list.length)] > 0) {
 					energy += Constant.photo_list[sector(Constant.photo_list.length)];
-					go_green();
+					go_color(new Color(0, 255, 0));
 				}
 				index += 1;
 				index %= 64;
@@ -243,7 +259,7 @@ public class Bot{
 				}
 			}else if (command == 38) {//преобразовать минералы в энергию
 				if (minerals > 0) {
-					go_blue();
+					go_color(new Color(0, 0, 255));
 				}
 				energy += minerals * 4;
 				minerals = 0;
@@ -372,7 +388,7 @@ public class Bot{
 					victim.killed = 1;
 					energy += victim.energy;
 					map[pos[0]][pos[1]] = null;
-					go_red();
+					go_color(new Color(255, 0, 0));
 				}
 			}
 		}
@@ -392,7 +408,7 @@ public class Bot{
 						victim.killed = 1;
 						map[pos[0]][pos[1]] = null;
 					}
-					go_red();
+					go_color(new Color(255, 0, 0));
 				}
 			}
 		}
@@ -453,37 +469,36 @@ public class Bot{
 			}
 		}
 	}
-	public void go_red() {
-		if (c_red != -1) {
-			c_red = border(c_red + 4, 255, 0);
-			c_green = border(c_green - 2, 255, 0);
-			c_blue = border(c_blue - 2, 255, 0);
-		}else {
-			c_red = 255;
-			c_green = 0;
-			c_blue = 0;
+	public void go_color(Color c) {//цвет режима отрисовки хищников
+		int red_count = 0;                  //есть буфер на 10 цветов. При выполнении функции цвет "с" добавляется в начало буфера, сдвигая остальные. Самый поздний исчезает
+		int green_count = 0;                //Для получения цвета просто усредняем буфер(кроме тех, где стоит -1. Это начальное значение, обозначающее, что цвета там нет)
+		int blue_count = 0;                 //бот с цветом(-1, -1, -1), рисуется серым.
+		int count = 1;
+		for (int i = 8; i >= 0; i--) {
+			pred_colors[i + 1][0] = pred_colors[i][0];
+			pred_colors[i + 1][1] = pred_colors[i][1];
+			pred_colors[i + 1][2] = pred_colors[i][2];
+			if (pred_colors[i][0] != -1) {
+				red_count += pred_colors[i][0];
+				green_count += pred_colors[i][1];
+				blue_count += pred_colors[i][2];
+				count++;
+			}
 		}
-	}
-	public void go_green() {
-		if (c_green != -1) {
-			c_red = border(c_red - 2, 255, 0);
-			c_green = border(c_green + 4, 255, 0);
-			c_blue = border(c_blue - 2, 255, 0);
+		pred_colors[0][0] = c.getRed();
+		pred_colors[0][1] = c.getGreen();
+		pred_colors[0][2] = c.getBlue();
+		red_count += c.getRed();
+		green_count += c.getGreen();
+		blue_count += c.getBlue();
+		if (c_red != -1 && c_green != -1 && c_blue != -1) {
+			c_red = red_count / count;
+			c_green = green_count / count;
+			c_blue = blue_count / count;
 		}else {
-			c_red = 0;
-			c_green = 255;
-			c_blue = 0;
-		}
-	}
-	public void go_blue() {
-		if (c_blue != -1) {
-			c_red = border(c_red - 2, 255, 0);
-			c_green = border(c_green - 2, 255, 0);
-			c_blue = border(c_blue + 4, 255, 0);
-		}else {
-			c_red = 0;
-			c_green = 0;
-			c_blue = 255;
+			c_red = c.getRed();
+			c_green = c.getGreen();
+			c_blue = c.getBlue();
 		}
 	}
 	public boolean is_relative(int[] brain1, int[] brain2) {
