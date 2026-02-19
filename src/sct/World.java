@@ -601,28 +601,38 @@ public class World extends JPanel{
         //
         JButton predators_button = new JButton("Predators");
         predators_button.addActionListener(e -> change_draw_type(0));
-		predators_button.setBounds(0, 190, 125, 20);
+		predators_button.setBounds(0, 190, 95, 20);
 		panels[0].add(predators_button);
         //
         JButton energy_button = new JButton("Energy");
         energy_button.addActionListener(e -> change_draw_type(2));
-		energy_button.setBounds(130, 190, 125, 20);
+		energy_button.setBounds(100, 190, 95, 20);
 		panels[0].add(energy_button);
         //
         JButton minerals_button = new JButton("Minerals");
-		minerals_button.setBounds(0, 215, 125, 20);
+		minerals_button.setBounds(200, 190, 95, 20);
 		minerals_button.addActionListener(e -> change_draw_type(3));
 		panels[0].add(minerals_button);
         //
         JButton age_button = new JButton("Age");
         age_button.addActionListener(e -> change_draw_type(4));
-		age_button.setBounds(130, 215, 125, 20);
+		age_button.setBounds(0, 215, 95, 20);
 		panels[0].add(age_button);
         //
         JButton color_button = new JButton("Color");
         color_button.addActionListener(e -> change_draw_type(1));
-		color_button.setBounds(0, 240, 125, 20);
+		color_button.setBounds(100, 215, 95, 20);
 		panels[0].add(color_button);
+		//
+		JButton health_button = new JButton("Health");
+		health_button.addActionListener(e -> change_draw_type(5));
+		health_button.setBounds(200, 215, 95, 20);
+		panels[0].add(health_button);
+		//
+		JButton defense_button = new JButton("Defense");
+		defense_button.addActionListener(e -> change_draw_type(6));
+		defense_button.setBounds(0, 240, 95, 20);
+		panels[0].add(defense_button);
         //
         JButton select_button = new JButton("Select");
         select_button.addActionListener(e -> change_mouse(0));

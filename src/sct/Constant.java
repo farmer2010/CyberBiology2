@@ -8,7 +8,7 @@ public class Constant {
 	//
 	static int scr_W = 1920;
 	static int scr_H = 1080;
-	static int bot_scale = 10;
+	static int bot_scale = 5;
 	static int W = (scr_W - 300) / bot_scale;
 	static int H = scr_H / bot_scale;
 	static int starting_bots = W*H/17;
@@ -27,14 +27,15 @@ public class Constant {
 	static int color_range = 12;
 	static boolean allow_organics = true;
 	static int org_fall_type = 1;//0 - не падает, 1 - падает, но останавливается, 2 - всегда падает, 3 - всегда падает и сыпется
-	static int max_age = 1500;
+	static int max_age = 2000;
+	static double max_health = 100;
 	static boolean upd_parent_index = false;
 	static boolean upd_parent_age = false;
 	static int[] minerals_list = {0, 0, 0, 0, 0, 1, 2, 3};
 	static int[] photo_list = {10, 8, 6, 5, 4, 3, 0, 0};
 	//
 	static boolean draw_rotate = false;
-	static boolean draw_frame = true;
+	static boolean draw_frame = false;
 	//
 	//adaptation
 	//divers

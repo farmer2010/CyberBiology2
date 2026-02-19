@@ -16,6 +16,8 @@ public class Bot{
 	public Color color;
 	public double energy;
 	public int minerals;
+	public double health = Constant.max_health;
+	public double defense = 0;
 	public int killed = 0;
 	public Bot[][] map;
 	public int[] commands = new int[64];
@@ -91,8 +93,10 @@ public class Bot{
 				canvas.setColor(Constant.gradient(new Color(0, 255, 0), new Color(0, 255, 255), minerals / 1000.0));
 			}else if (draw_type == 4) {//возраста
 				canvas.setColor(Constant.gradient(new Color(0, 0, 255), new Color(255, 255, 0), age / (Constant.max_age * 1.0)));
-			}else if (draw_type == 5) {
-				//
+			}else if (draw_type == 5) {//жизни
+				canvas.setColor(Constant.gradient(new Color(255, 0, 0), new Color(0, 255, 0), health / Constant.max_health));
+			}else if (draw_type == 6) {//защиты
+				canvas.setColor(Constant.gradient(new Color(50, 50, 50), new Color(200, 200, 200), defense / 100.0));
 			}
 			if (Constant.draw_frame) {
 				canvas.fillRect(x + 1, y + 1, Constant.bot_scale - 2, Constant.bot_scale - 2);
@@ -123,12 +127,12 @@ public class Bot{
 	}
 	public int Update(ListIterator<Bot> iterator) {
 		if (killed == 0) {
-			if (state == 0) {//ботbot_in_sector();
+			if (state == 0) {//бот
 				energy -= Constant.energy_for_life;
 				age--;
 				minerals += Constant.minerals_list[sector(Constant.minerals_list.length)];
 				update_commands(iterator);
-				if (energy < 1) {
+				if (energy <= 0) {
 					killed = 1;
 					map[xpos][ypos] = null;
 					return(0);
@@ -138,7 +142,7 @@ public class Bot{
 				if (energy >= Constant.energy_for_auto_multiply) {//автоматическое деление
 					multiply(rotate, iterator);
 				}
-				if (age <= 0) {
+				if (age <= 0 || health <= 0) {
 					if (Constant.allow_organics) {
 						state = 1;
 					}else {
@@ -195,6 +199,7 @@ public class Bot{
 				index += 2;
 				index %= 64;
 			}else if (command == 25) {//фотосинтез
+				double d = 1 - defense / 200.0;
 				if (Constant.photo_list[sector(Constant.photo_list.length)] > 0) {
 					energy += Constant.photo_list[sector(Constant.photo_list.length)];
 					go_color(new Color(0, 255, 0));
@@ -219,13 +224,13 @@ public class Bot{
 				index %= 64;
 				break;
 			}else if (command == 28) {//атаковать относительно
-				attack(commands[(index + 1) % 64] % 8);
-				index += 2;
+				attack2(commands[(index + 1) % 64] % 8, commands[(index + 2) % 64] * 2);
+				index += 3;
 				index %= 64;
 				break;
 			}else if (command == 29) {//атаковать абсолютно
-				attack(rotate);
-				index += 1;
+				attack2(rotate, commands[(index + 1) % 64] * 2);
+				index += 2;
 				index %= 64;
 				break;
 			}else if (command == 30) {//посмотреть относительно
@@ -258,11 +263,13 @@ public class Bot{
 					index = commands[(index + 3) % 64];
 				}
 			}else if (command == 38) {//преобразовать минералы в энергию
+				double d = 1 - defense / 200.0;
+				int mnr = Math.min(minerals, 4);
 				if (minerals > 0) {
 					go_color(new Color(0, 0, 255));
 				}
-				energy += minerals * 4;
-				minerals = 0;
+				energy += mnr * 4;
+				minerals -= mnr;
 				index += 1;
 				index %= 64;
 				break;
@@ -321,15 +328,82 @@ public class Bot{
 				break;
 			}else if (command == 48) {//безусловный переход
 				index = commands[(index + 1) % 64];
+			}else if (command == 49) {//восстановить жизни
+				if (health < Constant.max_health) {
+					health += 1;
+					energy -= 10;
+				}
+				index += 1;
+				index %= 64;
+			}else if (command == 51) {//сколько жизни
+				double ind = commands[(index + 1) % 64] * 1.56;
+				if (health >= ind) {
+					index = commands[(index + 2) % 64];
+				}else {
+					index = commands[(index + 3) % 64];
+				}
+			}else if (command == 53) {//какое направление
+				int ind = commands[(index + 1) % 64] % 8;
+				if (rotate > ind) {
+					index = commands[(index + 2) % 64];
+				}else if (rotate < ind) {
+					index = commands[(index + 3) % 64];
+				}else {
+					index = commands[(index + 4) % 64];
+				}
+			}else if (command == 54) {//сколько соседей вокруг
+				int c = count_neighbour();
+				int ind = commands[(index + 1) % 64] % 8;
+				if (c > ind) {
+					index = commands[(index + 2) % 64];
+				}else if (c < ind) {
+					index = commands[(index + 3) % 64];
+				}else {
+					index = commands[(index + 4) % 64];
+				}
+			}else if (command == 55) {//увеличить защиту
+				int mnr = commands[(index + 1) % 64] % 4;
+				if (defense < 100) {
+					if (minerals >= mnr && mnr > 0) {
+						minerals -= mnr;
+						energy -= 4 + 4 * mnr;
+						defense += mnr + 1;
+					}else {
+						energy -= 4;
+						defense += 1;
+					}
+				}
+				defense = Math.min(defense, 100);
+				index += 1;
+				index %= 64;
+			}else if (command == 56) {//сколько защиты
+				double ind = commands[(index + 1) % 64] * 1.56;
+				if (defense >= ind) {
+					index = commands[(index + 2) % 64];
+				}else {
+					index = commands[(index + 3) % 64];
+				}
 			}else {
 				index += commands[index];
 				index %= 64;
 			}
 		}
 	}
+	public int count_neighbour() {
+		int c = 0;
+		for (int i = 0; i < 8; i++) {
+			int[] pos = get_rotate_position(i);
+			if (pos[1] >= 0 && pos[1] < Constant.H) {
+				if (map[pos[0]][pos[1]] != null) {
+					c++;
+				}
+			}
+		}
+		return(c);
+	}
 	public int see(int rot) {
 		int[] pos = get_rotate_position(rot);
-		if (pos[1] >= 0 & pos[1] < Constant.H) {
+		if (pos[1] >= 0 && pos[1] < Constant.H) {
 			if (map[pos[0]][pos[1]] == null) {
 				return(1);//если ничего
 			}else if (map[pos[0]][pos[1]].state == 0) {
@@ -347,7 +421,7 @@ public class Bot{
 	}
 	public void give(int rot) {
 		int[] pos = get_rotate_position(rot);
-		if (pos[1] >= 0 & pos[1] < Constant.H) {
+		if (pos[1] >= 0 && pos[1] < Constant.H) {
 			if (map[pos[0]][pos[1]] != null) {
 				if (map[pos[0]][pos[1]].state == 0) {
 					Bot relative = map[pos[0]][pos[1]];
@@ -363,7 +437,7 @@ public class Bot{
 	}
 	public void give2(int rot) {
 		int[] pos = get_rotate_position(rot);
-		if (pos[1] >= 0 & pos[1] < Constant.H) {
+		if (pos[1] >= 0 && pos[1] < Constant.H) {
 			if (map[pos[0]][pos[1]] != null) {
 				if (map[pos[0]][pos[1]].state == 0) {
 					Bot relative = map[pos[0]][pos[1]];
@@ -381,7 +455,7 @@ public class Bot{
 	}
 	public void attack(int rot) {
 		int[] pos = get_rotate_position(rot);
-		if (pos[1] >= 0 & pos[1] < Constant.H) {
+		if (pos[1] >= 0 && pos[1] < Constant.H) {
 			if (map[pos[0]][pos[1]] != null) {
 				Bot victim = map[pos[0]][pos[1]];
 				if (victim != null) {
@@ -395,10 +469,11 @@ public class Bot{
 	}
 	public void attack2(int rot, int strength) {
 		int[] pos = get_rotate_position(rot);
-		if (pos[1] >= 0 & pos[1] < Constant.H) {
+		if (pos[1] >= 0 && pos[1] < Constant.H) {
 			if (map[pos[0]][pos[1]] != null) {
 				Bot victim = map[pos[0]][pos[1]];
 				if (victim != null) {
+					strength *= 1 - defense / 200.0;
 					if (victim.energy >= strength) {
 						energy += strength;
 						victim.energy -= strength;
@@ -408,14 +483,19 @@ public class Bot{
 						victim.killed = 1;
 						map[pos[0]][pos[1]] = null;
 					}
+					victim.health -= strength / 4.0;
 					go_color(new Color(255, 0, 0));
 				}
+			}else {
+				energy -= 5;
 			}
+		}else {
+			energy -= 5;
 		}
 	}
 	public int move(int rot) {
 		int[] pos = get_rotate_position(rot);
-		if (pos[1] >= 0 & pos[1] < Constant.H) {
+		if (pos[1] >= 0 && pos[1] < Constant.H) {
 			if (map[pos[0]][pos[1]] == null) {
 				Bot self = map[xpos][ypos];
 				map[xpos][ypos] = null;
@@ -431,7 +511,7 @@ public class Bot{
 	}
 	public void multiply(int rot, ListIterator<Bot> iterator) {
 		int[] pos = get_rotate_position(rot);
-		if (pos[1] >= 0 & pos[1] < Constant.H) {
+		if (pos[1] >= 0 && pos[1] < Constant.H) {
 			if (map[pos[0]][pos[1]] == null) {
 				energy -= Constant.energy_for_multiply;
 				if (energy <= 0) {
@@ -441,6 +521,7 @@ public class Bot{
 					Color new_color = color;
 					int new_genr = generation + 1;
 					int new_mut = mutations;
+					double new_defense = defense / 2;
 					int[] new_brain = new int[64];
 					for (int i = 0; i < 64; i++) {
 						new_brain[i] = commands[i];
@@ -460,6 +541,8 @@ public class Bot{
 					new_bot.minerals = minerals / 2;
 					energy /= 2;
 					minerals /= 2;
+					defense = new_defense;
+					new_bot.defense = new_defense;
 					new_bot.generation = new_genr;
 					new_bot.mutations = new_mut;
 					new_bot.commands = new_brain;
