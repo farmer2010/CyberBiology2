@@ -18,6 +18,7 @@ public class Bot{
 	public int minerals;
 	public double health = Constant.max_health;
 	public double defense = 0;
+	public double attack_power = 80;
 	public int killed = 0;
 	public Bot[][] map;
 	public int[] commands = new int[64];
@@ -199,9 +200,9 @@ public class Bot{
 				index += 2;
 				index %= 64;
 			}else if (command == 25) {//фотосинтез
-				double d = 1 - defense / 200.0;
+				double d = 1 - defense / 150.0;
 				if (Constant.photo_list[sector(Constant.photo_list.length)] > 0) {
-					energy += Constant.photo_list[sector(Constant.photo_list.length)];
+					energy += Constant.photo_list[sector(Constant.photo_list.length)] * d;
 					go_color(new Color(0, 255, 0));
 				}
 				index += 1;
@@ -224,13 +225,13 @@ public class Bot{
 				index %= 64;
 				break;
 			}else if (command == 28) {//атаковать относительно
-				attack2(commands[(index + 1) % 64] % 8, commands[(index + 2) % 64] * 2);
-				index += 3;
+				attack2(commands[(index + 1) % 64] % 8, attack_power);
+				index += 2;
 				index %= 64;
 				break;
 			}else if (command == 29) {//атаковать абсолютно
-				attack2(rotate, commands[(index + 1) % 64] * 2);
-				index += 2;
+				attack2(rotate, attack_power);
+				index += 1;
 				index %= 64;
 				break;
 			}else if (command == 30) {//посмотреть относительно
@@ -263,12 +264,12 @@ public class Bot{
 					index = commands[(index + 3) % 64];
 				}
 			}else if (command == 38) {//преобразовать минералы в энергию
-				double d = 1 - defense / 200.0;
+				double d = 1 - defense / 150.0;
 				int mnr = Math.min(minerals, 4);
 				if (minerals > 0) {
 					go_color(new Color(0, 0, 255));
 				}
-				energy += mnr * 4;
+				energy += mnr * 4 * d;
 				minerals -= mnr;
 				index += 1;
 				index %= 64;
@@ -366,10 +367,10 @@ public class Bot{
 				if (defense < 100) {
 					if (minerals >= mnr && mnr > 0) {
 						minerals -= mnr;
-						energy -= 4 + 4 * mnr;
+						energy -= 10 + 4 * mnr;
 						defense += mnr + 1;
 					}else {
-						energy -= 4;
+						energy -= 10;
 						defense += 1;
 					}
 				}
@@ -467,13 +468,13 @@ public class Bot{
 			}
 		}
 	}
-	public void attack2(int rot, int strength) {
+	public void attack2(int rot, double strength) {
 		int[] pos = get_rotate_position(rot);
 		if (pos[1] >= 0 && pos[1] < Constant.H) {
 			if (map[pos[0]][pos[1]] != null) {
 				Bot victim = map[pos[0]][pos[1]];
 				if (victim != null) {
-					strength *= 1 - defense / 200.0;
+					strength *= 1 - victim.defense / 200.0;
 					if (victim.energy >= strength) {
 						energy += strength;
 						victim.energy -= strength;
