@@ -152,9 +152,10 @@ public class Panel extends JPanel {
 			canvas.drawString("Load:", 0, 490);
 			canvas.drawString("enter name:", 0, 510);
 			canvas.drawString("Controls:", 0, 580);
+			canvas.drawString("Mul: " + String.valueOf(world.mul_count), 0, 700);
 			if (world.selection != null) {
 				canvas.drawString("energy: " + String.valueOf((int)(world.selection.energy)) + ", minerals: " + String.valueOf(world.selection.minerals), 0, 295);
-				canvas.drawString("age: " + String.valueOf(world.selection.age), 0, 315);
+				canvas.drawString("age: " + String.valueOf(world.selection.age) + ", mul: " + String.valueOf(world.selection.mul), 0, 315);
 				canvas.drawString("position: " + "[" + String.valueOf(world.selection.xpos) + ", " + String.valueOf(world.selection.ypos) + "]", 0, 335);
 				canvas.drawString("color: " + "(" + String.valueOf(world.selection.color.getRed()) + ", " + String.valueOf(world.selection.color.getGreen()) + ", " + String.valueOf(world.selection.color.getBlue()) + ")", 0, 355);
 			}else {

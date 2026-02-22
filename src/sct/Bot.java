@@ -16,8 +16,11 @@ public class Bot{
 	public Color color;
 	public double energy;
 	public int minerals;
+	public int mul = 100;
 	public int killed = 0;
 	public Bot[][] map;
+	public int[][] mul_map;
+	private World world;
 	public int[] commands = new int[64];
 	public int index = 0;
 	public int age = (int)(Constant.max_age);
@@ -51,7 +54,7 @@ public class Bot{
 	//
 	public int mutations = 0;
 	public int generation = 0;
-	public Bot(int new_xpos, int new_ypos, Color new_color, double new_energy, Bot[][] new_map, ArrayList<Bot> new_objects) {
+	public Bot(int new_xpos, int new_ypos, Color new_color, double new_energy, World new_world) {
 		xpos = new_xpos;
 		ypos = new_ypos;
 		x = new_xpos * Constant.bot_scale;
@@ -59,8 +62,10 @@ public class Bot{
 		color = new_color;
 		energy = new_energy;
 		minerals = 0;
-		objects = new_objects;
-		map = new_map;
+		world = new_world;
+		objects = world.objects;
+		map = world.Map;
+		mul_map = world.mul_map;
 		for (int i = 0; i < 64; i++) {
 			commands[i] = rand.nextInt(64);
 		}
@@ -91,8 +96,8 @@ public class Bot{
 				canvas.setColor(Constant.gradient(new Color(0, 255, 0), new Color(0, 255, 255), minerals / 1000.0));
 			}else if (draw_type == 4) {//возраста
 				canvas.setColor(Constant.gradient(new Color(0, 0, 255), new Color(255, 255, 0), age / (Constant.max_age * 1.0)));
-			}else if (draw_type == 5) {
-				//
+			}else if (draw_type == 5) {//вещества
+				canvas.setColor(Constant.gradient(new Color(255, 40, 40), new Color(40, 184, 255), mul / 150.0));
 			}
 			if (Constant.draw_frame) {
 				canvas.fillRect(x + 1, y + 1, Constant.bot_scale - 2, Constant.bot_scale - 2);
@@ -128,9 +133,8 @@ public class Bot{
 				age--;
 				minerals += Constant.minerals_list[sector(Constant.minerals_list.length)];
 				update_commands(iterator);
-				if (energy < 1) {
-					killed = 1;
-					map[xpos][ypos] = null;
+				if (energy <= 0) {
+					die();
 					return(0);
 				}else if (energy > Constant.max_energy) {
 					energy = Constant.max_energy;
@@ -140,10 +144,10 @@ public class Bot{
 				}
 				if (age <= 0) {
 					if (Constant.allow_organics) {
+						drop();
 						state = 1;
 					}else {
-						killed = 1;
-						map[xpos][ypos] = null;
+						die();
 					}
 					return(0);
 				}
@@ -176,8 +180,9 @@ public class Bot{
 						}
 					}
 				}
-			}else {//стоящая органика
-				//
+			}
+			if (world.steps % 10 == 0) {
+				world.mul_count += mul;
 			}
 		}
 		return(0);
@@ -197,7 +202,7 @@ public class Bot{
 			}else if (command == 25) {//фотосинтез
 				if (Constant.photo_list[sector(Constant.photo_list.length)] > 0) {
 					energy += Constant.photo_list[sector(Constant.photo_list.length)];
-					go_color(new Color(0, 255, 0));
+					go_color(new Color(0, 160, 0));
 				}
 				index += 1;
 				index %= 64;
@@ -321,15 +326,57 @@ public class Bot{
 				break;
 			}else if (command == 48) {//безусловный переход
 				index = commands[(index + 1) % 64];
+			}else if (command == 49) {//собирать вещество относительно
+				collect(commands[(index + 1) % 64] % 8);
+				index += 2;
+				index %= 64;
+				break;
+			}else if (command == 51) {//собирать вещество абсолютно
+				collect(rotate);
+				index += 1;
+				index %= 64;
+				break;
+			}else if (command == 53) {//сколько вещества относительно
+				int res = count_mul(commands[(index + 1) % 64] % 8, commands[(index + 2) % 64]);
+				index = commands[(index + 3 + res) % 64];
+			}else if (command == 54) {//сколько вещества абсолютно
+				int res = count_mul(rotate, commands[(index + 1) % 64]);
+				index = commands[(index + 2 + res) % 64];
+			}else if (command == 55) {//сколько вещества у меня
+				int ind = commands[(index + 1) % 64] * 15;
+				if (mul >= ind) {
+					index = commands[(index + 2) % 64];
+				}else {
+					index = commands[(index + 3) % 64];
+				}
 			}else {
 				index += commands[index];
 				index %= 64;
 			}
 		}
 	}
+	public int count_mul(int rot, int ind) {
+		int[] pos = get_rotate_position(rot);
+		if (pos[1] >= 0 && pos[1] < Constant.H) {
+			if (mul_map[pos[0]][pos[1]] >= ind) {
+				return(0);
+			}else {
+				return(1);
+			}
+		}else {
+			return(2);
+		}
+	}
+	public void collect(int rot){
+		int[] pos = get_rotate_position(rot);
+		if (pos[1] >= 0 && pos[1] < Constant.H) {
+			mul += mul_map[pos[0]][pos[1]];
+			mul_map[pos[0]][pos[1]] = 0;
+		}
+	}
 	public int see(int rot) {
 		int[] pos = get_rotate_position(rot);
-		if (pos[1] >= 0 & pos[1] < Constant.H) {
+		if (pos[1] >= 0 && pos[1] < Constant.H) {
 			if (map[pos[0]][pos[1]] == null) {
 				return(1);//если ничего
 			}else if (map[pos[0]][pos[1]].state == 0) {
@@ -347,7 +394,7 @@ public class Bot{
 	}
 	public void give(int rot) {
 		int[] pos = get_rotate_position(rot);
-		if (pos[1] >= 0 & pos[1] < Constant.H) {
+		if (pos[1] >= 0 && pos[1] < Constant.H) {
 			if (map[pos[0]][pos[1]] != null) {
 				if (map[pos[0]][pos[1]].state == 0) {
 					Bot relative = map[pos[0]][pos[1]];
@@ -363,7 +410,7 @@ public class Bot{
 	}
 	public void give2(int rot) {
 		int[] pos = get_rotate_position(rot);
-		if (pos[1] >= 0 & pos[1] < Constant.H) {
+		if (pos[1] >= 0 && pos[1] < Constant.H) {
 			if (map[pos[0]][pos[1]] != null) {
 				if (map[pos[0]][pos[1]].state == 0) {
 					Bot relative = map[pos[0]][pos[1]];
@@ -381,13 +428,14 @@ public class Bot{
 	}
 	public void attack(int rot) {
 		int[] pos = get_rotate_position(rot);
-		if (pos[1] >= 0 & pos[1] < Constant.H) {
+		if (pos[1] >= 0 && pos[1] < Constant.H) {
 			if (map[pos[0]][pos[1]] != null) {
 				Bot victim = map[pos[0]][pos[1]];
 				if (victim != null) {
-					victim.killed = 1;
 					energy += victim.energy;
-					map[pos[0]][pos[1]] = null;
+					mul += victim.mul;
+					victim.mul = 0;
+					victim.die();
 					go_color(new Color(255, 0, 0));
 				}
 			}
@@ -395,18 +443,18 @@ public class Bot{
 	}
 	public void attack2(int rot, int strength) {
 		int[] pos = get_rotate_position(rot);
-		if (pos[1] >= 0 & pos[1] < Constant.H) {
+		if (pos[1] >= 0 && pos[1] < Constant.H) {
 			if (map[pos[0]][pos[1]] != null) {
 				Bot victim = map[pos[0]][pos[1]];
 				if (victim != null) {
+					mul = victim.mul;
+					victim.mul = 0;
 					if (victim.energy >= strength) {
 						energy += strength;
 						victim.energy -= strength;
 					}else {
 						energy += victim.energy;
-						victim.energy = 0;
-						victim.killed = 1;
-						map[pos[0]][pos[1]] = null;
+						victim.die();
 					}
 					go_color(new Color(255, 0, 0));
 				}
@@ -415,7 +463,7 @@ public class Bot{
 	}
 	public int move(int rot) {
 		int[] pos = get_rotate_position(rot);
-		if (pos[1] >= 0 & pos[1] < Constant.H) {
+		if (pos[1] >= 0 && pos[1] < Constant.H) {
 			if (map[pos[0]][pos[1]] == null) {
 				Bot self = map[xpos][ypos];
 				map[xpos][ypos] = null;
@@ -431,12 +479,11 @@ public class Bot{
 	}
 	public void multiply(int rot, ListIterator<Bot> iterator) {
 		int[] pos = get_rotate_position(rot);
-		if (pos[1] >= 0 & pos[1] < Constant.H) {
-			if (map[pos[0]][pos[1]] == null) {
+		if (pos[1] >= 0 && pos[1] < Constant.H) {
+			if (map[pos[0]][pos[1]] == null && mul >= 100) {
 				energy -= Constant.energy_for_multiply;
 				if (energy <= 0) {
-					killed = 1;
-					map[xpos][ypos] = null;
+					die();
 				}else { 
 					Color new_color = color;
 					int new_genr = generation + 1;
@@ -456,8 +503,14 @@ public class Bot{
 					}
 					if (Constant.upd_parent_index) index = 0;
 					if (Constant.upd_parent_age) age = Constant.max_age;
-					Bot new_bot = new Bot(pos[0], pos[1], new_color, energy / 2, map, objects);
+					Bot new_bot = new Bot(pos[0], pos[1], new_color, energy / 2, world);
 					new_bot.minerals = minerals / 2;
+					new_bot.mul = mul / 2;
+					if (mul / 2 * 2 < mul) {
+						mul = mul / 2 + 1;
+					}else {
+						mul = mul / 2;
+					}
 					energy /= 2;
 					minerals /= 2;
 					new_bot.generation = new_genr;
@@ -468,6 +521,26 @@ public class Bot{
 				}
 			}
 		}
+	}
+	public void die() {
+		killed = 1;
+		map[xpos][ypos] = null;
+		energy = 0;
+		drop();
+	}
+	public void drop() {
+		int c = mul / 9;
+		for (int j = 0; j < 8; j++) {
+			int[] pos = Constant.get_rotate_position(j, new int[] {xpos, ypos});
+			if (pos[1] >= 0 && pos[1] < Constant.H && map[pos[0]][pos[1]] == null) {
+				mul_map[pos[0]][pos[1]] += c;
+			}else {
+				mul_map[xpos][ypos] += c;
+			}
+		}
+		mul_map[xpos][ypos] += c;
+		mul_map[xpos][ypos] += mul - c * 9;
+		mul = 0;
 	}
 	public void go_color(Color c) {//цвет режима отрисовки хищников
 		int red_count = 0;                  //есть буфер на 10 цветов. При выполнении функции цвет "с" добавляется в начало буфера, сдвигая остальные. Самый поздний исчезает

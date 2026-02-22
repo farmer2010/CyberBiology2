@@ -27,6 +27,7 @@ public class World extends JPanel{
 	Random rand = new Random();
 	Timer timer;
 	Bot[][] Map = new Bot[Constant.W][Constant.H];
+	int[][] mul_map = new int[Constant.W][Constant.H];
 	//переменные
 	int steps = 0;//
 	int b_count = 0;//
@@ -34,6 +35,7 @@ public class World extends JPanel{
 	int draw_type = 0;//
 	int mouse = 0;//
 	int delay = 10;//
+	int mul_count = 0;
 	//
 	boolean pause = false;//
 	boolean render = true;//
@@ -113,6 +115,14 @@ public class World extends JPanel{
 		canvas.setColor(new Color(255, 255, 255));
 		canvas.fillRect(0, 0, Constant.W * Constant.bot_scale, Constant.H * Constant.bot_scale);
 		if (render && !settings) {
+			for (int x = 0; x < Constant.W; x++) {
+				for (int y = 0; y < Constant.H; y++) {
+					if (mul_map[x][y] > 0) {
+						canvas.setColor(Constant.gradient(new Color(255, 255, 255), new Color(150, 255, 150), mul_map[x][y] / 50.0));
+						canvas.fillRect(x * Constant.bot_scale, y * Constant.bot_scale, Constant.bot_scale, Constant.bot_scale);
+					}
+				}
+			}
 			for(Bot b: objects) {
 				b.Draw(canvas, draw_type);
 			}
@@ -139,38 +149,60 @@ public class World extends JPanel{
 		}
 		if (rec && steps % 25 == 0) {
 			try {
-				int last = draw_type;
-				draw_type = 0;
-				BufferedImage buff = new BufferedImage(1920, 1080, BufferedImage.TYPE_INT_RGB);
+				BufferedImage buff = new BufferedImage(Constant.W * Constant.bot_scale, Constant.H * Constant.bot_scale, BufferedImage.TYPE_INT_RGB);
 				Graphics2D g2d = buff.createGraphics();
 				g2d.setColor(Color.WHITE);
 				g2d.fillRect(0, 0, 1920, 1080);
+				for (int x = 0; x < Constant.W; x++) {
+					for (int y = 0; y < Constant.H; y++) {
+						if (mul_map[x][y] > 0) {
+							g2d.setColor(Constant.gradient(new Color(255, 255, 255), new Color(150, 255, 150), mul_map[x][y] / 50.0));
+							g2d.fillRect(x * Constant.bot_scale, y * Constant.bot_scale, Constant.bot_scale, Constant.bot_scale);
+						}
+					}
+				}
 				for(Bot b: objects) {
-					b.Draw(g2d, draw_type);
+					b.Draw(g2d, 0);
 				}
 				g2d.dispose();
-				draw_type = 2;
-				BufferedImage buff2 = new BufferedImage(1920, 1080, BufferedImage.TYPE_INT_RGB);
+				//
+				BufferedImage buff2 = new BufferedImage(Constant.W * Constant.bot_scale, Constant.H * Constant.bot_scale, BufferedImage.TYPE_INT_RGB);
 				g2d = buff2.createGraphics();
 				g2d.setColor(Color.WHITE);
 				g2d.fillRect(0, 0, 1920, 1080);
+				for (int x = 0; x < Constant.W; x++) {
+					for (int y = 0; y < Constant.H; y++) {
+						if (mul_map[x][y] > 0) {
+							g2d.setColor(Constant.gradient(new Color(255, 255, 255), new Color(150, 255, 150), mul_map[x][y] / 50.0));
+							g2d.fillRect(x * Constant.bot_scale, y * Constant.bot_scale, Constant.bot_scale, Constant.bot_scale);
+						}
+					}
+				}
 				for(Bot b: objects) {
-					b.Draw(g2d, draw_type);
+					b.Draw(g2d, 2);
 				}
 				g2d.dispose();
-				draw_type = 5;
-				BufferedImage buff3 = new BufferedImage(1920, 1080, BufferedImage.TYPE_INT_RGB);
+				//
+				BufferedImage buff3 = new BufferedImage(Constant.W * Constant.bot_scale, Constant.H * Constant.bot_scale, BufferedImage.TYPE_INT_RGB);
 				g2d = buff3.createGraphics();
 				g2d.setColor(Color.WHITE);
 				g2d.fillRect(0, 0, 1920, 1080);
+				for (int x = 0; x < Constant.W; x++) {
+					for (int y = 0; y < Constant.H; y++) {
+						if (mul_map[x][y] > 0) {
+							g2d.setColor(Constant.gradient(new Color(255, 255, 255), new Color(150, 255, 150), mul_map[x][y] / 50.0));
+							g2d.fillRect(x * Constant.bot_scale, y * Constant.bot_scale, Constant.bot_scale, Constant.bot_scale);
+						}
+					}
+				}
 				for(Bot b: objects) {
-					b.Draw(g2d, draw_type);
+					b.Draw(g2d, 5);
 				}
 				g2d.dispose();
-				draw_type = last;
-				ImageIO.write(buff, "png", new File("record/predators/screen" + String.valueOf(steps / 25)+ ".png"));
-				ImageIO.write(buff2, "png", new File("record/energy/screen" + String.valueOf(steps / 25)+ ".png"));
-				ImageIO.write(buff3, "png", new File("record/color/screen" + String.valueOf(steps / 25)+ ".png"));
+				//
+				ImageIO.write(buff, "png", new File("record/predators/screen" + String.valueOf(steps / 25) + ".png"));
+				ImageIO.write(buff2, "png", new File("record/energy/screen" + String.valueOf(steps / 25) + ".png"));
+				ImageIO.write(buff3, "png", new File("record/color/screen" + String.valueOf(steps / 25) + ".png"));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -188,9 +220,8 @@ public class World extends JPanel{
 						x,
 						y,
 						new Color(rand.nextInt(256),rand.nextInt(256), rand.nextInt(256)),
-						999,
-						Map,
-						objects
+						1000,
+						this
 					);
 					objects.add(new_bot);
 					Map[x][y] = new_bot;
@@ -211,6 +242,12 @@ public class World extends JPanel{
 		steps = 0;
 		objects = new ArrayList<Bot>();
 		Map = new Bot[Constant.W][Constant.H];
+		mul_map = new int[Constant.W][Constant.H];
+		for (int x = 0; x < Constant.W; x++) {
+			for (int y = 0; y < Constant.H; y++) {
+				mul_map[x][y] = Constant.starting_mul;
+			}
+		}
 	}
 	private class BotListener extends MouseAdapter implements ActionListener{
 		public void mousePressed(MouseEvent e) {
@@ -229,7 +266,14 @@ public class World extends JPanel{
 		}
 		public void actionPerformed(ActionEvent e) {
 			if (!pause) {
-				steps++;
+				if (steps % 10 == 0) {
+					mul_count = 0;
+					for (int cx = 0; cx < Constant.W; cx++) {
+						for (int cy = 0; cy < Constant.H; cy++) {
+							mul_count += mul_map[cx][cy];
+						}
+					}
+				}
 				b_count = 0;
 				obj_count = 0;
 				ListIterator<Bot> bot_iterator = objects.listIterator();
@@ -260,6 +304,7 @@ public class World extends JPanel{
 						sh_brain = false;
 					}
 				}
+				steps++;
 			}
 			ListIterator<Bot> iterator = objects.listIterator();
 			while (iterator.hasNext()) {
@@ -288,7 +333,7 @@ public class World extends JPanel{
 			if (for_set != null) {
 				if (Map[pos[0]][pos[1]] == null) {
 					if (for_set != null) {
-						Bot new_bot = new Bot(pos[0], pos[1], new Color(rand.nextInt(256), rand.nextInt(256), rand.nextInt(256)), 1000, Map, objects);
+						Bot new_bot = new Bot(pos[0], pos[1], new Color(rand.nextInt(256), rand.nextInt(256), rand.nextInt(256)), 1000, this);
 						for (int i = 0; i < 64; i++) {
 							new_bot.commands[i] = for_set[i];
 						}
@@ -472,126 +517,117 @@ public class World extends JPanel{
 			pause = false;
 		}
 	}
-	private class save_bot implements ActionListener{
-		public void actionPerformed(ActionEvent e) {
-			String txt = "";
-			for (int i = 0; i < 64; i++) {
-				txt += String.valueOf(selection.commands[i]) + " ";
-			}
-			try {
-	            FileWriter fileWriter = new FileWriter("saved objects/" + for_save.getText() + ".dat");
-	            BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
-	 
-	            bufferedWriter.write(txt);
-	 
-	            bufferedWriter.close();
-	        } catch (IOException ex) {
-	            System.out.println("Ошибка при записи в файл");
-	            ex.printStackTrace();
-	        }
+	public void save_bot() {
+		String txt = "";
+		for (int i = 0; i < 64; i++) {
+			txt += String.valueOf(selection.commands[i]) + " ";
 		}
+		try {
+            FileWriter fileWriter = new FileWriter("saved objects/" + for_save.getText() + ".dat");
+            BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+ 
+            bufferedWriter.write(txt);
+ 
+            bufferedWriter.close();
+        } catch (IOException ex) {
+            System.out.println("Ошибка при записи в файл");
+            ex.printStackTrace();
+        }
 	}
-	private class load_bot implements ActionListener{
-		public void actionPerformed(ActionEvent e) {
-			try {
-	            FileReader fileReader = new FileReader("saved objects/" + for_load.getText() + ".dat");
-	            BufferedReader bufferedReader = new BufferedReader(fileReader);
-	 
-	            String line = bufferedReader.readLine();
-	 
-	            bufferedReader.close();
-	            
-	            String[] l = line.split(" ");
-	            for_set = new int[64];
-	            for (int i = 0; i < 64; i++) {
-	            	for_set[i] = Integer.parseInt(l[i]);
-	            }
-	            for (int i = 0; i < panels[2].getComponentCount(); i++) {
-	            	panels[2].getComponent(i).setVisible(true);
-	            }
-	        } catch (IOException ex) {
-	            System.out.println("Ошибка при чтении файла");
-	            ex.printStackTrace();
-	        }
-		}
+	public void load_bot() {
+		try {
+            FileReader fileReader = new FileReader("saved objects/" + for_load.getText() + ".dat");
+            BufferedReader bufferedReader = new BufferedReader(fileReader);
+ 
+            String line = bufferedReader.readLine();
+ 
+            bufferedReader.close();
+            
+            String[] l = line.split(" ");
+            for_set = new int[64];
+            for (int i = 0; i < 64; i++) {
+            	for_set[i] = Integer.parseInt(l[i]);
+            }
+            for (int i = 0; i < panels[2].getComponentCount(); i++) {
+            	panels[2].getComponent(i).setVisible(true);
+            }
+        } catch (IOException ex) {
+            System.out.println("Ошибка при чтении файла");
+            ex.printStackTrace();
+        }
 	}
-	private class save_world implements ActionListener{
-		public void actionPerformed(ActionEvent e) {
-			try {
-				FileWriter fileWriter = new FileWriter("saved worlds/" + for_load.getText() + ".dat");
-		        BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
-				bufferedWriter.write(String.valueOf(steps) + ";");
-				for(Bot b: objects) {//bot length - 78
-					bufferedWriter.write(String.valueOf(b.energy) + ":");//0
-					bufferedWriter.write(String.valueOf(b.age) + ":");//1
-					bufferedWriter.write(String.valueOf(b.minerals) + ":");//2
-					bufferedWriter.write(String.valueOf(b.xpos) + ":");//3
-					bufferedWriter.write(String.valueOf(b.ypos) + ":");//4
-					bufferedWriter.write(String.valueOf(b.rotate) + ":");//5
-					bufferedWriter.write(String.valueOf(b.state) + ":");//6
-					bufferedWriter.write(String.valueOf(b.c_red) + ":");//7
-					bufferedWriter.write(String.valueOf(b.c_green) + ":");//8
-					bufferedWriter.write(String.valueOf(b.c_blue) + ":");//9
-					bufferedWriter.write(String.valueOf(b.color.getRed()) + ":");//10
-					bufferedWriter.write(String.valueOf(b.color.getGreen()) + ":");//11
-					bufferedWriter.write(String.valueOf(b.color.getBlue()) + ":");//12
-					bufferedWriter.write(String.valueOf(b.index) + ":");//13
-					for (int i = 0; i < 64; i++) {//14 - 77
-						bufferedWriter.write(String.valueOf(b.commands[i]) + ":");
-					}
-					bufferedWriter.write(";");
+	public void save_world() {
+		try {
+			FileWriter fileWriter = new FileWriter("saved worlds/" + for_load.getText() + ".dat");
+	        BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+			bufferedWriter.write(String.valueOf(steps) + ";");
+			for(Bot b: objects) {//bot length - 78
+				bufferedWriter.write(String.valueOf(b.energy) + ":");//0
+				bufferedWriter.write(String.valueOf(b.age) + ":");//1
+				bufferedWriter.write(String.valueOf(b.minerals) + ":");//2
+				bufferedWriter.write(String.valueOf(b.xpos) + ":");//3
+				bufferedWriter.write(String.valueOf(b.ypos) + ":");//4
+				bufferedWriter.write(String.valueOf(b.rotate) + ":");//5
+				bufferedWriter.write(String.valueOf(b.state) + ":");//6
+				bufferedWriter.write(String.valueOf(b.c_red) + ":");//7
+				bufferedWriter.write(String.valueOf(b.c_green) + ":");//8
+				bufferedWriter.write(String.valueOf(b.c_blue) + ":");//9
+				bufferedWriter.write(String.valueOf(b.color.getRed()) + ":");//10
+				bufferedWriter.write(String.valueOf(b.color.getGreen()) + ":");//11
+				bufferedWriter.write(String.valueOf(b.color.getBlue()) + ":");//12
+				bufferedWriter.write(String.valueOf(b.index) + ":");//13
+				for (int i = 0; i < 64; i++) {//14 - 77
+					bufferedWriter.write(String.valueOf(b.commands[i]) + ":");
 				}
-	            bufferedWriter.close();
-	        } catch (IOException ex) {
-	            System.out.println("Ошибка при записи в файл");
-	            ex.printStackTrace();
-	        }
-		}
+				bufferedWriter.write(";");
+			}
+            bufferedWriter.close();
+        } catch (IOException ex) {
+            System.out.println("Ошибка при записи в файл");
+            ex.printStackTrace();
+        }
 	}
-	private class load_world implements ActionListener{
-		public void actionPerformed(ActionEvent e) {
-			try {
-	            FileReader fileReader = new FileReader("saved worlds/" + for_load.getText() + ".dat");
-	            BufferedReader bufferedReader = new BufferedReader(fileReader);
-	 
-	            String line = bufferedReader.readLine();
-	 
-	            bufferedReader.close();
-	            
-	            String[] l = line.split(";");
-	            steps = Integer.parseInt(l[0]);
-	            objects = new ArrayList<Bot>();
-	    		Map = new Bot[162][108];//0 - none, 1 - bot, 2 - organics
-	    		
-	    		for (int i = 1; i < l.length; i++) {
-	    			String[] bot_data = l[i].split(":");
-	    			Bot new_bot = new Bot(
-	    				Integer.parseInt(bot_data[3]),
-	    				Integer.parseInt(bot_data[4]),
-	    				new Color(Integer.parseInt(bot_data[10]), Integer.parseInt(bot_data[11]), Integer.parseInt(bot_data[12])),
-	    				Integer.parseInt(bot_data[0]),
-	    				Map,
-	    				objects
-	    			);
-	    			new_bot.age = Integer.parseInt(bot_data[1]);
-	    			new_bot.minerals = Integer.parseInt(bot_data[2]);
-	    			new_bot.rotate = Integer.parseInt(bot_data[5]);
-	    			new_bot.state = Integer.parseInt(bot_data[6]);
-	    			new_bot.c_red = Integer.parseInt(bot_data[7]);
-	    			new_bot.c_green = Integer.parseInt(bot_data[8]);
-	    			new_bot.c_blue = Integer.parseInt(bot_data[9]);
-	    			new_bot.index = Integer.parseInt(bot_data[13]);
-	    			for (int j = 0; j < 64; j++) {
-	    				new_bot.commands[j] = Integer.parseInt(bot_data[14 + j]);;
-	    			}
-	    			Map[Integer.parseInt(bot_data[3])][Integer.parseInt(bot_data[4])] = new_bot;
-	    			objects.add(new_bot);
-	    		}
-	        } catch (IOException ex) {
-	            System.out.println("Ошибка при чтении файла");
-	            ex.printStackTrace();
-	        }
-		}
+	public void load_world() {
+		try {
+            FileReader fileReader = new FileReader("saved worlds/" + for_load.getText() + ".dat");
+            BufferedReader bufferedReader = new BufferedReader(fileReader);
+ 
+            String line = bufferedReader.readLine();
+ 
+            bufferedReader.close();
+            
+            String[] l = line.split(";");
+            steps = Integer.parseInt(l[0]);
+            objects = new ArrayList<Bot>();
+    		Map = new Bot[162][108];//0 - none, 1 - bot, 2 - organics
+    		
+    		for (int i = 1; i < l.length; i++) {
+    			String[] bot_data = l[i].split(":");
+    			Bot new_bot = new Bot(
+    				Integer.parseInt(bot_data[3]),
+    				Integer.parseInt(bot_data[4]),
+    				new Color(Integer.parseInt(bot_data[10]), Integer.parseInt(bot_data[11]), Integer.parseInt(bot_data[12])),
+    				Integer.parseInt(bot_data[0]),
+    				this
+    			);
+    			new_bot.age = Integer.parseInt(bot_data[1]);
+    			new_bot.minerals = Integer.parseInt(bot_data[2]);
+    			new_bot.rotate = Integer.parseInt(bot_data[5]);
+    			new_bot.state = Integer.parseInt(bot_data[6]);
+    			new_bot.c_red = Integer.parseInt(bot_data[7]);
+    			new_bot.c_green = Integer.parseInt(bot_data[8]);
+    			new_bot.c_blue = Integer.parseInt(bot_data[9]);
+    			new_bot.index = Integer.parseInt(bot_data[13]);
+    			for (int j = 0; j < 64; j++) {
+    				new_bot.commands[j] = Integer.parseInt(bot_data[14 + j]);;
+    			}
+    			Map[Integer.parseInt(bot_data[3])][Integer.parseInt(bot_data[4])] = new_bot;
+    			objects.add(new_bot);
+    		}
+        } catch (IOException ex) {
+            System.out.println("Ошибка при чтении файла");
+            ex.printStackTrace();
+        }
 	}
 	//
 	public void add_buttons_to_panel0() {
@@ -623,6 +659,11 @@ public class World extends JPanel{
         color_button.addActionListener(e -> change_draw_type(1));
 		color_button.setBounds(0, 240, 125, 20);
 		panels[0].add(color_button);
+		//
+		JButton mul_button = new JButton("Multiply");
+		mul_button.addActionListener(e -> change_draw_type(5));
+		mul_button.setBounds(130, 240, 125, 20);
+		panels[0].add(mul_button);
         //
         JButton select_button = new JButton("Select");
         select_button.addActionListener(e -> change_mouse(0));
@@ -639,7 +680,7 @@ public class World extends JPanel{
         remove_button.setBounds(200, 455, 95, 20);
         panels[0].add(remove_button);
         //
-        save_button.addActionListener(new save_bot());
+        save_button.addActionListener(e -> save_bot());
         save_button.setBounds(0, 365, 125, 20);
         save_button.setEnabled(false);
         panels[0].add(save_button);
@@ -656,17 +697,17 @@ public class World extends JPanel{
         panels[0].add(for_load);
         //
         JButton load_bot_button = new JButton("Load bot");
-        load_bot_button.addActionListener(new load_bot());
+        load_bot_button.addActionListener(e -> load_bot());
         load_bot_button.setBounds(0, 540, 95, 20);
         panels[0].add(load_bot_button);
         //
         JButton load_world_button = new JButton("Load world");
-        load_world_button.addActionListener(new load_world());
+        load_world_button.addActionListener(e -> load_world());
         load_world_button.setBounds(100, 540, 95, 20);
         panels[0].add(load_world_button);
         //
         JButton save_world_button = new JButton("Save world");
-        save_world_button.addActionListener(new save_world());
+        save_world_button.addActionListener(e -> save_world());
         save_world_button.setBounds(200, 540, 95, 20);
         panels[0].add(save_world_button);
         //
