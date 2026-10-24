@@ -137,44 +137,6 @@ public class World extends JPanel{
 				}
 			}
 		}
-		if (rec && steps % 25 == 0) {
-			try {
-				int last = draw_type;
-				draw_type = 0;
-				BufferedImage buff = new BufferedImage(1920, 1080, BufferedImage.TYPE_INT_RGB);
-				Graphics2D g2d = buff.createGraphics();
-				g2d.setColor(Color.WHITE);
-				g2d.fillRect(0, 0, 1920, 1080);
-				for(Bot b: objects) {
-					b.Draw(g2d, draw_type);
-				}
-				g2d.dispose();
-				draw_type = 2;
-				BufferedImage buff2 = new BufferedImage(1920, 1080, BufferedImage.TYPE_INT_RGB);
-				g2d = buff2.createGraphics();
-				g2d.setColor(Color.WHITE);
-				g2d.fillRect(0, 0, 1920, 1080);
-				for(Bot b: objects) {
-					b.Draw(g2d, draw_type);
-				}
-				g2d.dispose();
-				draw_type = 5;
-				BufferedImage buff3 = new BufferedImage(1920, 1080, BufferedImage.TYPE_INT_RGB);
-				g2d = buff3.createGraphics();
-				g2d.setColor(Color.WHITE);
-				g2d.fillRect(0, 0, 1920, 1080);
-				for(Bot b: objects) {
-					b.Draw(g2d, draw_type);
-				}
-				g2d.dispose();
-				draw_type = last;
-				ImageIO.write(buff, "png", new File("record/predators/screen" + String.valueOf(steps / 25)+ ".png"));
-				ImageIO.write(buff2, "png", new File("record/energy/screen" + String.valueOf(steps / 25)+ ".png"));
-				ImageIO.write(buff3, "png", new File("record/color/screen" + String.valueOf(steps / 25)+ ".png"));
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
 	}
 	public void new_population() {
 		kill_all();
@@ -212,6 +174,42 @@ public class World extends JPanel{
 		objects = new ArrayList<Bot>();
 		Map = new Bot[Constant.W][Constant.H];
 	}
+	public void record() {
+			try {
+				BufferedImage buff = new BufferedImage(Constant.W * Constant.bot_scale, Constant.H * Constant.bot_scale, BufferedImage.TYPE_INT_RGB);
+				Graphics2D g2d = buff.createGraphics();
+				g2d.setColor(Color.WHITE);
+				g2d.fillRect(0, 0, Constant.W * Constant.bot_scale, Constant.H * Constant.bot_scale);
+				for(Bot b: objects) {
+					b.Draw(g2d, 0);
+				}
+				g2d.dispose();
+				//
+				/*BufferedImage buff2 = new BufferedImage(1920, 1080, BufferedImage.TYPE_INT_RGB);
+				g2d = buff2.createGraphics();
+				g2d.setColor(Color.WHITE);
+				g2d.fillRect(0, 0, 1920, 1080);
+				for(Bot b: objects) {
+					b.Draw(g2d, 2);
+				}
+				g2d.dispose();
+				//
+				BufferedImage buff3 = new BufferedImage(1920, 1080, BufferedImage.TYPE_INT_RGB);
+				g2d = buff3.createGraphics();
+				g2d.setColor(Color.WHITE);
+				g2d.fillRect(0, 0, 1920, 1080);
+				for(Bot b: objects) {
+					b.Draw(g2d, 1);
+				}
+				g2d.dispose();*/
+				//
+				ImageIO.write(buff, "png", new File("record/predators/screen" + String.valueOf(steps / 25) + ".png"));
+				//ImageIO.write(buff2, "png", new File("record/energy/screen" + String.valueOf(steps / 25)+ ".png"));
+				//ImageIO.write(buff3, "png", new File("record/color/screen" + String.valueOf(steps / 25)+ ".png"));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+	}
 	private class BotListener extends MouseAdapter implements ActionListener{
 		public void mousePressed(MouseEvent e) {
 			if (e.getX() < Constant.display_W - 300 && e.getX() < Constant.W * Constant.bot_scale && e.getY() < Constant.H * Constant.bot_scale) {
@@ -229,9 +227,13 @@ public class World extends JPanel{
 		}
 		public void actionPerformed(ActionEvent e) {
 			if (!pause) {
-				steps++;
 				b_count = 0;
 				obj_count = 0;
+				//
+				if (rec && steps % 25 == 0) {
+					record();
+				}
+				//
 				ListIterator<Bot> bot_iterator = objects.listIterator();
 				while (bot_iterator.hasNext()) {
 					Bot next_bot = bot_iterator.next();
@@ -260,6 +262,7 @@ public class World extends JPanel{
 						sh_brain = false;
 					}
 				}
+				steps++;
 			}
 			ListIterator<Bot> iterator = objects.listIterator();
 			while (iterator.hasNext()) {
