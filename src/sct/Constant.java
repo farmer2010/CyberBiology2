@@ -58,4 +58,11 @@ public class Constant {
 		int b = Math.min(Math.max((int)(color1.getBlue() * (1 - grad) + color2.getBlue() * grad), 0), 255);
 		return(new Color(r, g, b));
 	}
+	//
+	//public static Color pht_color = new Color(0, 170, 60);
+	//public static Color mnr_color = new Color(0, 110, 240);
+	//public static Color atk_color = new Color(235, 30, 35);
+	public static Color pht_color = new Color(0, 255, 0);
+	public static Color mnr_color = new Color(0, 0, 255);
+	public static Color atk_color = new Color(255, 0, 0);
 }

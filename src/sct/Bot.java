@@ -198,7 +198,7 @@ public class Bot{
 			}else if (command == 25) {//фотосинтез
 				if (Constant.photo_list[sector(Constant.photo_list.length)] > 0) {
 					energy += Constant.photo_list[sector(Constant.photo_list.length)];
-					go_color(new Color(0, 255, 0));
+					go_color(Constant.pht_color);
 				}
 				index += 1;
 				index %= 64;
@@ -260,7 +260,7 @@ public class Bot{
 				}
 			}else if (command == 38) {//преобразовать минералы в энергию
 				if (minerals > 0) {
-					go_color(new Color(0, 0, 255));
+					go_color(Constant.mnr_color);
 				}
 				energy += minerals * 4;
 				minerals = 0;
@@ -389,7 +389,7 @@ public class Bot{
 					victim.killed = 1;
 					energy += victim.energy;
 					map[pos[0]][pos[1]] = null;
-					go_color(new Color(255, 0, 0));
+					go_color(Constant.atk_color);
 				}
 			}
 		}
@@ -409,7 +409,7 @@ public class Bot{
 						victim.killed = 1;
 						map[pos[0]][pos[1]] = null;
 					}
-					go_color(new Color(255, 0, 0));
+					go_color(Constant.atk_color);
 				}
 			}
 		}

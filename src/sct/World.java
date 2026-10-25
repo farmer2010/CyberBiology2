@@ -120,12 +120,31 @@ public class World extends JPanel{
 				b.Draw(canvas, draw_type);
 			}
 		}
+		//
 		if (selection != null) {
 			canvas.setColor(new Color(0, 0, 0, 200));
 			canvas.fillRect(0, 0, Constant.display_W - 300, 1080);
 			canvas.setColor(new Color(255, 0, 0));
 			canvas.fillRect(selection.xpos * Constant.bot_scale, selection.ypos * Constant.bot_scale, Constant.bot_scale, Constant.bot_scale);
 		}
+		//
+		if (mouse == 0) {//выбрать
+			canvas.setColor(new Color(255, 200, 0, 128));
+		}else if (mouse == 1) {//поставить
+			canvas.setColor(new Color(0, 255, 0, 128));
+		}else if (mouse == 2) {//сломать
+			canvas.setColor(new Color(255, 0, 0, 128));
+		}else if (mouse == 3) {//переместить
+			canvas.setColor(new Color(0, 128, 255, 128));
+		}
+		if (mouse == 0 || mouse == 3) {
+			int x = mouse_pos[0] * scale - zoom_pos[0] * scale + (Constant.scr_W - 300) / 2;
+			int y = mouse_pos[1] * scale - zoom_pos[1] * scale + Constant.scr_H / 2;
+			canvas.fillRect(x, y, scale, scale);
+		}else {
+			
+		}
+		//
 		if (sh_brain) {
 			canvas.setFont(new Font("arial", Font.BOLD, 18));
 			canvas.setColor(new Color(90, 90, 90));
