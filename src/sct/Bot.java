@@ -9,8 +9,6 @@ import java.util.ListIterator;
 public class Bot{
 	ArrayList<Bot> objects;
 	Random rand = new Random();
-	private int x;
-	private int y;
 	public int xpos;
 	public int ypos;
 	public Color color;
@@ -18,6 +16,7 @@ public class Bot{
 	public int minerals;
 	public int killed = 0;
 	public Bot[][] map;
+	public World world;
 	public int[] commands = new int[64];
 	public int index = 0;
 	public int age = (int)(Constant.max_age);
@@ -51,25 +50,27 @@ public class Bot{
 	//
 	public int mutations = 0;
 	public int generation = 0;
-	public Bot(int new_xpos, int new_ypos, Color new_color, double new_energy, Bot[][] new_map, ArrayList<Bot> new_objects) {
+	public Bot(int new_xpos, int new_ypos, Color new_color, double new_energy, World new_world) {
 		xpos = new_xpos;
 		ypos = new_ypos;
-		x = new_xpos * Constant.bot_scale;
-		y = new_ypos * Constant.bot_scale;
 		color = new_color;
 		energy = new_energy;
 		minerals = 0;
-		objects = new_objects;
-		map = new_map;
+		world = new_world;
+		objects = world.objects;
+		map = world.Map;
 		for (int i = 0; i < 64; i++) {
 			commands[i] = rand.nextInt(64);
 		}
 	}
 	public void Draw(Graphics canvas, int draw_type) {
+		int scale = world.zoom_slider.getValue();
+		int x = xpos * scale - world.zoom_pos[0] * scale + (Constant.scr_W - 300) / 2;
+		int y = ypos * scale - world.zoom_pos[1] * scale + Constant.scr_H / 2;
 		if (state == 0) {//рисуем бота
 			if (Constant.draw_frame) {
 				canvas.setColor(new Color(0, 0, 0));
-				canvas.fillRect(x, y, Constant.bot_scale, Constant.bot_scale);
+				canvas.fillRect(x, y, scale, scale);
 			}
 			if (draw_type == 0) {//режим отрисовки хищников
 				if (c_red == -1 || c_green == -1 || c_blue == -1) {
@@ -95,28 +96,28 @@ public class Bot{
 				//
 			}
 			if (Constant.draw_frame) {
-				canvas.fillRect(x + 1, y + 1, Constant.bot_scale - 2, Constant.bot_scale - 2);
+				canvas.fillRect(x + 1, y + 1, scale - 2, scale - 2);
 			}else {
-				canvas.fillRect(x, y, Constant.bot_scale, Constant.bot_scale);
+				canvas.fillRect(x, y, scale, scale);
 			}
 			if (Constant.draw_rotate) {
 				canvas.setColor(new Color(0, 0, 0));
-				int b = Constant.bot_scale / 2;
+				int b = scale / 2;
 				canvas.drawLine(x + b, y + b, x + b + movelist[rotate][0] * (b - 1), y + b + movelist[rotate][1] * (b - 1));
 			}
 		}else {//рисуем органику
 			if (Constant.draw_frame) {
 				canvas.setColor(new Color(0, 0, 0));
-				canvas.fillRect(x + 1, y + 1, Constant.bot_scale - 2, Constant.bot_scale - 2);
+				canvas.fillRect(x + 1, y + 1, scale - 2, scale - 2);
 				canvas.setColor(new Color(100, 100, 100));
-				canvas.fillRect(x + 2, y + 2, Constant.bot_scale - 4, Constant.bot_scale - 4);
+				canvas.fillRect(x + 2, y + 2, scale - 4, scale - 4);
 			}else {
-				if (Constant.bot_scale <= 2) {
+				if (scale <= 2) {
 					canvas.setColor(new Color(100, 100, 100));
 					canvas.fillRect(x, y, 1, 1);
 				}else {
 					canvas.setColor(new Color(100, 100, 100));
-					canvas.fillRect(x + 1, y + 1, Constant.bot_scale - 2, Constant.bot_scale - 2);
+					canvas.fillRect(x + 1, y + 1, scale - 2, scale - 2);
 				}
 			}
 		}
@@ -421,8 +422,6 @@ public class Bot{
 				map[xpos][ypos] = null;
 				xpos = pos[0];
 				ypos = pos[1];
-				x = xpos * Constant.bot_scale;
-				y = ypos * Constant.bot_scale;
 				map[xpos][ypos] = self;
 				return(1);
 			}
@@ -456,7 +455,7 @@ public class Bot{
 					}
 					if (Constant.upd_parent_index) index = 0;
 					if (Constant.upd_parent_age) age = Constant.max_age;
-					Bot new_bot = new Bot(pos[0], pos[1], new_color, energy / 2, map, objects);
+					Bot new_bot = new Bot(pos[0], pos[1], new_color, energy / 2, world);
 					new_bot.minerals = minerals / 2;
 					energy /= 2;
 					minerals /= 2;

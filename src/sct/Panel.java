@@ -141,8 +141,12 @@ public class Panel extends JPanel {
 				txt = "select";
 			}else if (world.mouse == 1) {
 				txt = "set";
-			}else {
+			}else if (world.mouse == 2){
 				txt = "remove";
+			}else if (world.mouse == 3) {
+				txt = "move zoom pos";
+			}else {
+				txt = "how did you get here?";
 			}
 			canvas.drawString("mouse function: " + txt, 0, 120);
 			canvas.drawString("Render types:", 0, 180);
@@ -152,6 +156,8 @@ public class Panel extends JPanel {
 			canvas.drawString("Load:", 0, 490);
 			canvas.drawString("enter name:", 0, 510);
 			canvas.drawString("Controls:", 0, 580);
+			canvas.drawString("Zoom: " + String.valueOf(Math.round(world.zoom_slider.getValue() * 1.0 / Constant.bot_scale * 100)) + "%", 0, 690);
+			canvas.drawString("Zoom pos: " + "[" + String.valueOf(world.zoom_pos[0]) + ", " + String.valueOf(world.zoom_pos[1]) + "]", 0, 710);
 			if (world.selection != null) {
 				canvas.drawString("energy: " + String.valueOf((int)(world.selection.energy)) + ", minerals: " + String.valueOf(world.selection.minerals), 0, 295);
 				canvas.drawString("age: " + String.valueOf(world.selection.age), 0, 315);

@@ -41,8 +41,9 @@ public class World extends JPanel{
 	boolean settings = false;//
 	boolean rec = false;//
 	Bot selection = null;//
-	int[] botpos = new int[2];//
+	int[] mouse_pos = new int[2];//
 	int[] for_set;//
+	int[] zoom_pos = new int[]{Constant.W / 2, Constant.H / 2};
 	//кнопки
 	JButton stop_button = new JButton("Stop");
 	JButton save_button = new JButton("Save");
@@ -56,6 +57,7 @@ public class World extends JPanel{
 	JButton st_next_button = new JButton("Next >");
 	JTextField for_save = new JTextField();
 	JTextField for_load = new JTextField();
+	JSlider zoom_slider = new JSlider(1, 10, Constant.bot_scale);
 	//интерфейс
 	Panel[] panels = new Panel[4];
 	OptionsPanel[] settings_panels = new OptionsPanel[3];
@@ -111,7 +113,8 @@ public class World extends JPanel{
 	public void paintComponent(Graphics canvas) {
 		super.paintComponent(canvas);
 		canvas.setColor(new Color(255, 255, 255));
-		canvas.fillRect(0, 0, Constant.W * Constant.bot_scale, Constant.H * Constant.bot_scale);
+		int scale = zoom_slider.getValue();
+		canvas.fillRect(-zoom_pos[0] * scale + (Constant.scr_W - 300) / 2, -zoom_pos[1] * scale + Constant.scr_H / 2, Constant.W * scale, Constant.H * scale);
 		if (render && !settings) {
 			for(Bot b: objects) {
 				b.Draw(canvas, draw_type);
@@ -150,9 +153,8 @@ public class World extends JPanel{
 						x,
 						y,
 						new Color(rand.nextInt(256),rand.nextInt(256), rand.nextInt(256)),
-						999,
-						Map,
-						objects
+						1000,
+						this
 					);
 					objects.add(new_bot);
 					Map[x][y] = new_bot;
@@ -163,6 +165,8 @@ public class World extends JPanel{
 		repaint();
 	}
 	public void kill_all() {
+		int lw = Constant.W;
+		int lh = Constant.H;
 		Constant.W = Integer.parseInt(settings_panels[0].width.getText());
 		Constant.H = Integer.parseInt(settings_panels[0].height.getText());
 		Constant.bot_scale = Math.min(Constant.scr_W/Constant.W, Constant.scr_H/Constant.H);
@@ -173,60 +177,71 @@ public class World extends JPanel{
 		steps = 0;
 		objects = new ArrayList<Bot>();
 		Map = new Bot[Constant.W][Constant.H];
+		//
+		if (lw != Constant.W || lh != Constant.H) {
+			zoom_pos = new int[] {Constant.W / 2, Constant.H / 2};
+		}
 	}
 	public void record() {
-			try {
-				BufferedImage buff = new BufferedImage(Constant.W * Constant.bot_scale, Constant.H * Constant.bot_scale, BufferedImage.TYPE_INT_RGB);
-				Graphics2D g2d = buff.createGraphics();
-				g2d.setColor(Color.WHITE);
-				g2d.fillRect(0, 0, Constant.W * Constant.bot_scale, Constant.H * Constant.bot_scale);
-				for(Bot b: objects) {
-					b.Draw(g2d, 0);
-				}
-				g2d.dispose();
-				//
-				/*BufferedImage buff2 = new BufferedImage(1920, 1080, BufferedImage.TYPE_INT_RGB);
-				g2d = buff2.createGraphics();
-				g2d.setColor(Color.WHITE);
-				g2d.fillRect(0, 0, 1920, 1080);
-				for(Bot b: objects) {
-					b.Draw(g2d, 2);
-				}
-				g2d.dispose();
-				//
-				BufferedImage buff3 = new BufferedImage(1920, 1080, BufferedImage.TYPE_INT_RGB);
-				g2d = buff3.createGraphics();
-				g2d.setColor(Color.WHITE);
-				g2d.fillRect(0, 0, 1920, 1080);
-				for(Bot b: objects) {
-					b.Draw(g2d, 1);
-				}
-				g2d.dispose();*/
-				//
-				ImageIO.write(buff, "png", new File("record/predators/screen" + String.valueOf(steps / 25) + ".png"));
-				//ImageIO.write(buff2, "png", new File("record/energy/screen" + String.valueOf(steps / 25)+ ".png"));
-				//ImageIO.write(buff3, "png", new File("record/color/screen" + String.valueOf(steps / 25)+ ".png"));
-			} catch (IOException e) {
-				e.printStackTrace();
+		try {
+			BufferedImage buff = new BufferedImage(Constant.W * Constant.bot_scale, Constant.H * Constant.bot_scale, BufferedImage.TYPE_INT_RGB);
+			Graphics2D g2d = buff.createGraphics();
+			g2d.setColor(Color.WHITE);
+			g2d.fillRect(0, 0, Constant.W * Constant.bot_scale, Constant.H * Constant.bot_scale);
+			for(Bot b: objects) {
+				b.Draw(g2d, 0);
 			}
+			g2d.dispose();
+			//
+			/*BufferedImage buff2 = new BufferedImage(1920, 1080, BufferedImage.TYPE_INT_RGB);
+			g2d = buff2.createGraphics();
+			g2d.setColor(Color.WHITE);
+			g2d.fillRect(0, 0, 1920, 1080);
+			for(Bot b: objects) {
+				b.Draw(g2d, 2);
+			}
+			g2d.dispose();
+			//
+			BufferedImage buff3 = new BufferedImage(1920, 1080, BufferedImage.TYPE_INT_RGB);
+			g2d = buff3.createGraphics();
+			g2d.setColor(Color.WHITE);
+			g2d.fillRect(0, 0, 1920, 1080);
+			for(Bot b: objects) {
+				b.Draw(g2d, 1);
+			}
+			g2d.dispose();*/
+			//
+			ImageIO.write(buff, "png", new File("record/predators/screen" + String.valueOf(steps / 25) + ".png"));
+			//ImageIO.write(buff2, "png", new File("record/energy/screen" + String.valueOf(steps / 25)+ ".png"));
+			//ImageIO.write(buff3, "png", new File("record/color/screen" + String.valueOf(steps / 25)+ ".png"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	private class BotListener extends MouseAdapter implements ActionListener{
 		public void mousePressed(MouseEvent e) {
-			if (e.getX() < Constant.display_W - 300 && e.getX() < Constant.W * Constant.bot_scale && e.getY() < Constant.H * Constant.bot_scale) {
-				botpos[0] = e.getX() / Constant.bot_scale;
-				botpos[1] = e.getY() / Constant.bot_scale;
-				update_mouse(botpos, false);
+			int scale = zoom_slider.getValue();
+			mouse_pos[0] = (e.getX() + zoom_pos[0] * scale - (Constant.scr_W - 300) / 2) / zoom_slider.getValue();
+			mouse_pos[1] = (e.getY() + zoom_pos[1] * scale - Constant.scr_H / 2) / zoom_slider.getValue();
+			if (e.getX() < Constant.scr_W - 300 && mouse_pos[0] >= 0 && mouse_pos[0] < Constant.W && mouse_pos[1] >= 0 && mouse_pos[1] < Constant.H) {
+				update_mouse(mouse_pos, false);
 			}
 		}
 		public void mouseDragged(MouseEvent e) {
-			if (e.getX() < Constant.display_W - 300 && e.getX() < Constant.W * Constant.bot_scale && e.getY() < Constant.H * Constant.bot_scale) {
-				botpos[0] = e.getX() / Constant.bot_scale;
-				botpos[1] = e.getY() / Constant.bot_scale;
-				update_mouse(botpos, true);
+			int scale = zoom_slider.getValue();
+			mouse_pos[0] = (e.getX() + zoom_pos[0] * scale - (Constant.scr_W - 300) / 2) / zoom_slider.getValue();
+			mouse_pos[1] = (e.getY() + zoom_pos[1] * scale - Constant.scr_H / 2) / zoom_slider.getValue();
+			if (e.getX() < Constant.scr_W - 300 && mouse_pos[0] >= 0 && mouse_pos[0] < Constant.W && mouse_pos[1] >= 0 && mouse_pos[1] < Constant.H) {
+				update_mouse(mouse_pos, true);
 			}
 		}
+		public void mouseMoved(MouseEvent e) {
+			int scale = zoom_slider.getValue();
+			mouse_pos[0] = (e.getX() + zoom_pos[0] * scale - (Constant.scr_W - 300) / 2) / zoom_slider.getValue();
+			mouse_pos[1] = (e.getY() + zoom_pos[1] * scale - Constant.scr_H / 2) / zoom_slider.getValue();
+		}
 		public void actionPerformed(ActionEvent e) {
-			if (!pause) {
+			if (!pause && !settings) {
 				b_count = 0;
 				obj_count = 0;
 				//
@@ -275,48 +290,53 @@ public class World extends JPanel{
 		}
 	}
 	public void update_mouse(int[] pos, boolean block_select) {
-		if (mouse == 0 && !block_select && !settings) {//select
-			if (Map[pos[0]][pos[1]] != null && Map[pos[0]][pos[1]].state == 0) {
-				Bot b = Map[pos[0]][pos[1]];
-				selection = b;
-				save_button.setEnabled(true);
-				show_brain_button.setEnabled(true);
-			}else {
-				selection = null;
-				save_button.setEnabled(false);
-				show_brain_button.setEnabled(false);
-				sh_brain = false;
-			}
-		}else if (mouse == 1) {//set
-			if (for_set != null) {
-				if (Map[pos[0]][pos[1]] == null) {
-					if (for_set != null) {
-						Bot new_bot = new Bot(pos[0], pos[1], new Color(rand.nextInt(256), rand.nextInt(256), rand.nextInt(256)), 1000, Map, objects);
-						for (int i = 0; i < 64; i++) {
-							new_bot.commands[i] = for_set[i];
+		if (!settings) {
+			if (mouse == 0 && !block_select) {//select
+				if (Map[pos[0]][pos[1]] != null && Map[pos[0]][pos[1]].state == 0) {
+					Bot b = Map[pos[0]][pos[1]];
+					selection = b;
+					save_button.setEnabled(true);
+					show_brain_button.setEnabled(true);
+				}else {
+					selection = null;
+					save_button.setEnabled(false);
+					show_brain_button.setEnabled(false);
+					sh_brain = false;
+				}
+			}else if (mouse == 1) {//set
+				if (for_set != null) {
+					if (Map[pos[0]][pos[1]] == null) {
+						if (for_set != null) {
+							Bot new_bot = new Bot(pos[0], pos[1], new Color(rand.nextInt(256), rand.nextInt(256), rand.nextInt(256)), 1000, this);
+							for (int i = 0; i < 64; i++) {
+								new_bot.commands[i] = for_set[i];
+							}
+							new_bot.energy = panels[1].get_JSlider(3).getValue();
+							new_bot.minerals = panels[1].get_JSlider(4).getValue();
+							new_bot.age = panels[1].get_JSlider(5).getValue();
+							new_bot.color = new Color(panels[1].get_JSlider(0).getValue(), panels[1].get_JSlider(1).getValue(), panels[1].get_JSlider(2).getValue());
+							int s = 0;
+							if (panels[1].get_JRadioButton(7).isSelected()) {
+								s = 1;
+							}else if (panels[1].get_JRadioButton(8).isSelected()) {
+								s = 2;
+							}
+							new_bot.state = s;
+							objects.add(new_bot);
+							Map[pos[0]][pos[1]] = new_bot;
 						}
-						new_bot.energy = panels[1].get_JSlider(3).getValue();
-						new_bot.minerals = panels[1].get_JSlider(4).getValue();
-						new_bot.age = panels[1].get_JSlider(5).getValue();
-						new_bot.color = new Color(panels[1].get_JSlider(0).getValue(), panels[1].get_JSlider(1).getValue(), panels[1].get_JSlider(2).getValue());
-						int s = 0;
-						if (panels[1].get_JRadioButton(7).isSelected()) {
-							s = 1;
-						}else if (panels[1].get_JRadioButton(8).isSelected()) {
-							s = 2;
-						}
-						new_bot.state = s;
-						objects.add(new_bot);
-						Map[pos[0]][pos[1]] = new_bot;
 					}
 				}
-			}
-		}else if (mouse == 2){//remove
-			if (Map[pos[0]][pos[1]] != null) {
-				Bot b = Map[pos[0]][pos[1]];
-				b.energy = 0;
-				b.killed = 1;
-				Map[pos[0]][pos[1]] = null;
+			}else if (mouse == 2){//remove
+				if (Map[pos[0]][pos[1]] != null) {
+					Bot b = Map[pos[0]][pos[1]];
+					b.energy = 0;
+					b.killed = 1;
+					Map[pos[0]][pos[1]] = null;
+				}
+			}else if (mouse == 3 && !block_select) {//move zoom
+				zoom_pos[0] = pos[0];
+				zoom_pos[1] = pos[1];
 			}
 		}
 	}
@@ -382,12 +402,10 @@ public class World extends JPanel{
 		settings = !settings;
 		if (settings) {
 			add(settings_panels[settings_panel_index]);
-			pause = true;
 			st_back_button.setVisible(true);
 			st_next_button.setVisible(true);
 		}else {
 			remove(settings_panels[settings_panel_index]);
-			pause = false;
 			st_back_button.setVisible(false);
 			st_next_button.setVisible(false);
 		}
@@ -475,6 +493,13 @@ public class World extends JPanel{
 			pause = false;
 		}
 	}
+	public void set_zoom_100() {
+		zoom_slider.setValue(Constant.bot_scale);
+	}
+	public void cent_zoom() {
+		zoom_pos[0] = Constant.W / 2;
+		zoom_pos[1] = Constant.H / 2;
+	}
 	private class save_bot implements ActionListener{
 		public void actionPerformed(ActionEvent e) {
 			String txt = "";
@@ -551,50 +576,47 @@ public class World extends JPanel{
 	        }
 		}
 	}
-	private class load_world implements ActionListener{
-		public void actionPerformed(ActionEvent e) {
-			try {
-	            FileReader fileReader = new FileReader("saved worlds/" + for_load.getText() + ".dat");
-	            BufferedReader bufferedReader = new BufferedReader(fileReader);
-	 
-	            String line = bufferedReader.readLine();
-	 
-	            bufferedReader.close();
-	            
-	            String[] l = line.split(";");
-	            steps = Integer.parseInt(l[0]);
-	            objects = new ArrayList<Bot>();
-	    		Map = new Bot[162][108];//0 - none, 1 - bot, 2 - organics
-	    		
-	    		for (int i = 1; i < l.length; i++) {
-	    			String[] bot_data = l[i].split(":");
-	    			Bot new_bot = new Bot(
-	    				Integer.parseInt(bot_data[3]),
-	    				Integer.parseInt(bot_data[4]),
-	    				new Color(Integer.parseInt(bot_data[10]), Integer.parseInt(bot_data[11]), Integer.parseInt(bot_data[12])),
-	    				Integer.parseInt(bot_data[0]),
-	    				Map,
-	    				objects
-	    			);
-	    			new_bot.age = Integer.parseInt(bot_data[1]);
-	    			new_bot.minerals = Integer.parseInt(bot_data[2]);
-	    			new_bot.rotate = Integer.parseInt(bot_data[5]);
-	    			new_bot.state = Integer.parseInt(bot_data[6]);
-	    			new_bot.c_red = Integer.parseInt(bot_data[7]);
-	    			new_bot.c_green = Integer.parseInt(bot_data[8]);
-	    			new_bot.c_blue = Integer.parseInt(bot_data[9]);
-	    			new_bot.index = Integer.parseInt(bot_data[13]);
-	    			for (int j = 0; j < 64; j++) {
-	    				new_bot.commands[j] = Integer.parseInt(bot_data[14 + j]);;
-	    			}
-	    			Map[Integer.parseInt(bot_data[3])][Integer.parseInt(bot_data[4])] = new_bot;
-	    			objects.add(new_bot);
-	    		}
-	        } catch (IOException ex) {
-	            System.out.println("Ошибка при чтении файла");
-	            ex.printStackTrace();
-	        }
-		}
+	public void load_world() {
+		try {
+            FileReader fileReader = new FileReader("saved worlds/" + for_load.getText() + ".dat");
+            BufferedReader bufferedReader = new BufferedReader(fileReader);
+ 
+            String line = bufferedReader.readLine();
+ 
+            bufferedReader.close();
+            
+            String[] l = line.split(";");
+            steps = Integer.parseInt(l[0]);
+            objects = new ArrayList<Bot>();
+    		Map = new Bot[162][108];//0 - none, 1 - bot, 2 - organics
+    		
+    		for (int i = 1; i < l.length; i++) {
+    			String[] bot_data = l[i].split(":");
+    			Bot new_bot = new Bot(
+    				Integer.parseInt(bot_data[3]),
+    				Integer.parseInt(bot_data[4]),
+    				new Color(Integer.parseInt(bot_data[10]), Integer.parseInt(bot_data[11]), Integer.parseInt(bot_data[12])),
+    				Integer.parseInt(bot_data[0]),
+    				this
+    			);
+    			new_bot.age = Integer.parseInt(bot_data[1]);
+    			new_bot.minerals = Integer.parseInt(bot_data[2]);
+    			new_bot.rotate = Integer.parseInt(bot_data[5]);
+    			new_bot.state = Integer.parseInt(bot_data[6]);
+    			new_bot.c_red = Integer.parseInt(bot_data[7]);
+    			new_bot.c_green = Integer.parseInt(bot_data[8]);
+    			new_bot.c_blue = Integer.parseInt(bot_data[9]);
+    			new_bot.index = Integer.parseInt(bot_data[13]);
+    			for (int j = 0; j < 64; j++) {
+    				new_bot.commands[j] = Integer.parseInt(bot_data[14 + j]);;
+    			}
+    			Map[Integer.parseInt(bot_data[3])][Integer.parseInt(bot_data[4])] = new_bot;
+    			objects.add(new_bot);
+    		}
+        } catch (IOException ex) {
+            System.out.println("Ошибка при чтении файла");
+            ex.printStackTrace();
+        }
 	}
 	//
 	public void add_buttons_to_panel0() {
@@ -627,19 +649,24 @@ public class World extends JPanel{
 		color_button.setBounds(0, 240, 125, 20);
 		panels[0].add(color_button);
         //
+		JButton move_zoom_button = new JButton("Zoom");
+		move_zoom_button.addActionListener(e -> change_mouse(3));
+		move_zoom_button.setBounds(0, 455, 70, 20);
+		panels[0].add(move_zoom_button);
+		//
         JButton select_button = new JButton("Select");
         select_button.addActionListener(e -> change_mouse(0));
-		select_button.setBounds(0, 455, 95, 20);
+		select_button.setBounds(75, 455, 70, 20);
 		panels[0].add(select_button);
         //
         JButton set_button = new JButton("Set");
         set_button.addActionListener(e -> change_mouse(1));
-        set_button.setBounds(100, 455, 95, 20);
+        set_button.setBounds(150, 455, 70, 20);
         panels[0].add(set_button);
         //
         JButton remove_button = new JButton("Remove");
         remove_button.addActionListener(e -> change_mouse(2));
-        remove_button.setBounds(200, 455, 95, 20);
+        remove_button.setBounds(225, 455, 70, 20);
         panels[0].add(remove_button);
         //
         save_button.addActionListener(new save_bot());
@@ -664,7 +691,7 @@ public class World extends JPanel{
         panels[0].add(load_bot_button);
         //
         JButton load_world_button = new JButton("Load world");
-        load_world_button.addActionListener(new load_world());
+        load_world_button.addActionListener(e -> load_world());
         load_world_button.setBounds(100, 540, 95, 20);
         panels[0].add(load_world_button);
         //
@@ -694,5 +721,20 @@ public class World extends JPanel{
         settings_button.setBounds(0, 640, 250, 35);
         settings_button.addActionListener(e -> open_settings());
         panels[0].add(settings_button);
+        //
+        zoom_slider.setBounds(0, 720, 250, 35);
+        zoom_slider.setPaintLabels(true);
+        zoom_slider.setMajorTickSpacing(1);
+        panels[0].add(zoom_slider);
+        //
+        JButton set_zoom_100_button = new JButton("Set 100%");
+        set_zoom_100_button.addActionListener(e -> set_zoom_100());
+        set_zoom_100_button.setBounds(0, 760, 95, 20);
+		panels[0].add(set_zoom_100_button);
+		//
+		JButton center_button = new JButton("Center");
+		center_button.addActionListener(e -> cent_zoom());
+        center_button.setBounds(100, 760, 95, 20);
+		panels[0].add(center_button);
 	}
 }
