@@ -58,6 +58,7 @@ public class World extends JPanel{
 	JTextField for_save = new JTextField();
 	JTextField for_load = new JTextField();
 	JSlider zoom_slider = new JSlider(1, 10, Constant.bot_scale);
+	JSlider brush_slider = new JSlider(1, 15, 1);
 	//интерфейс
 	Panel[] panels = new Panel[4];
 	OptionsPanel[] settings_panels = new OptionsPanel[3];
@@ -138,11 +139,24 @@ public class World extends JPanel{
 			canvas.setColor(new Color(0, 128, 255, 128));
 		}
 		if (mouse == 0 || mouse == 3) {
-			int x = mouse_pos[0] * scale - zoom_pos[0] * scale + (Constant.scr_W - 300) / 2;
-			int y = mouse_pos[1] * scale - zoom_pos[1] * scale + Constant.scr_H / 2;
-			canvas.fillRect(x, y, scale, scale);
+			if (mouse_pos[0] >= 0 && mouse_pos[0] < Constant.W && mouse_pos[1] >= 0 && mouse_pos[1] < Constant.H) {
+				int x = mouse_pos[0] * scale - zoom_pos[0] * scale + (Constant.scr_W - 300) / 2;
+				int y = mouse_pos[1] * scale - zoom_pos[1] * scale + Constant.scr_H / 2;
+				canvas.fillRect(x, y, scale, scale);
+				canvas.setColor(new Color(0, 0, 0));
+				if (y < 20) y += 20;
+				if (x > Constant.scr_W - 360) x -= 60;
+				canvas.drawString("[" + String.valueOf(mouse_pos[0]) + ", " + String.valueOf(mouse_pos[1]) + "]", x + 10, y);
+			}
 		}else {
-			
+			int brush = brush_slider.getValue();
+			int x1 = Math.min(Math.max(mouse_pos[0] - brush / 2, 0), Constant.W) * scale - zoom_pos[0] * scale + (Constant.scr_W - 300) / 2;
+			int y1 = Math.min(Math.max(mouse_pos[1] - brush / 2, 0), Constant.H) * scale - zoom_pos[1] * scale + Constant.scr_H / 2;
+			//
+			int x2 = Math.min(mouse_pos[0] - brush / 2 + brush, Constant.W) * scale - zoom_pos[0] * scale + (Constant.scr_W - 300) / 2;
+			int y2 = Math.min(mouse_pos[1] - brush / 2 + brush, Constant.H) * scale - zoom_pos[1] * scale + Constant.scr_H / 2;
+			//
+			canvas.fillRect(x1, y1, x2 - x1, y2 - y1);
 		}
 		//
 		if (sh_brain) {
@@ -242,16 +256,16 @@ public class World extends JPanel{
 			int scale = zoom_slider.getValue();
 			mouse_pos[0] = (e.getX() + zoom_pos[0] * scale - (Constant.scr_W - 300) / 2) / zoom_slider.getValue();
 			mouse_pos[1] = (e.getY() + zoom_pos[1] * scale - Constant.scr_H / 2) / zoom_slider.getValue();
-			if (e.getX() < Constant.scr_W - 300 && mouse_pos[0] >= 0 && mouse_pos[0] < Constant.W && mouse_pos[1] >= 0 && mouse_pos[1] < Constant.H) {
-				update_mouse(mouse_pos, false);
+			if (e.getX() < Constant.scr_W - 300) {
+				update_mouse(false);
 			}
 		}
 		public void mouseDragged(MouseEvent e) {
 			int scale = zoom_slider.getValue();
 			mouse_pos[0] = (e.getX() + zoom_pos[0] * scale - (Constant.scr_W - 300) / 2) / zoom_slider.getValue();
 			mouse_pos[1] = (e.getY() + zoom_pos[1] * scale - Constant.scr_H / 2) / zoom_slider.getValue();
-			if (e.getX() < Constant.scr_W - 300 && mouse_pos[0] >= 0 && mouse_pos[0] < Constant.W && mouse_pos[1] >= 0 && mouse_pos[1] < Constant.H) {
-				update_mouse(mouse_pos, true);
+			if (e.getX() < Constant.scr_W - 300) {
+				update_mouse(true);
 			}
 		}
 		public void mouseMoved(MouseEvent e) {
@@ -308,54 +322,75 @@ public class World extends JPanel{
 			repaint();
 		}
 	}
-	public void update_mouse(int[] pos, boolean block_select) {
+	public void update_mouse(boolean block_select) {
 		if (!settings) {
 			if (mouse == 0 && !block_select) {//select
-				if (Map[pos[0]][pos[1]] != null && Map[pos[0]][pos[1]].state == 0) {
-					Bot b = Map[pos[0]][pos[1]];
-					selection = b;
-					save_button.setEnabled(true);
-					show_brain_button.setEnabled(true);
-				}else {
-					selection = null;
-					save_button.setEnabled(false);
-					show_brain_button.setEnabled(false);
-					sh_brain = false;
+				if (mouse_pos[0] >= 0 && mouse_pos[0] < Constant.W && mouse_pos[1] >= 0 && mouse_pos[1] < Constant.H) {
+					if (Map[mouse_pos[0]][mouse_pos[1]] != null && Map[mouse_pos[0]][mouse_pos[1]].state == 0) {
+						Bot b = Map[mouse_pos[0]][mouse_pos[1]];
+						selection = b;
+						save_button.setEnabled(true);
+						show_brain_button.setEnabled(true);
+					}else {
+						selection = null;
+						save_button.setEnabled(false);
+						show_brain_button.setEnabled(false);
+						sh_brain = false;
+					}
 				}
-			}else if (mouse == 1) {//set
-				if (for_set != null) {
-					if (Map[pos[0]][pos[1]] == null) {
-						if (for_set != null) {
-							Bot new_bot = new Bot(pos[0], pos[1], new Color(rand.nextInt(256), rand.nextInt(256), rand.nextInt(256)), 1000, this);
-							for (int i = 0; i < 64; i++) {
-								new_bot.commands[i] = for_set[i];
+			}else if (mouse == 1 || mouse == 2) {//set, remove
+				int brush = brush_slider.getValue();
+				for (int x = 0; x < brush; x++) {
+					for (int y = 0; y < brush; y++) {
+						int[] pos = {mouse_pos[0] + x - brush / 2, mouse_pos[1] + y - brush / 2};
+						if (pos[0] >= 0 && pos[0] < Constant.W && pos[1] >= 0 && pos[1] < Constant.H) {
+							if (mouse == 1) {//set
+								if (Map[pos[0]][pos[1]] == null) {
+									if (for_set != null) {
+										Bot new_bot = new Bot(pos[0], pos[1], new Color(rand.nextInt(256), rand.nextInt(256), rand.nextInt(256)), 1000, this);
+										for (int i = 0; i < 64; i++) {
+											new_bot.commands[i] = for_set[i];
+										}
+										new_bot.energy = panels[1].get_JSlider(3).getValue();
+										new_bot.minerals = panels[1].get_JSlider(4).getValue();
+										new_bot.age = panels[1].get_JSlider(5).getValue();
+										new_bot.color = new Color(panels[1].get_JSlider(0).getValue(), panels[1].get_JSlider(1).getValue(), panels[1].get_JSlider(2).getValue());
+										int s = 0;
+										if (panels[1].get_JRadioButton(7).isSelected()) {
+											s = 1;
+										}else if (panels[1].get_JRadioButton(8).isSelected()) {
+											s = 2;
+										}
+										new_bot.state = s;
+										objects.add(new_bot);
+										Map[pos[0]][pos[1]] = new_bot;
+									}
+								}
+							}else if (mouse == 2) {//remove
+								if (Map[pos[0]][pos[1]] != null) {
+									Bot b = Map[pos[0]][pos[1]];
+									b.energy = 0;
+									b.killed = 1;
+									Map[pos[0]][pos[1]] = null;
+								}
 							}
-							new_bot.energy = panels[1].get_JSlider(3).getValue();
-							new_bot.minerals = panels[1].get_JSlider(4).getValue();
-							new_bot.age = panels[1].get_JSlider(5).getValue();
-							new_bot.color = new Color(panels[1].get_JSlider(0).getValue(), panels[1].get_JSlider(1).getValue(), panels[1].get_JSlider(2).getValue());
-							int s = 0;
-							if (panels[1].get_JRadioButton(7).isSelected()) {
-								s = 1;
-							}else if (panels[1].get_JRadioButton(8).isSelected()) {
-								s = 2;
-							}
-							new_bot.state = s;
-							objects.add(new_bot);
-							Map[pos[0]][pos[1]] = new_bot;
 						}
 					}
 				}
-			}else if (mouse == 2){//remove
-				if (Map[pos[0]][pos[1]] != null) {
-					Bot b = Map[pos[0]][pos[1]];
-					b.energy = 0;
-					b.killed = 1;
-					Map[pos[0]][pos[1]] = null;
-				}
 			}else if (mouse == 3 && !block_select) {//move zoom
-				zoom_pos[0] = pos[0];
-				zoom_pos[1] = pos[1];
+				if (mouse_pos[0] >= 0 && mouse_pos[0] < Constant.W && mouse_pos[1] >= 0 && mouse_pos[1] < Constant.H) {
+					zoom_pos[0] = mouse_pos[0];
+					zoom_pos[1] = mouse_pos[1];
+					//
+					int scale = zoom_slider.getValue();
+					if (scale <= Constant.bot_scale) {
+						zoom_pos[0] = Constant.W / 2;
+						zoom_pos[1] = Constant.H / 2;
+					}else {
+						zoom_pos[0] = Math.min(Math.max(zoom_pos[0], (Constant.scr_W - 300) / scale / 2), Constant.W - (Constant.scr_W - 300) / scale / 2);
+						zoom_pos[1] = Math.min(Math.max(zoom_pos[1], Constant.scr_H / scale / 2), Constant.H - Constant.scr_H / scale / 2);
+					}
+				}
 			}
 		}
 	}
@@ -518,6 +553,16 @@ public class World extends JPanel{
 	public void cent_zoom() {
 		zoom_pos[0] = Constant.W / 2;
 		zoom_pos[1] = Constant.H / 2;
+	}
+	public void change_zoom() {
+		int scale = zoom_slider.getValue();
+		if (scale <= Constant.bot_scale) {
+			zoom_pos[0] = Constant.W / 2;
+			zoom_pos[1] = Constant.H / 2;
+		}else {
+			zoom_pos[0] = Math.min(Math.max(zoom_pos[0], (Constant.scr_W - 300) / scale / 2), Constant.W - (Constant.scr_W - 300) / scale / 2);
+			zoom_pos[1] = Math.min(Math.max(zoom_pos[1], Constant.scr_H / scale / 2), Constant.H - Constant.scr_H / scale / 2);
+		}
 	}
 	private class save_bot implements ActionListener{
 		public void actionPerformed(ActionEvent e) {
@@ -688,6 +733,11 @@ public class World extends JPanel{
         remove_button.setBounds(225, 455, 70, 20);
         panels[0].add(remove_button);
         //
+        brush_slider.setBounds(0, 500, 250, 35);
+        brush_slider.setPaintLabels(true);
+        brush_slider.setMajorTickSpacing(1);
+        panels[0].add(brush_slider);
+        //
         save_button.addActionListener(new save_bot());
         save_button.setBounds(0, 365, 125, 20);
         save_button.setEnabled(false);
@@ -701,59 +751,60 @@ public class World extends JPanel{
         for_save.setBounds(0, 410, 250, 20);
         panels[0].add(for_save);
         //
-        for_load.setBounds(0, 515, 250, 20);
+        for_load.setBounds(0, 575, 250, 20);
         panels[0].add(for_load);
         //
         JButton load_bot_button = new JButton("Load bot");
         load_bot_button.addActionListener(new load_bot());
-        load_bot_button.setBounds(0, 540, 95, 20);
+        load_bot_button.setBounds(0, 600, 95, 20);
         panels[0].add(load_bot_button);
         //
         JButton load_world_button = new JButton("Load world");
         load_world_button.addActionListener(e -> load_world());
-        load_world_button.setBounds(100, 540, 95, 20);
+        load_world_button.setBounds(100, 600, 95, 20);
         panels[0].add(load_world_button);
         //
         JButton save_world_button = new JButton("Save world");
         save_world_button.addActionListener(new save_world());
-        save_world_button.setBounds(200, 540, 95, 20);
+        save_world_button.setBounds(200, 600, 95, 20);
         panels[0].add(save_world_button);
         //
         JButton new_population_button = new JButton("New population");
         new_population_button.addActionListener(e -> new_population());
-        new_population_button.setBounds(0, 590, 125, 20);
+        new_population_button.setBounds(0, 650, 125, 20);
         panels[0].add(new_population_button);
         //
         render_button.addActionListener(e -> rndr());
-        render_button.setBounds(0, 615, 125, 20);
+        render_button.setBounds(0, 675, 125, 20);
         panels[0].add(render_button);
         //
         record_button.addActionListener(e -> rcrd());
-        record_button.setBounds(130, 615, 125, 20);
+        record_button.setBounds(130, 675, 125, 20);
         panels[0].add(record_button);
         //
         JButton kill_button = new JButton("Kill all");
         kill_button.addActionListener(e -> kill_all());
-        kill_button.setBounds(130, 590, 125, 20);
+        kill_button.setBounds(130, 650, 125, 20);
         panels[0].add(kill_button);
         //
-        settings_button.setBounds(0, 640, 250, 35);
+        settings_button.setBounds(0, 700, 250, 35);
         settings_button.addActionListener(e -> open_settings());
         panels[0].add(settings_button);
         //
-        zoom_slider.setBounds(0, 720, 250, 35);
+        zoom_slider.setBounds(0, 780, 250, 35);
         zoom_slider.setPaintLabels(true);
         zoom_slider.setMajorTickSpacing(1);
+        zoom_slider.addChangeListener(e -> change_zoom());
         panels[0].add(zoom_slider);
         //
         JButton set_zoom_100_button = new JButton("Set 100%");
         set_zoom_100_button.addActionListener(e -> set_zoom_100());
-        set_zoom_100_button.setBounds(0, 760, 95, 20);
+        set_zoom_100_button.setBounds(0, 820, 95, 20);
 		panels[0].add(set_zoom_100_button);
 		//
 		JButton center_button = new JButton("Center");
 		center_button.addActionListener(e -> cent_zoom());
-        center_button.setBounds(100, 760, 95, 20);
+        center_button.setBounds(100, 820, 95, 20);
 		panels[0].add(center_button);
 	}
 }

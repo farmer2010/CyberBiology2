@@ -67,8 +67,18 @@ public class Bot{
 		int scale = world.zoom_slider.getValue();
 		int x = xpos * scale - world.zoom_pos[0] * scale + (Constant.scr_W - 300) / 2;
 		int y = ypos * scale - world.zoom_pos[1] * scale + Constant.scr_H / 2;
+		//
+		boolean draw_frame = Constant.draw_frame;
+		if (scale < 7) {
+			draw_frame = false;
+		}
+		boolean draw_rotate = Constant.draw_rotate;
+		if (scale < 5) {
+			draw_rotate = false;
+		}
+		//
 		if (state == 0) {//рисуем бота
-			if (Constant.draw_frame) {
+			if (draw_frame) {
 				canvas.setColor(new Color(0, 0, 0));
 				canvas.fillRect(x, y, scale, scale);
 			}
@@ -95,18 +105,18 @@ public class Bot{
 			}else if (draw_type == 5) {
 				//
 			}
-			if (Constant.draw_frame) {
+			if (draw_frame) {
 				canvas.fillRect(x + 1, y + 1, scale - 2, scale - 2);
 			}else {
 				canvas.fillRect(x, y, scale, scale);
 			}
-			if (Constant.draw_rotate) {
+			if (draw_rotate) {
 				canvas.setColor(new Color(0, 0, 0));
 				int b = scale / 2;
 				canvas.drawLine(x + b, y + b, x + b + movelist[rotate][0] * (b - 1), y + b + movelist[rotate][1] * (b - 1));
 			}
 		}else {//рисуем органику
-			if (Constant.draw_frame) {
+			if (draw_frame) {
 				canvas.setColor(new Color(0, 0, 0));
 				canvas.fillRect(x + 1, y + 1, scale - 2, scale - 2);
 				canvas.setColor(new Color(100, 100, 100));

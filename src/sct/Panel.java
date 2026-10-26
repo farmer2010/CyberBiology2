@@ -153,11 +153,12 @@ public class Panel extends JPanel {
 			canvas.drawString("Selection:", 0, 275);
 			canvas.drawString("enter name:", 0, 405);
 			canvas.drawString("Mouse functions:", 0, 445);
-			canvas.drawString("Load:", 0, 490);
-			canvas.drawString("enter name:", 0, 510);
-			canvas.drawString("Controls:", 0, 580);
-			canvas.drawString("Zoom: " + String.valueOf(Math.round(world.zoom_slider.getValue() * 1.0 / Constant.bot_scale * 100)) + "%", 0, 690);
-			canvas.drawString("Zoom pos: " + "[" + String.valueOf(world.zoom_pos[0]) + ", " + String.valueOf(world.zoom_pos[1]) + "]", 0, 710);
+			canvas.drawString("Brush size:", 0, 495);
+			canvas.drawString("Load:", 0, 550);
+			canvas.drawString("enter name:", 0, 570);
+			canvas.drawString("Controls:", 0, 640);
+			canvas.drawString("Zoom: " + String.valueOf(Math.round(world.zoom_slider.getValue() * 1.0 / Constant.bot_scale * 100)) + "%", 0, 750);
+			canvas.drawString("Zoom pos: " + "[" + String.valueOf(world.zoom_pos[0]) + ", " + String.valueOf(world.zoom_pos[1]) + "]", 0, 770);
 			if (world.selection != null) {
 				canvas.drawString("energy: " + String.valueOf((int)(world.selection.energy)) + ", minerals: " + String.valueOf(world.selection.minerals), 0, 295);
 				canvas.drawString("age: " + String.valueOf(world.selection.age), 0, 315);
