@@ -402,13 +402,8 @@ public class World extends JPanel{
 					zoom_pos[1] = mouse_pos[1];
 					//
 					int scale = zoom_slider.getValue();
-					if (scale <= Constant.bot_scale) {
-						zoom_pos[0] = Constant.W / 2;
-						zoom_pos[1] = Constant.H / 2;
-					}else {
-						zoom_pos[0] = Math.min(Math.max(zoom_pos[0], (Constant.scr_W - 300) / scale / 2), Constant.W - (Constant.scr_W - 300) / scale / 2);
-						zoom_pos[1] = Math.min(Math.max(zoom_pos[1], Constant.scr_H / scale / 2), Constant.H - Constant.scr_H / scale / 2);
-					}
+					zoom_pos[0] = Math.min(Math.max(zoom_pos[0], Math.min((Constant.scr_W - 300) / scale / 2, Constant.W / 2)), Math.max(Constant.W - (Constant.scr_W - 300) / scale / 2, Constant.W / 2));
+					zoom_pos[1] = Math.min(Math.max(zoom_pos[1], Math.min(Constant.scr_H / scale / 2, Constant.H / 2)), Math.max(Constant.H - Constant.scr_H / scale / 2, Constant.H / 2));
 				}
 			}
 		}
@@ -575,13 +570,8 @@ public class World extends JPanel{
 	}
 	public void change_zoom() {
 		int scale = zoom_slider.getValue();
-		if (scale <= Constant.bot_scale) {
-			zoom_pos[0] = Constant.W / 2;
-			zoom_pos[1] = Constant.H / 2;
-		}else {
-			zoom_pos[0] = Math.min(Math.max(zoom_pos[0], (Constant.scr_W - 300) / scale / 2), Constant.W - (Constant.scr_W - 300) / scale / 2);
-			zoom_pos[1] = Math.min(Math.max(zoom_pos[1], Constant.scr_H / scale / 2), Constant.H - Constant.scr_H / scale / 2);
-		}
+		zoom_pos[0] = Math.min(Math.max(zoom_pos[0], Math.min((Constant.scr_W - 300) / scale / 2, Constant.W / 2)), Math.max(Constant.W - (Constant.scr_W - 300) / scale / 2, Constant.W / 2));
+		zoom_pos[1] = Math.min(Math.max(zoom_pos[1], Math.min(Constant.scr_H / scale / 2, Constant.H / 2)), Math.max(Constant.H - Constant.scr_H / scale / 2, Constant.H / 2));
 	}
 	private class save_bot implements ActionListener{
 		public void actionPerformed(ActionEvent e) {

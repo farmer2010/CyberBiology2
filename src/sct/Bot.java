@@ -54,6 +54,7 @@ public class Bot{
 	//divers
 	//
 	public boolean on_land = false;
+	public int move_y_timer = 0;
 	public Bot(int new_xpos, int new_ypos, Color new_color, double new_energy, World new_world) {
 		xpos = new_xpos;
 		ypos = new_ypos;
@@ -148,10 +149,24 @@ public class Bot{
 	public int Update(ListIterator<Bot> iterator) {
 		if (killed == 0) {
 			if (state == 0) {//ботbot_in_sector();
+				if (Constant.enable_divers && divers_sector() == 0) on_land = true;
+				//
 				energy -= Constant.energy_for_life;
 				age--;
 				minerals += Constant.minerals_list[sector(Constant.minerals_list.length)];
 				update_commands(iterator);
+				if (Constant.enable_divers) {
+					if (move_y_timer < 2) {
+						move_y_timer++;
+					}else if (move_y_timer >= 2) {
+						move_y_timer = 0;
+						if (rand.nextInt(0, 1000) < Constant.force_move_y) {
+							killed = 1;
+							map[xpos][ypos] = null;
+							return(0);
+						}
+					}
+				}
 				if (energy < 1) {
 					killed = 1;
 					map[xpos][ypos] = null;
@@ -462,6 +477,9 @@ public class Bot{
 		}
 	}
 	public int move(int rot) {
+		if (Constant.enable_divers && rot != 2 && rot != 6) {
+			move_y_timer = 0;
+		}
 		int[] pos = get_rotate_position(rot);
 		if (pos[1] >= 0 & pos[1] < Constant.H) {
 			if (map[pos[0]][pos[1]] == null) {
