@@ -20,6 +20,7 @@ public class OptionsPanel extends JPanel {
 	JTextField energy_for_multiply = new JTextField();
 	JTextField energy_for_auto_multiply = new JTextField();
 	JTextField max_energy = new JTextField();
+	JRadioButton block_auto_mul_button = new JRadioButton("block auto multiply", Constant.block_auto_multiply);
 	JSlider mut_chance_slider = new JSlider(0, 100, Constant.child_mutation_chance);
 	JSlider parent_mut_chance_slider = new JSlider(0, 100, Constant.parent_mutation_chance);
 	JRadioButton index_button = new JRadioButton("set parent index to 0", Constant.upd_parent_index);
@@ -34,21 +35,18 @@ public class OptionsPanel extends JPanel {
 	JTextField max_age = new JTextField();
 	JRadioButton draw_rotate_button = new JRadioButton("draw rotate", Constant.draw_rotate);
 	JRadioButton draw_frame_button = new JRadioButton("draw frame", Constant.draw_frame);
-	JRadioButton organics_level_button = new JRadioButton("enable organics level", false);
-	JTextField organics_die_level = new JTextField();
 	//
 	//type 1
 	//
 	JRadioButton divers_button = new JRadioButton("enable divers", false);
-	JSlider sea_level_slider = new JSlider(0, Constant.H, Constant.sea_level);
-	JSlider mud_level_slider = new JSlider(0, Constant.H, Constant.mud_level);
-	JRadioButton block_auto_mul_button = new JRadioButton("block auto multiply", Constant.block_auto_multiply);
-	JSlider no_mul_in_surface_slider = new JSlider(0, 1000, Constant.no_multiply_in_surface);
-	JSlider no_mul_in_sea_slider = new JSlider(0, 1000, Constant.no_multiply_in_sea);
-	JSlider no_pht_in_sea_slider = new JSlider(0, 1000, Constant.no_pht_in_sea);
-	JSlider no_pht_in_mud_slider = new JSlider(0, 1000, Constant.no_pht_in_mud);
-	JSlider on_land_slider = new JSlider(0, 1000, Constant.on_land);
-	JSlider move_y_slider = new JSlider(0, 1000, Constant.force_move_y);
+	JSlider sea_level_slider = new JSlider(0, 108, 65);
+	JSlider mud_level_slider = new JSlider(0, 108, 24);
+	JSlider no_pht_in_sea_slider = new JSlider(0, 1000, 1000);
+	JSlider no_pht_in_mud_slider = new JSlider(0, 1000, 1000);
+	JSlider move_y_slider = new JSlider(0, 1000, 0);
+	JSlider land_multiply_slider = new JSlider(0, 1000, 1000);
+	JSlider sea_multiply_slider = new JSlider(0, 1000, 1000);
+	JSlider on_land_slider = new JSlider(0, 1000, 1000);
 	//
 	public OptionsPanel(World w, int new_panel_type) {
 		world = w;
@@ -105,6 +103,8 @@ public class OptionsPanel extends JPanel {
 			panel1.add(max_energy);
 			//
 			panel1.add(new JLabel("MULTIPLY/MUTATION:"));
+			//
+			panel1.add(block_auto_mul_button);
 			//
 			panel1.add(new JLabel("child chance of mutation:"));
 			mut_chance_slider.setPaintLabels(true);
@@ -173,58 +173,67 @@ public class OptionsPanel extends JPanel {
 			//
 			//
 			//
-			panel2.add(new JLabel("ORGANICS LEVEL:"));
+			panel2.add(new JLabel("ADAPTATION:"));
 			//
-			panel2.add(organics_level_button);
+			panel2.add(new JLabel("Divers:"));
 			//
-			panel2.add(new JLabel("organics die level:"));
-			organics_die_level.setText("800");
-			organics_die_level.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
-			panel2.add(organics_die_level);
-		}else if (panel_type == 1) {//адаптация
+			panel2.add(divers_button);
 			//
-			panel1.add(new JLabel("ADAPTATION:"));
-			//
-			panel1.add(new JLabel("Divers:"));
-			//
-			panel1.add(divers_button);
-			//
-			panel1.add(new JLabel("sea level:"));
+			JLabel sea_label = new JLabel("sea level: " + String.valueOf(sea_level_slider.getValue()));
+			panel2.add(sea_label);
 			sea_level_slider.setPaintLabels(true);
 			sea_level_slider.setMajorTickSpacing(25);
-			panel1.add(sea_level_slider);
+			sea_level_slider.addChangeListener(e -> update_text(sea_level_slider, sea_label, "sea level: "));
+			panel2.add(sea_level_slider);
 			//
-			panel1.add(new JLabel("mud level:"));
+			JLabel mud_label = new JLabel("mud level: " + String.valueOf(mud_level_slider.getValue()));
+			panel2.add(mud_label);
 			mud_level_slider.setPaintLabels(true);
 			mud_level_slider.setMajorTickSpacing(25);
-			panel1.add(mud_level_slider);
+			mud_level_slider.addChangeListener(e -> update_text(mud_level_slider, mud_label, "mud level: "));
+			panel2.add(mud_level_slider);
 			//
-			panel1.add(block_auto_mul_button);
-			//
-			panel1.add(new JLabel("block multiply in surface:"));
-			no_mul_in_surface_slider.setPaintLabels(true);
-			no_mul_in_surface_slider.setMajorTickSpacing(100);
-			panel1.add(no_mul_in_surface_slider);
-			//
-			panel1.add(new JLabel("block multiply in sea:"));
-			no_mul_in_sea_slider.setPaintLabels(true);
-			no_mul_in_sea_slider.setMajorTickSpacing(100);
-			panel1.add(no_mul_in_sea_slider);
-			//
-			panel1.add(new JLabel("block pht in sea:"));
+			JLabel no_pht_in_sea_label = new JLabel("block pht in sea: " + String.valueOf(no_pht_in_sea_slider.getValue()));
+			panel2.add(no_pht_in_sea_label);
 			no_pht_in_sea_slider.setPaintLabels(true);
 			no_pht_in_sea_slider.setMajorTickSpacing(100);
-			panel1.add(no_pht_in_sea_slider);
+			no_pht_in_sea_slider.addChangeListener(e -> update_text(no_pht_in_sea_slider, no_pht_in_sea_label, "block pht in sea: "));
+			panel2.add(no_pht_in_sea_slider);
 			//
-			panel1.add(new JLabel("on land at least once:"));
-			on_land_slider.setPaintLabels(true);
-			on_land_slider.setMajorTickSpacing(100);
-			panel1.add(on_land_slider);
+			JLabel no_pht_in_mud_label = new JLabel("block pht in mud: " + String.valueOf(no_pht_in_mud_slider.getValue()));
+			panel2.add(no_pht_in_mud_label);
+			no_pht_in_mud_slider.setPaintLabels(true);
+			no_pht_in_mud_slider.setMajorTickSpacing(100);
+			no_pht_in_mud_slider.addChangeListener(e -> update_text(no_pht_in_mud_slider, no_pht_in_mud_label, "block pht in mud: "));
+			panel2.add(no_pht_in_mud_slider);
 			//
-			panel1.add(new JLabel("force movements y:"));
+			JLabel move_y_label = new JLabel("force movements y: " + String.valueOf(move_y_slider.getValue()));
+			panel2.add(move_y_label);
 			move_y_slider.setPaintLabels(true);
 			move_y_slider.setMajorTickSpacing(100);
-			panel1.add(move_y_slider);
+			move_y_slider.addChangeListener(e -> update_text(move_y_slider, move_y_label, "force movements y: "));
+			panel2.add(move_y_slider);
+			//
+			JLabel no_mul_on_land_label = new JLabel("block multiply in surface: " + String.valueOf(land_multiply_slider.getValue()));
+			panel2.add(no_mul_on_land_label);
+			land_multiply_slider.setPaintLabels(true);
+			land_multiply_slider.setMajorTickSpacing(100);
+			land_multiply_slider.addChangeListener(e -> update_text(land_multiply_slider, no_mul_on_land_label, "block multiply in surface: "));
+			panel2.add(land_multiply_slider);
+			//
+			JLabel no_mul_in_sea_label = new JLabel("block multiply in sea: " + String.valueOf(sea_multiply_slider.getValue()));
+			panel2.add(no_mul_in_sea_label);
+			sea_multiply_slider.setPaintLabels(true);
+			sea_multiply_slider.setMajorTickSpacing(100);
+			sea_multiply_slider.addChangeListener(e -> update_text(sea_multiply_slider, no_mul_in_sea_label, "block multiply in sea: "));
+			panel2.add(sea_multiply_slider);
+			//
+			JLabel on_land_label = new JLabel("on land at least once: " + String.valueOf(on_land_slider.getValue()));
+			panel2.add(on_land_label);
+			on_land_slider.setPaintLabels(true);
+			on_land_slider.setMajorTickSpacing(100);
+			on_land_slider.addChangeListener(e -> update_text(on_land_slider, on_land_label, "on land at least once: "));
+			panel2.add(on_land_slider);
 		}
 		//
 	}
@@ -249,6 +258,10 @@ public class OptionsPanel extends JPanel {
 	}
 	public JRadioButton get_JRadioButton(int index) {
 		return((JRadioButton) getComponent(index));
+	}
+	//
+	public void update_text(JSlider slider, JLabel label, String text) {
+		label.setText(text + String.valueOf(slider.getValue()));
 	}
 	//
 	private class Listener implements ActionListener{

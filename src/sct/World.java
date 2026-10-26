@@ -116,6 +116,23 @@ public class World extends JPanel{
 		canvas.setColor(new Color(255, 255, 255));
 		int scale = zoom_slider.getValue();
 		canvas.fillRect(-zoom_pos[0] * scale + (Constant.scr_W - 300) / 2, -zoom_pos[1] * scale + Constant.scr_H / 2, Constant.W * scale, Constant.H * scale);
+		//
+		if (Constant.enable_divers) {
+			int hx = Constant.W * scale - zoom_pos[0] * scale + (Constant.scr_W - 300) / 2;
+			int hy = Constant.H * scale - zoom_pos[1] * scale + Constant.scr_H / 2;
+			//
+			int seax = -zoom_pos[0] * scale + (Constant.scr_W - 300) / 2;
+			int seay = (Constant.H - Constant.sea_level) * scale - zoom_pos[1] * scale + Constant.scr_H / 2;
+			//
+			int mudx = -zoom_pos[0] * scale + (Constant.scr_W - 300) / 2;
+			int mudy = (Constant.H - Constant.mud_level) * scale - zoom_pos[1] * scale + Constant.scr_H / 2;
+			//
+			canvas.setColor(new Color(0, 84, 112));
+			canvas.fillRect(seax, seay, hx - seax, hy - seay);
+			canvas.setColor(new Color(128, 70, 0));
+			canvas.fillRect(mudx, mudy, hx - mudx, hy - mudy);
+		}
+		//
 		if (render && !settings) {
 			for(Bot b: objects) {
 				b.Draw(canvas, draw_type, false);
@@ -472,6 +489,7 @@ public class World extends JPanel{
 		Constant.energy_for_multiply = Double.parseDouble(settings_panels[0].energy_for_multiply.getText());
 		Constant.energy_for_auto_multiply = Double.parseDouble(settings_panels[0].energy_for_auto_multiply.getText());
 		Constant.max_energy = Double.parseDouble(settings_panels[0].max_energy.getText());
+		Constant.block_auto_multiply = settings_panels[0].block_auto_mul_button.isSelected();
 		Constant.child_mutation_chance = settings_panels[0].mut_chance_slider.getValue();
 		Constant.parent_mutation_chance = settings_panels[0].parent_mut_chance_slider.getValue();
 		Constant.allow_organics = settings_panels[0].organics_button.isSelected();
@@ -506,16 +524,15 @@ public class World extends JPanel{
 		//
 		//panel1
 		//
-		Constant.enable_divers = settings_panels[1].divers_button.isSelected();
-		Constant.sea_level = settings_panels[1].sea_level_slider.getValue();
-		Constant.mud_level = settings_panels[1].mud_level_slider.getValue();
-		Constant.block_auto_multiply = settings_panels[1].block_auto_mul_button.isSelected();
-		Constant.no_multiply_in_surface = settings_panels[1].no_mul_in_surface_slider.getValue();
-		Constant.no_multiply_in_sea = settings_panels[1].no_mul_in_sea_slider.getValue();
-		Constant.no_pht_in_sea = settings_panels[1].no_pht_in_sea_slider.getValue();
-		Constant.no_pht_in_mud = settings_panels[1].no_pht_in_mud_slider.getValue();
-		Constant.on_land = settings_panels[1].on_land_slider.getValue();
-		Constant.force_move_y = settings_panels[1].move_y_slider.getValue();
+		Constant.enable_divers = settings_panels[0].divers_button.isSelected();
+		Constant.sea_level = settings_panels[0].sea_level_slider.getValue();
+		Constant.mud_level = settings_panels[0].mud_level_slider.getValue();
+		Constant.no_multiply_in_surface = settings_panels[0].land_multiply_slider.getValue();
+		Constant.no_multiply_in_sea = settings_panels[0].sea_multiply_slider.getValue();
+		Constant.no_pht_in_sea = settings_panels[0].no_pht_in_sea_slider.getValue();
+		Constant.no_pht_in_mud = settings_panels[0].no_pht_in_mud_slider.getValue();
+		Constant.on_land = settings_panels[0].on_land_slider.getValue();
+		Constant.force_move_y = settings_panels[0].move_y_slider.getValue();
 	}
 	public void start_stop() {
 		pause = !pause;

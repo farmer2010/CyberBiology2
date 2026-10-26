@@ -17,6 +17,7 @@ public class Constant {
 	static double energy_for_multiply = 150;
 	static double energy_for_auto_multiply = 800;
 	static double max_energy = 1000;
+	static boolean block_auto_multiply = false;
 	static int child_mutation_chance = 25;
 	static int parent_mutation_chance = 0;
 	static int full_color_change_chance = 1;
@@ -39,14 +40,13 @@ public class Constant {
 	//adaptation
 	//divers
 	static boolean enable_divers = false;
-	static int sea_level = 0;
-	static int mud_level = 0;
-	static boolean block_auto_multiply = false;
-	static int no_multiply_in_surface = 0;
-	static int no_multiply_in_sea = 0;
-	static int no_pht_in_sea = 0;
-	static int no_pht_in_mud = 0;
-	static int on_land = 0;
+	static int sea_level = 65;
+	static int mud_level = 24;
+	static int no_multiply_in_surface = 1000;
+	static int no_multiply_in_sea = 1000;
+	static int no_pht_in_sea = 1000;
+	static int no_pht_in_mud = 1000;
+	static int on_land = 1000;
 	static int force_move_y = 0;
 	//
 	//

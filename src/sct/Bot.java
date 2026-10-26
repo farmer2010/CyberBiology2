@@ -50,6 +50,10 @@ public class Bot{
 	//
 	public int mutations = 0;
 	public int generation = 0;
+	//
+	//divers
+	//
+	public boolean on_land = false;
 	public Bot(int new_xpos, int new_ypos, Color new_color, double new_energy, World new_world) {
 		xpos = new_xpos;
 		ypos = new_ypos;
@@ -155,7 +159,7 @@ public class Bot{
 				}else if (energy > Constant.max_energy) {
 					energy = Constant.max_energy;
 				}
-				if (energy >= Constant.energy_for_auto_multiply) {//автоматическое деление
+				if (energy >= Constant.energy_for_auto_multiply && !Constant.block_auto_multiply) {//автоматическое деление
 					multiply(rotate, iterator);
 				}
 				if (age <= 0) {
@@ -216,8 +220,24 @@ public class Bot{
 				index %= 64;
 			}else if (command == 25) {//фотосинтез
 				if (Constant.photo_list[sector(Constant.photo_list.length)] > 0) {
-					energy += Constant.photo_list[sector(Constant.photo_list.length)];
-					go_color(Constant.pht_color);
+					if (Constant.enable_divers) {
+						boolean p = false;
+						int sec = divers_sector();
+						if (sec == 0) {
+							p = true;
+						}else if (sec == 1 && rand.nextInt(0, 1000) < Constant.no_pht_in_sea) {
+							p = true;
+						}else if (sec == 2 && rand.nextInt(0, 1000) < Constant.no_pht_in_mud) {
+							p = true;
+						}
+						if (p) {
+							energy += Constant.photo_list[sector(Constant.photo_list.length)];
+							go_color(Constant.pht_color);
+						}
+					}else {
+						energy += Constant.photo_list[sector(Constant.photo_list.length)];
+						go_color(Constant.pht_color);
+					}
 				}
 				index += 1;
 				index %= 64;
@@ -287,10 +307,18 @@ public class Bot{
 				index %= 64;
 				break;
 			}else if (command == 39) {//есть ли фотосинтез
-				if (Constant.photo_list[sector(Constant.photo_list.length)] > 0) {
-					index = commands[(index + 1) % 64];
+				if (!Constant.enable_divers) {
+					if (Constant.photo_list[sector(Constant.photo_list.length)] > 0) {
+						index = commands[(index + 1) % 64];
+					}else {
+						index = commands[(index + 2) % 64];
+					}
 				}else {
-					index = commands[(index + 2) % 64];
+					if (divers_sector() == 0) {
+						index = commands[(index + 1) % 64];
+					}else {
+						index = commands[(index + 2) % 64];
+					}
 				}
 			}else if (command == 40) {//есть ли приход минералов
 				if (Constant.minerals_list[sector(Constant.minerals_list.length)] > 0) {
@@ -447,7 +475,23 @@ public class Bot{
 		}
 		return(0);
 	}
-	public void multiply(int rot, ListIterator<Bot> iterator) {
+	public int multiply(int rot, ListIterator<Bot> iterator) {
+		if (Constant.enable_divers) {
+			int sec = divers_sector();
+			if (sec == 0) {
+				if (!(rand.nextInt(0, 1000) < Constant.no_multiply_in_surface)) {
+					return(0);
+				}
+			}else if (sec == 1) {
+				if (!(rand.nextInt(0, 1000) < Constant.no_multiply_in_sea)) {
+					return(0);
+				}
+			}else {
+				if (!on_land && !(rand.nextInt(0, 1000) < Constant.on_land)) {
+					return(0);
+				}
+			}
+		}
 		int[] pos = get_rotate_position(rot);
 		if (pos[1] >= 0 & pos[1] < Constant.H) {
 			if (map[pos[0]][pos[1]] == null) {
@@ -486,11 +530,12 @@ public class Bot{
 				}
 			}
 		}
+		return(0);
 	}
 	public void go_color(Color c) {//цвет режима отрисовки хищников
-		int red_count = 0;                  //есть буфер на 10 цветов. При выполнении функции цвет "с" добавляется в начало буфера, сдвигая остальные. Самый поздний исчезает
-		int green_count = 0;                //Для получения цвета просто усредняем буфер(кроме тех, где стоит -1. Это начальное значение, обозначающее, что цвета там нет)
-		int blue_count = 0;                 //бот с цветом(-1, -1, -1), рисуется серым.
+		int red_count = 0;         //есть буфер на 10 цветов. При выполнении функции цвет "с" добавляется в начало буфера, сдвигая остальные. Самый поздний исчезает
+		int green_count = 0;       //Для получения цвета просто усредняем буфер(кроме тех, где стоит -1. Это начальное значение, обозначающее, что цвета там нет)
+		int blue_count = 0;        //бот с цветом(-1, -1, -1), рисуется серым.
 		int count = 1;
 		for (int i = 8; i >= 0; i--) {
 			pred_colors[i + 1][0] = pred_colors[i][0];
@@ -556,5 +601,15 @@ public class Bot{
 			number = border2;
 		}
 		return(number);
+	}
+	//
+	public int divers_sector() {
+		if (ypos < Constant.H - Constant.sea_level) {
+			return(0);//land
+		}else if (ypos < Constant.H - Constant.mud_level) {
+			return(1);//sea
+		}else {
+			return(2);//mud
+		}
 	}
 }
