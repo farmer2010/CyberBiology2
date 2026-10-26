@@ -491,6 +491,7 @@ public class World extends JPanel{
 		Constant.upd_parent_index = settings_panels[0].index_button.isSelected();
 		Constant.upd_parent_age = settings_panels[0].age_button.isSelected();
 		Constant.max_age = Integer.parseInt(settings_panels[0].max_age.getText());
+		Constant.allow_age = settings_panels[0].allow_age_button.isSelected();
 		//
 		if (settings_panels[0].organics_no_fall_button.isSelected()) {
 			Constant.org_fall_type = 0;

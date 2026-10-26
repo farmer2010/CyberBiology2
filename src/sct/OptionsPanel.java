@@ -32,13 +32,14 @@ public class OptionsPanel extends JPanel {
 	JRadioButton organics_sand_fall_button = new JRadioButton("sand fall", Constant.org_fall_type == 3);
 	JTextField sun_levels = new JTextField();
 	JTextField minerals_levels = new JTextField();
+	JRadioButton allow_age_button = new JRadioButton("allow age", Constant.allow_age);
 	JTextField max_age = new JTextField();
 	JRadioButton draw_rotate_button = new JRadioButton("draw rotate", Constant.draw_rotate);
 	JRadioButton draw_frame_button = new JRadioButton("draw frame", Constant.draw_frame);
 	//
 	//type 1
 	//
-	JRadioButton divers_button = new JRadioButton("enable divers", false);
+	JRadioButton divers_button = new JRadioButton("enable divers", Constant.enable_divers);
 	JSlider sea_level_slider = new JSlider(0, 108, 65);
 	JSlider mud_level_slider = new JSlider(0, 108, 24);
 	JSlider no_pht_in_sea_slider = new JSlider(0, 1000, 1000);
@@ -47,6 +48,7 @@ public class OptionsPanel extends JPanel {
 	JSlider land_multiply_slider = new JSlider(0, 1000, 1000);
 	JSlider sea_multiply_slider = new JSlider(0, 1000, 1000);
 	JSlider on_land_slider = new JSlider(0, 1000, 1000);
+	JRadioButton new_genome_button = new JRadioButton("enable new genome", Constant.enable_new_genome);
 	//
 	public OptionsPanel(World w, int new_panel_type) {
 		world = w;
@@ -160,6 +162,8 @@ public class OptionsPanel extends JPanel {
 			//
 			panel1.add(new JLabel("AGE:"));
 			//
+			panel1.add(allow_age_button);
+			//
 			panel1.add(new JLabel("maximum age:"));
 			max_age.setText(String.valueOf(Constant.max_age));
 			max_age.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
@@ -171,7 +175,7 @@ public class OptionsPanel extends JPanel {
 			//
 			panel1.add(draw_frame_button);
 			//
-			//
+			//panel2
 			//
 			panel2.add(new JLabel("ADAPTATION:"));
 			//
@@ -234,6 +238,11 @@ public class OptionsPanel extends JPanel {
 			on_land_slider.setMajorTickSpacing(100);
 			on_land_slider.addChangeListener(e -> update_text(on_land_slider, on_land_label, "on land at least once: "));
 			panel2.add(on_land_slider);
+			//
+			//
+			panel2.add(new JLabel("NEW GENOME:"));
+			//
+			panel2.add(new_genome_button);
 		}
 		//
 	}

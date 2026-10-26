@@ -28,6 +28,7 @@ public class Constant {
 	static int color_range = 12;
 	static boolean allow_organics = true;
 	static int org_fall_type = 1;//0 - не падает, 1 - падает, но останавливается, 2 - всегда падает, 3 - всегда падает и сыпется
+	static boolean allow_age = true;
 	static int max_age = 1000;
 	static boolean upd_parent_index = false;
 	static boolean upd_parent_age = false;
@@ -49,6 +50,8 @@ public class Constant {
 	static int on_land = 1000;
 	static int force_move_y = 0;
 	//
+	//new genome
+	static boolean enable_new_genome = false;
 	//
 	//
 	//

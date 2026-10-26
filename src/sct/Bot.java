@@ -19,7 +19,7 @@ public class Bot{
 	public World world;
 	public int[] commands = new int[64];
 	public int index = 0;
-	public int age = (int)(Constant.max_age);
+	public int age = Constant.max_age;
 	public int state = 0;//бот или органика
 	public int rotate = rand.nextInt(8);
 	private int[][] movelist = {
@@ -152,7 +152,7 @@ public class Bot{
 				if (Constant.enable_divers && divers_sector() == 0) on_land = true;
 				//
 				energy -= Constant.energy_for_life;
-				age--;
+				if (Constant.allow_age) age--;
 				minerals += Constant.minerals_list[sector(Constant.minerals_list.length)];
 				update_commands(iterator);
 				if (Constant.enable_divers) {
