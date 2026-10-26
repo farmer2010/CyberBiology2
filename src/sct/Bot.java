@@ -63,7 +63,7 @@ public class Bot{
 			commands[i] = rand.nextInt(64);
 		}
 	}
-	public void Draw(Graphics canvas, int draw_type) {
+	public void Draw(Graphics canvas, int draw_type, boolean record) {
 		int scale = world.zoom_slider.getValue();
 		int x = xpos * scale - world.zoom_pos[0] * scale + (Constant.scr_W - 300) / 2;
 		int y = ypos * scale - world.zoom_pos[1] * scale + Constant.scr_H / 2;

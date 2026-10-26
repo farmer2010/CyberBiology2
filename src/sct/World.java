@@ -118,15 +118,17 @@ public class World extends JPanel{
 		canvas.fillRect(-zoom_pos[0] * scale + (Constant.scr_W - 300) / 2, -zoom_pos[1] * scale + Constant.scr_H / 2, Constant.W * scale, Constant.H * scale);
 		if (render && !settings) {
 			for(Bot b: objects) {
-				b.Draw(canvas, draw_type);
+				b.Draw(canvas, draw_type, false);
 			}
 		}
 		//
 		if (selection != null) {
+			int x = selection.xpos * scale - zoom_pos[0] * scale + (Constant.scr_W - 300) / 2;
+			int y = selection.ypos * scale - zoom_pos[1] * scale + Constant.scr_H / 2;
 			canvas.setColor(new Color(0, 0, 0, 200));
 			canvas.fillRect(0, 0, Constant.display_W - 300, 1080);
 			canvas.setColor(new Color(255, 0, 0));
-			canvas.fillRect(selection.xpos * Constant.bot_scale, selection.ypos * Constant.bot_scale, Constant.bot_scale, Constant.bot_scale);
+			canvas.fillRect(x, y, scale, scale);
 		}
 		//
 		if (mouse == 0) {//выбрать
@@ -222,7 +224,7 @@ public class World extends JPanel{
 			g2d.setColor(Color.WHITE);
 			g2d.fillRect(0, 0, Constant.W * Constant.bot_scale, Constant.H * Constant.bot_scale);
 			for(Bot b: objects) {
-				b.Draw(g2d, 0);
+				b.Draw(g2d, 0, true);
 			}
 			g2d.dispose();
 			//
@@ -231,7 +233,7 @@ public class World extends JPanel{
 			g2d.setColor(Color.WHITE);
 			g2d.fillRect(0, 0, 1920, 1080);
 			for(Bot b: objects) {
-				b.Draw(g2d, 2);
+				b.Draw(g2d, 2, true);
 			}
 			g2d.dispose();
 			//
@@ -240,7 +242,7 @@ public class World extends JPanel{
 			g2d.setColor(Color.WHITE);
 			g2d.fillRect(0, 0, 1920, 1080);
 			for(Bot b: objects) {
-				b.Draw(g2d, 1);
+				b.Draw(g2d, 1, true);
 			}
 			g2d.dispose();*/
 			//
