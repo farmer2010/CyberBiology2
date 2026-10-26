@@ -64,15 +64,24 @@ public class Bot{
 		}
 	}
 	public void Draw(Graphics canvas, int draw_type, boolean record) {
-		int scale = world.zoom_slider.getValue();
-		int x = xpos * scale - world.zoom_pos[0] * scale + (Constant.scr_W - 300) / 2;
-		int y = ypos * scale - world.zoom_pos[1] * scale + Constant.scr_H / 2;
+		int scale;
+		int x;
+		int y;
+		if (!record) {
+			scale = world.zoom_slider.getValue();
+			x = xpos * scale - world.zoom_pos[0] * scale + (Constant.scr_W - 300) / 2;
+			y = ypos * scale - world.zoom_pos[1] * scale + Constant.scr_H / 2;
+		}else {
+			scale = Constant.bot_scale;
+			x = xpos * scale;
+			y = ypos * scale;
+		}
 		//
-		boolean draw_frame = Constant.draw_frame;
+		boolean draw_frame = Constant.draw_frame || record;
 		if (scale < 7) {
 			draw_frame = false;
 		}
-		boolean draw_rotate = Constant.draw_rotate;
+		boolean draw_rotate = Constant.draw_rotate && !record;
 		if (scale < 5) {
 			draw_rotate = false;
 		}
