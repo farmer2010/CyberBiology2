@@ -145,7 +145,11 @@ public class World extends JPanel{
 			canvas.setColor(new Color(0, 0, 0, 200));
 			canvas.fillRect(0, 0, Constant.display_W - 300, 1080);
 			canvas.setColor(new Color(255, 0, 0));
-			canvas.fillRect(x, y, scale, scale);
+			if (selection.state == 0) {
+				canvas.fillRect(x, y, scale, scale);
+			}else {
+				canvas.fillRect(x + 1, y + 1, scale - 2, scale - 2);
+			}
 		}
 		//
 		if (mouse == 0) {//выбрать
@@ -322,7 +326,7 @@ public class World extends JPanel{
 				}
 				if (selection != null) {
 					int[] pos = {selection.xpos, selection.ypos};
-					if (selection.killed == 1 || Map[pos[0]][pos[1]] == null || selection.state != 0){
+					if (selection.killed == 1 || Map[pos[0]][pos[1]] == null){
 						selection = null;
 						save_button.setEnabled(false);
 						show_brain_button.setEnabled(false);
@@ -345,16 +349,14 @@ public class World extends JPanel{
 		if (!settings) {
 			if (mouse == 0 && !block_select) {//select
 				if (mouse_pos[0] >= 0 && mouse_pos[0] < Constant.W && mouse_pos[1] >= 0 && mouse_pos[1] < Constant.H) {
-					if (Map[mouse_pos[0]][mouse_pos[1]] != null && Map[mouse_pos[0]][mouse_pos[1]].state == 0) {
-						Bot b = Map[mouse_pos[0]][mouse_pos[1]];
-						selection = b;
+					if (Map[mouse_pos[0]][mouse_pos[1]] != null) {
+						selection = Map[mouse_pos[0]][mouse_pos[1]];
 						save_button.setEnabled(true);
 						show_brain_button.setEnabled(true);
 					}else {
 						selection = null;
 						save_button.setEnabled(false);
 						show_brain_button.setEnabled(false);
-						sh_brain = false;
 					}
 				}
 			}else if (mouse == 1 || mouse == 2) {//set, remove

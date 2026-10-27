@@ -113,13 +113,7 @@ public class Bot{
 			}else if (draw_type == 1) {//цвета
 				canvas.setColor(color);
 			}else if (draw_type == 2) {//энергии
-				int g = 255 - (int)(energy / 1000.0 * 255.0);
-				if (g > 255) {
-					g = 255;
-				}else if (g < 0) {
-					g = 0;
-				}
-				canvas.setColor(new Color(255, g, 0));
+				canvas.setColor(Constant.gradient(new Color(255, 255, 0), new Color(255, 0, 0), energy / Constant.max_energy));
 			}else if (draw_type == 3) {//минералов
 				canvas.setColor(Constant.gradient(new Color(0, 255, 0), new Color(0, 255, 255), minerals / 1000.0));
 			}else if (draw_type == 4) {//возраста
@@ -141,14 +135,18 @@ public class Bot{
 			if (draw_frame) {
 				canvas.setColor(new Color(0, 0, 0));
 				canvas.fillRect(x + 1, y + 1, scale - 2, scale - 2);
+			}
+			if (draw_type == 2) {
+				canvas.setColor(Constant.gradient(new Color(255, 255, 0), new Color(255, 0, 0), energy / Constant.max_energy));
+			}else {
 				canvas.setColor(new Color(100, 100, 100));
+			}
+			if (draw_frame) {
 				canvas.fillRect(x + 2, y + 2, scale - 4, scale - 4);
 			}else {
 				if (scale <= 2) {
-					canvas.setColor(new Color(100, 100, 100));
 					canvas.fillRect(x, y, 1, 1);
 				}else {
-					canvas.setColor(new Color(100, 100, 100));
 					canvas.fillRect(x + 1, y + 1, scale - 2, scale - 2);
 				}
 			}
@@ -576,6 +574,24 @@ public class Bot{
 						index = commands[(index + 2) % genome_length];
 					}
 					break;
+				case(23)://толкнуть относительно
+					sens = push((rotate + get_param_value(commands[(index + 1) % genome_length])) % 8);
+					if (sens == 1) {
+						energy -= 1;
+					}
+					index += 2;
+					index %= genome_length;
+					ret = true;
+					break;
+				case(24)://толкнуть абсолютно
+					sens = push(get_param_value(commands[(index + 1) % genome_length]) % 8);
+					if (sens == 1) {
+						energy -= 1;
+					}
+					index += 2;
+					index %= genome_length;
+					ret = true;
+					break;
 				default:
 					index = commands[(index + 1) % genome_length];
 					break;
@@ -622,6 +638,17 @@ public class Bot{
 				go_color(Constant.pht_color);
 			}
 		}
+	}
+	public int push(int rot) {
+		int[] pos = get_rotate_position(rot);
+		if (pos[1] >= 0 & pos[1] < Constant.H) {
+			if (map[pos[0]][pos[1]] != null) {
+				if (map[pos[0]][pos[1]].move(rot) == 1) {
+					return(1);
+				}
+			}
+		}
+		return(0);
 	}
 	public int see(int rot) {
 		int[] pos = get_rotate_position(rot);
