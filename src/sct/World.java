@@ -185,14 +185,25 @@ public class World extends JPanel{
 		if (sh_brain) {
 			canvas.setFont(new Font("arial", Font.BOLD, 18));
 			canvas.setColor(new Color(90, 90, 90));
-			canvas.fillRect(0, 0, 360, 360);
-			canvas.setColor(new Color(128, 128, 128));
+			canvas.fillRect(0, 0, 365, 365);
 			for (int x = 0; x < 8; x++) {
 				for (int y = 0; y < 8; y++) {
 					canvas.setColor(new Color(128, 128, 128));
-					canvas.fillRect(x * 45, y * 45, 40, 40);
+					canvas.fillRect(x * 45 + 5, y * 45 + 5, 40, 40);
 					canvas.setColor(new Color(0, 0, 0));
-					canvas.drawString(String.valueOf(selection.commands[x + y * 8]), x * 45 + 20, y * 45 + 20);
+					canvas.drawString(String.valueOf(selection.commands[x + y * 8]), x * 45 + 5, y * 45 + 25);
+				}
+			}
+			if (Constant.enable_new_genome) {
+				canvas.setColor(new Color(90, 90, 90));
+				canvas.fillRect(370, 0, 365, 185);
+				for (int x = 0; x < 8; x++) {
+					for (int y = 0; y < 4; y++) {
+						canvas.setColor(new Color(128, 128, 128));
+						canvas.fillRect(x * 45 + 375, y * 45 + 5, 40, 40);
+						canvas.setColor(new Color(0, 0, 0));
+						canvas.drawString(String.valueOf(selection.memory[x + y * 8]), x * 45 + 375, y * 45 + 25);
+					}
 				}
 			}
 		}
@@ -357,6 +368,7 @@ public class World extends JPanel{
 						selection = null;
 						save_button.setEnabled(false);
 						show_brain_button.setEnabled(false);
+						sh_brain = false;
 					}
 				}
 			}else if (mouse == 1 || mouse == 2) {//set, remove

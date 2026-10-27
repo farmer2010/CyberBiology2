@@ -592,6 +592,148 @@ public class Bot{
 					index %= genome_length;
 					ret = true;
 					break;
+				case(25)://значение ячейки == параметр
+					if (memory[commands[(index + 1) % genome_length] % 32] == commands[(index + 2) % genome_length]) {
+						index = commands[(index + 3) % genome_length];
+					}else {
+						index = commands[(index + 4) % genome_length];
+					}
+					break;
+				case(26)://значение ячейки != параметр
+					if (memory[commands[(index + 1) % genome_length] % 32] != commands[(index + 2) % genome_length]) {
+						index = commands[(index + 3) % genome_length];
+					}else {
+						index = commands[(index + 4) % genome_length];
+					}
+					break;
+				case(27)://значение ячейки > параметр
+					if (memory[commands[(index + 1) % genome_length] % 32] > commands[(index + 2) % genome_length]) {
+						index = commands[(index + 3) % genome_length];
+					}else {
+						index = commands[(index + 4) % genome_length];
+					}
+					break;
+				case(28)://значение ячейки < параметр
+					if (memory[commands[(index + 1) % genome_length] % 32] < commands[(index + 2) % genome_length]) {
+						index = commands[(index + 3) % genome_length];
+					}else {
+						index = commands[(index + 4) % genome_length];
+					}
+					break;
+				case(29)://значение ячейки >= параметр
+					if (memory[commands[(index + 1) % genome_length] % 32] >= commands[(index + 2) % genome_length]) {
+						index = commands[(index + 3) % genome_length];
+					}else {
+						index = commands[(index + 4) % genome_length];
+					}
+					break;
+				case(30)://значение ячейки <= параметр
+					if (memory[commands[(index + 1) % genome_length] % 32] <= commands[(index + 2) % genome_length]) {
+						index = commands[(index + 3) % genome_length];
+					}else {
+						index = commands[(index + 4) % genome_length];
+					}
+					break;
+				case(31)://значение ячейки == значение другой ячейки
+					if (memory[commands[(index + 1) % genome_length] % 32] == memory[commands[(index + 2) % genome_length] % 32]) {
+						index = commands[(index + 3) % genome_length];
+					}else {
+						index = commands[(index + 4) % genome_length];
+					}
+					break;
+				case(32)://значение ячейки != значение другой ячейки
+					if (memory[commands[(index + 1) % genome_length] % 32] != memory[commands[(index + 2) % genome_length] % 32]) {
+						index = commands[(index + 3) % genome_length];
+					}else {
+						index = commands[(index + 4) % genome_length];
+					}
+					break;
+				case(33)://значение ячейки > значение другой ячейки
+					if (memory[commands[(index + 1) % genome_length] % 32] > memory[commands[(index + 2) % genome_length] % 32]) {
+						index = commands[(index + 3) % genome_length];
+					}else {
+						index = commands[(index + 4) % genome_length];
+					}
+					break;
+				case(34)://значение ячейки < значение другой ячейки
+					if (memory[commands[(index + 1) % genome_length] % 32] < memory[commands[(index + 2) % genome_length] % 32]) {
+						index = commands[(index + 3) % genome_length];
+					}else {
+						index = commands[(index + 4) % genome_length];
+					}
+					break;
+				case(35)://значение ячейки >= значение другой ячейки
+					if (memory[commands[(index + 1) % genome_length] % 32] >= memory[commands[(index + 2) % genome_length] % 32]) {
+						index = commands[(index + 3) % genome_length];
+					}else {
+						index = commands[(index + 4) % genome_length];
+					}
+					break;
+				case(36)://значение ячейки == значение другой ячейки
+					if (memory[commands[(index + 1) % genome_length] % 32] <= memory[commands[(index + 2) % genome_length] % 32]) {
+						index = commands[(index + 3) % genome_length];
+					}else {
+						index = commands[(index + 4) % genome_length];
+					}
+					break;
+				case(37)://записать параметр в ячейку
+					memory[commands[(index + 1) % genome_length] % 16 + 16] = commands[(index + 2) % genome_length];
+					index += 3;
+					index %= genome_length;
+					break;
+				case(38)://mov
+					memory[commands[(index + 1) % genome_length] % 16 + 16] = memory[commands[(index + 2) % genome_length] % 32];
+					index += 3;
+					index %= genome_length;
+					break;
+				case(39)://прибавить параметр к ячейке и записать в другую ячейку
+					memory[commands[(index + 1) % genome_length] % 16 + 16] = memory[commands[(index + 2) % genome_length] % 32] + commands[(index + 3) % genome_length];
+					memory[commands[(index + 1) % genome_length] % 16 + 16] %= 256;
+					index += 4;
+					index %= genome_length;
+					break;
+				case(40)://вычесть ячейку из параметра и записать в другую ячейку
+					memory[commands[(index + 1) % genome_length] % 16 + 16] = memory[commands[(index + 2) % genome_length] % 32] - commands[(index + 3) % genome_length];
+					memory[commands[(index + 1) % genome_length] % 16 + 16] = Math.floorMod(memory[commands[(index + 1) % genome_length] % 16 + 16], 256);
+					index += 4;
+					index %= genome_length;
+					break;
+				case(41)://умножить ячейку на параметр и записать в другую ячейку
+					memory[commands[(index + 1) % genome_length] % 16 + 16] = memory[commands[(index + 2) % genome_length] % 32] * commands[(index + 3) % genome_length];
+					memory[commands[(index + 1) % genome_length] % 16 + 16] %= 256;
+					index += 4;
+					index %= genome_length;
+					break;
+				case(42)://разделить ячейку на параметр и записать в другую ячейку
+					if (commands[(index + 3) % genome_length] != 0) {
+						memory[commands[(index + 1) % genome_length] % 16 + 16] = memory[commands[(index + 2) % genome_length] % 32] / commands[(index + 3) % genome_length];
+						memory[commands[(index + 1) % genome_length] % 16 + 16] %= 256;
+					}else {
+						memory[commands[(index + 1) % genome_length] % 16 + 16] = 0;
+					}
+					index += 4;
+					index %= genome_length;
+					break;
+				case(43)://остаток от деления ячейки на параметр записать в другую ячейку
+					if (commands[(index + 3) % genome_length] != 0) {
+						memory[commands[(index + 1) % genome_length] % 16 + 16] = memory[commands[(index + 2) % genome_length] % 32] % commands[(index + 3) % genome_length];
+						memory[commands[(index + 1) % genome_length] % 16 + 16] %= 256;
+					}
+					index += 4;
+					index %= genome_length;
+					break;
+				case(44)://прибавить ячейку 2 к ячейке 3 и записать в ячейку 1
+					memory[commands[(index + 1) % genome_length] % 16 + 16] = memory[commands[(index + 2) % genome_length] % 32] + memory[commands[(index + 3) % genome_length] % 32];
+					memory[commands[(index + 1) % genome_length] % 16 + 16] %= 256;
+					index += 4;
+					index %= genome_length;
+					break;
+				case(45)://вычесть ячейку 2 из ячейки 3 и записать в ячейку 1
+					memory[commands[(index + 1) % genome_length] % 16 + 16] = memory[commands[(index + 2) % genome_length] % 32] - memory[commands[(index + 3) % genome_length] % 32];
+					memory[commands[(index + 1) % genome_length] % 16 + 16] = Math.floorMod(memory[commands[(index + 1) % genome_length] % 16 + 16], 256);
+					index += 4;
+					index %= genome_length;
+					break;
 				default:
 					index = commands[(index + 1) % genome_length];
 					break;
@@ -782,8 +924,12 @@ public class Bot{
 					int new_genr = generation + 1;
 					int new_mut = mutations;
 					int[] new_brain = new int[genome_length];
+					int[] new_memory = new int[32];
 					for (int i = 0; i < genome_length; i++) {
 						new_brain[i] = commands[i];
+					}
+					for (int i = 0; i < 32; i++) {
+						new_memory[i] = memory[i];
 					}
 					if (rand.nextInt(100) < Constant.child_mutation_chance) {//мутация
 						new_color = new Color(rand.nextInt(256), rand.nextInt(256), rand.nextInt(256));
@@ -803,6 +949,7 @@ public class Bot{
 					new_bot.generation = new_genr;
 					new_bot.mutations = new_mut;
 					new_bot.commands = new_brain;
+					new_bot.memory = new_memory;
 					map[pos[0]][pos[1]] = new_bot;
 					iterator.add(new_bot);
 				}
