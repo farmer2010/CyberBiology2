@@ -718,6 +718,8 @@ public class Bot{
 					if (commands[(index + 3) % genome_length] != 0) {
 						memory[commands[(index + 1) % genome_length] % 16 + 16] = memory[commands[(index + 2) % genome_length] % 32] % commands[(index + 3) % genome_length];
 						memory[commands[(index + 1) % genome_length] % 16 + 16] %= 256;
+					}else {
+						memory[commands[(index + 1) % genome_length] % 16 + 16] = memory[commands[(index + 2) % genome_length] % 32];
 					}
 					index += 4;
 					index %= genome_length;
@@ -733,6 +735,56 @@ public class Bot{
 					memory[commands[(index + 1) % genome_length] % 16 + 16] = Math.floorMod(memory[commands[(index + 1) % genome_length] % 16 + 16], 256);
 					index += 4;
 					index %= genome_length;
+					break;
+				case(46)://умножить ячейку 2 на ячейку 3 и записать в ячейку 1
+					memory[commands[(index + 1) % genome_length] % 16 + 16] = memory[commands[(index + 2) % genome_length] % 32] * memory[commands[(index + 3) % genome_length] % 32];
+					memory[commands[(index + 1) % genome_length] % 16 + 16] %= 256;
+					index += 4;
+					index %= genome_length;
+					break;
+				case(47)://разделить ячейку 2 на ячейку 3 и записать в ячейку 1
+					if (memory[commands[(index + 3) % genome_length] % 32] != 0) {
+						memory[commands[(index + 1) % genome_length] % 16 + 16] = memory[commands[(index + 2) % genome_length] % 32] / memory[commands[(index + 3) % genome_length] % 32];
+						memory[commands[(index + 1) % genome_length] % 16 + 16] %= 256;
+					}else {
+						memory[commands[(index + 1) % genome_length] % 16 + 16] = 0;
+					}
+					index += 4;
+					index %= genome_length;
+					break;
+				case(48)://остаток от деления ячейки 2 на ячейку 3 и записать в ячейку 1
+					if (memory[commands[(index + 3) % genome_length] % 32] != 0) {
+						memory[commands[(index + 1) % genome_length] % 16 + 16] = memory[commands[(index + 2) % genome_length] % 32] % memory[commands[(index + 3) % genome_length] % 32];
+						memory[commands[(index + 1) % genome_length] % 16 + 16] %= 256;
+					}else {
+						memory[commands[(index + 1) % genome_length] % 16 + 16] = memory[commands[(index + 2) % genome_length] % 32];
+					}
+					index += 4;
+					index %= genome_length;
+					break;
+				case(49)://записать параметр в ячейку соседа относительно
+					write((rotate + get_param_value(commands[(index + 1) % genome_length])) % 8, get_param_value(commands[(index + 2) % genome_length]) % 8, get_param_value(commands[(index + 3) % genome_length]));
+					index += 4;
+					index %= genome_length;
+					ret = true;
+					break;
+				case(50)://записать параметр в ячейку соседа абсолютно
+					write(get_param_value(commands[(index + 1) % genome_length]) % 8, get_param_value(commands[(index + 2) % genome_length]) % 8, get_param_value(commands[(index + 3) % genome_length]));
+					index += 4;
+					index %= genome_length;
+					ret = true;
+					break;
+				case(51)://прочитать ячейку соседа относительно
+					read((rotate + get_param_value(commands[(index + 1) % genome_length])) % 8, get_param_value(commands[(index + 2) % genome_length]) % 24, get_param_value(commands[(index + 3) % genome_length]) % 16);
+					index += 4;
+					index %= genome_length;
+					ret = true;
+					break;
+				case(52)://прочитать ячейку соседа абсолютно
+					read(get_param_value(commands[(index + 1) % genome_length]) % 8, get_param_value(commands[(index + 2) % genome_length]) % 24, get_param_value(commands[(index + 3) % genome_length]) % 16);
+					index += 4;
+					index %= genome_length;
+					ret = true;
 					break;
 				default:
 					index = commands[(index + 1) % genome_length];
@@ -758,6 +810,24 @@ public class Bot{
 		memory[4] = (int)(ypos * 1.0 / Constant.H * 255);         //ypos
 		memory[5] = rotate * 36;                                  //направление
 		memory[6] = index;                                        //index
+	}
+	public void write(int rot, int cell, int value) {
+		int[] pos = get_rotate_position(rot);
+		if (pos[1] >= 0 & pos[1] < Constant.H) {
+			if (map[pos[0]][pos[1]] != null && map[pos[0]][pos[1]].state == 0) {
+				Bot b = map[pos[0]][pos[1]];
+				b.memory[cell + 16] = value;
+			}
+		}
+	}
+	public void read(int rot, int rcell, int wcell) {
+		int[] pos = get_rotate_position(rot);
+		if (pos[1] >= 0 & pos[1] < Constant.H) {
+			if (map[pos[0]][pos[1]] != null && map[pos[0]][pos[1]].state == 0) {
+				Bot b = map[pos[0]][pos[1]];
+				memory[wcell + 16] = b.memory[rcell];
+			}
+		}
 	}
 	public void photosynthesis() {
 		if (Constant.photo_list[sector(Constant.photo_list.length)] > 0) {
@@ -991,7 +1061,7 @@ public class Bot{
 	}
 	public boolean is_relative(int[] brain1, int[] brain2) {
 		int errors = 0;
-		for (int i = 0; i < 64; i++) {
+		for (int i = 0; i < genome_length; i++) {
 			if (brain1[i] != brain2[i]) {
 				errors += 1;
 			}

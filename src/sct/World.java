@@ -241,13 +241,15 @@ public class World extends JPanel{
 		settings_panels[0].mud_level_slider.setMaximum(Constant.H);
 		Constant.enable_new_genome = settings_panels[0].new_genome_button.isSelected();
 		//
+		zoom_slider.setValue(Constant.bot_scale);
+		if (lw != Constant.W || lh != Constant.H) {
+			zoom_pos = new int[] {Constant.W / 2, Constant.H / 2};
+		}
+		//
 		steps = 0;
 		objects = new ArrayList<Bot>();
 		Map = new Bot[Constant.W][Constant.H];
 		//
-		if (lw != Constant.W || lh != Constant.H) {
-			zoom_pos = new int[] {Constant.W / 2, Constant.H / 2};
-		}
 	}
 	public void record() {
 		try {
