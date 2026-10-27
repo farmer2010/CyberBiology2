@@ -163,7 +163,13 @@ public class Bot{
 				energy -= Constant.energy_for_life;
 				if (Constant.allow_age) age--;
 				minerals += Constant.minerals_list[sector(Constant.minerals_list.length)];
-				update_commands(iterator);
+				//
+				if (!Constant.enable_new_genome) {
+					update_commands(iterator);
+				}else {
+					new_update_commands(iterator);
+				}
+				//
 				if (Constant.enable_divers) {
 					if (move_y_timer < 2) {
 						move_y_timer++;
@@ -247,26 +253,7 @@ public class Bot{
 					index %= 64;
 					break;
 				case(25)://фотосинтез
-					if (Constant.photo_list[sector(Constant.photo_list.length)] > 0) {
-						if (Constant.enable_divers) {
-							boolean p = false;
-							int sec = divers_sector();
-							if (sec == 0) {
-								p = true;
-							}else if (sec == 1 && rand.nextInt(0, 1000) < Constant.no_pht_in_sea) {
-								p = true;
-							}else if (sec == 2 && rand.nextInt(0, 1000) < Constant.no_pht_in_mud) {
-								p = true;
-							}
-							if (p) {
-								energy += Constant.photo_list[sector(Constant.photo_list.length)];
-								go_color(Constant.pht_color);
-							}
-						}else {
-							energy += Constant.photo_list[sector(Constant.photo_list.length)];
-							go_color(Constant.pht_color);
-						}
-					}
+					photosynthesis();
 					index += 1;
 					index %= 64;
 					ret = true;
@@ -290,13 +277,13 @@ public class Bot{
 					ret = true;
 					break;
 				case(28)://атаковать относительно
-					attack(commands[(index + 1) % 64] % 8);
+					attack2(commands[(index + 1) % 64] % 8, Constant.attack_strength);
 					index += 2;
 					index %= 64;
 					ret = true;
 					break;
 				case(29)://атаковать абсолютно
-					attack(rotate);
+					attack2(rotate, Constant.attack_strength);
 					index += 1;
 					index %= 64;
 					ret = true;
@@ -428,8 +415,181 @@ public class Bot{
 		}
 	}
 	public void new_update_commands(ListIterator<Bot> iterator) {//мозг v2
-		for (int i = 5; i > 0; i++) {
-			int command = commands[index];
+		for (int i = 0; i < 5; i++) {
+			boolean ret = false;
+			int command = commands[index] % 128;
+			switch (command) {
+				case(0)://фотосинтез
+					photosynthesis();
+					index += 1;
+					index %= genome_length;
+					ret = true;
+					break;
+				case(1)://повернуться по направлению
+					rotate = get_param_value(commands[(index + 1) % genome_length]) % 8;
+					index += 2;
+					index %= genome_length;
+					break;
+				case(2)://повернуть на ...
+					rotate += get_param_value(commands[(index + 1) % genome_length]);
+					rotate %= 8;
+					index += 2;
+					index %= genome_length;
+					break;
+				case(3)://перемещение относительно
+					int sens = move((rotate + get_param_value(commands[(index + 1) % genome_length])) % 8);
+					if (sens == 1) {
+						energy -= 1;
+					}
+					index += 2;
+					index %= genome_length;
+					ret = true;
+					break;
+				case(4)://перемещение абсолютно
+					sens = move(get_param_value(commands[(index + 1) % genome_length]) % 8);
+					if (sens == 1) {
+						energy -= 1;
+					}
+					index += 2;
+					index %= genome_length;
+					ret = true;
+					break;
+				case(5)://атаковать относительно
+					attack2((rotate + get_param_value(commands[(index + 1) % genome_length])) % 8, Constant.attack_strength);
+					index += 2;
+					index %= genome_length;
+					ret = true;
+					break;
+				case(6)://атаковать абсолютно
+					attack2(get_param_value(commands[(index + 1) % genome_length]) % 8, Constant.attack_strength);
+					index += 2;
+					index %= genome_length;
+					ret = true;
+					break;
+				case(7)://отдать ресурсы относительно
+					give((rotate + get_param_value(commands[(index + 1) % genome_length])) % 8);
+					index += 2;
+					index %= genome_length;
+					ret = true;
+					break;
+				case(8)://отдать ресурсы абсолютно
+					give(get_param_value(commands[(index + 1) % genome_length]) % 8);
+					index += 2;
+					index %= genome_length;
+					ret = true;
+					break;
+				case(9)://равномерное распределение ресурсов относительно
+					give2((rotate + get_param_value(commands[(index + 1) % genome_length])) % 8);
+					index += 2;
+					index %= genome_length;
+					ret = true;
+					break;
+				case(10)://равномерное распределение ресурсов абсолютно
+					give2(get_param_value(commands[(index + 1) % genome_length]) % 8);
+					index += 2;
+					index %= genome_length;
+					ret = true;
+					break;
+				case(11)://поделиться относительно
+					multiply((rotate + get_param_value(commands[(index + 1) % genome_length])) % 8, iterator);
+					index += 2;
+					index %= genome_length;
+					ret = true;
+					break;
+				case(12)://поделиться абсолютно
+					multiply(get_param_value(commands[(index + 1) % genome_length]) % 8, iterator);
+					index += 2;
+					index %= genome_length;
+					ret = true;
+					break;
+				case(13)://преобразовать минералы в энергию
+					if (minerals > 0) {
+						go_color(Constant.mnr_color);
+					}
+					energy += minerals * 4;
+					minerals = 0;
+					index += 1;
+					index %= genome_length;
+					ret = true;
+					break;
+				case(14)://посмотреть относительно
+					int rot = (rotate + get_param_value(commands[(index + 1) % genome_length])) % 8;
+					index = commands[(index + 2 + see(rot)) % 64];
+					break;
+				case(15)://посмотреть абсолютно
+					index = commands[(index + 1 + see(get_param_value(commands[(index + 1) % genome_length]) % 8)) % 64];
+					break;
+				case(16)://сколько у меня энергии
+					if (energy >= get_param_value(commands[(index + 1) % genome_length]) * 1.0 / genome_length * Constant.max_energy) {
+						index = commands[(index + 2) % genome_length];
+					}else {
+						index = commands[(index + 3) % genome_length];
+					}
+					break;
+				case(17)://сколько у меня минералов
+					if (minerals >= get_param_value(commands[(index + 1) % genome_length]) * 1.0 / genome_length * 1000) {
+						index = commands[(index + 2) % genome_length];
+					}else {
+						index = commands[(index + 3) % genome_length];
+					}
+					break;
+				case(18)://какой у меня возраст
+					if (age >= get_param_value(commands[(index + 1) % genome_length]) * 1.0 / genome_length * Constant.max_age) {
+						index = commands[(index + 2) % genome_length];
+					}else {
+						index = commands[(index + 3) % genome_length];
+					}
+					break;
+				case(19)://какая позиция x
+					if (xpos >= get_param_value(commands[(index + 1) % genome_length]) * 1.0 / genome_length * Constant.W) {
+						index = commands[(index + 2) % genome_length];
+					}else {
+						index = commands[(index + 3) % genome_length];
+					}
+					break;
+				case(20)://какая позиция y
+					if (ypos >= get_param_value(commands[(index + 1) % genome_length]) * 1.0 / genome_length * Constant.H) {
+						index = commands[(index + 2) % genome_length];
+					}else {
+						index = commands[(index + 3) % genome_length];
+					}
+					break;
+				case(21)://есть ли фотосинтез
+					if (!Constant.enable_divers) {
+						if (Constant.photo_list[sector(Constant.photo_list.length)] > 0) {
+							index = commands[(index + 1) % genome_length];
+						}else {
+							index = commands[(index + 2) % genome_length];
+						}
+					}else {
+						if (divers_sector() == 0) {
+							index = commands[(index + 1) % genome_length];
+						}else {
+							index = commands[(index + 2) % genome_length];
+						}
+					}
+					break;
+				case(22)://есть ли приход минералов
+					if (Constant.minerals_list[sector(Constant.minerals_list.length)] > 0) {
+						index = commands[(index + 1) % genome_length];
+					}else {
+						index = commands[(index + 2) % genome_length];
+					}
+					break;
+				default:
+					index = commands[(index + 1) % genome_length];
+					break;
+			}
+			if (ret) {
+				break;
+			}
+		}
+	}
+	public int get_param_value(int param) {
+		if (param >= 224) {
+			return(memory[param - 224]);
+		}else {
+			return((int)(param * 1.0 / 223 * 255));
 		}
 	}
 	public void update_memory() {
@@ -440,6 +600,28 @@ public class Bot{
 		memory[4] = (int)(ypos * 1.0 / Constant.H * 255);         //ypos
 		memory[5] = rotate * 36;                                  //направление
 		memory[6] = index;                                        //index
+	}
+	public void photosynthesis() {
+		if (Constant.photo_list[sector(Constant.photo_list.length)] > 0) {
+			if (Constant.enable_divers) {
+				boolean p = false;
+				int sec = divers_sector();
+				if (sec == 0) {
+					p = true;
+				}else if (sec == 1 && rand.nextInt(0, 1000) < Constant.no_pht_in_sea) {
+					p = true;
+				}else if (sec == 2 && rand.nextInt(0, 1000) < Constant.no_pht_in_mud) {
+					p = true;
+				}
+				if (p) {
+					energy += Constant.photo_list[sector(Constant.photo_list.length)];
+					go_color(Constant.pht_color);
+				}
+			}else {
+				energy += Constant.photo_list[sector(Constant.photo_list.length)];
+				go_color(Constant.pht_color);
+			}
+		}
 	}
 	public int see(int rot) {
 		int[] pos = get_rotate_position(rot);
@@ -507,7 +689,7 @@ public class Bot{
 			}
 		}
 	}
-	public void attack2(int rot, int strength) {
+	public void attack2(int rot, double strength) {
 		int[] pos = get_rotate_position(rot);
 		if (pos[1] >= 0 & pos[1] < Constant.H) {
 			if (map[pos[0]][pos[1]] != null) {
@@ -572,8 +754,8 @@ public class Bot{
 					Color new_color = color;
 					int new_genr = generation + 1;
 					int new_mut = mutations;
-					int[] new_brain = new int[64];
-					for (int i = 0; i < 64; i++) {
+					int[] new_brain = new int[genome_length];
+					for (int i = 0; i < genome_length; i++) {
 						new_brain[i] = commands[i];
 					}
 					if (rand.nextInt(100) < Constant.child_mutation_chance) {//мутация
@@ -583,7 +765,7 @@ public class Bot{
 					}
 					if (rand.nextInt(100) < Constant.parent_mutation_chance) {//мутация родителя
 						color = new Color(rand.nextInt(256), rand.nextInt(256), rand.nextInt(256));
-						commands[rand.nextInt(64)] = rand.nextInt(64);
+						commands[rand.nextInt(genome_length)] = rand.nextInt(genome_length);
 					}
 					if (Constant.upd_parent_index) index = 0;
 					if (Constant.upd_parent_age) age = Constant.max_age;

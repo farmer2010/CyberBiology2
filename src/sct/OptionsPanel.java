@@ -25,6 +25,7 @@ public class OptionsPanel extends JPanel {
 	JSlider parent_mut_chance_slider = new JSlider(0, 100, Constant.parent_mutation_chance);
 	JRadioButton index_button = new JRadioButton("set parent index to 0", Constant.upd_parent_index);
 	JRadioButton age_button = new JRadioButton("set parent age to maximum", Constant.upd_parent_age);
+	JTextField attack_strength = new JTextField();
 	JRadioButton organics_button = new JRadioButton("enable organics", Constant.allow_organics);
 	JRadioButton organics_no_fall_button = new JRadioButton("no fall", Constant.org_fall_type == 0);
 	JRadioButton organics_fall_button = new JRadioButton("fall for first time", Constant.org_fall_type == 1);
@@ -121,6 +122,12 @@ public class OptionsPanel extends JPanel {
 			panel1.add(index_button);
 			//
 			panel1.add(age_button);
+			//
+			panel1.add(new JLabel("ATTACK:"));
+			panel1.add(new JLabel("attack strength:"));
+			attack_strength.setText(String.valueOf(Constant.attack_strength));
+			attack_strength.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
+			panel1.add(attack_strength);
 			//
 			panel1.add(new JLabel("ORGANICS:"));
 			//

@@ -25,6 +25,7 @@ public class Constant {
 	static boolean full_color_change_with_mul = true;
 	static boolean color_change_with_mul = false;//true - change, false - not change
 	static int color_range = 12;
+	static double attack_strength = 1000;
 	static boolean allow_organics = true;
 	static int org_fall_type = 1;//0 - не падает, 1 - падает, но останавливается, 2 - всегда падает, 3 - всегда падает и сыпется
 	static boolean allow_age = true;

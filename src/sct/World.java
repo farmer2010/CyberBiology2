@@ -487,6 +487,7 @@ public class World extends JPanel{
 		Constant.block_auto_multiply = settings_panels[0].block_auto_mul_button.isSelected();
 		Constant.child_mutation_chance = settings_panels[0].mut_chance_slider.getValue();
 		Constant.parent_mutation_chance = settings_panels[0].parent_mut_chance_slider.getValue();
+		Constant.attack_strength = Double.parseDouble(settings_panels[0].attack_strength.getText());
 		Constant.allow_organics = settings_panels[0].organics_button.isSelected();
 		Constant.upd_parent_index = settings_panels[0].index_button.isSelected();
 		Constant.upd_parent_age = settings_panels[0].age_button.isSelected();
