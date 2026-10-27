@@ -11,7 +11,6 @@ public class Constant {
 	static int bot_scale = 10;
 	static int W = (scr_W - 300) / bot_scale;
 	static int H = scr_H / bot_scale;
-	static int starting_bots = W*H/17;
 	//
 	static double energy_for_life = 1;
 	static double energy_for_multiply = 150;

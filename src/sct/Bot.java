@@ -17,7 +17,9 @@ public class Bot{
 	public int killed = 0;
 	public Bot[][] map;
 	public World world;
-	public int[] commands = new int[64];
+	public int[] commands;
+	public int[] memory = new int[32];
+	private int genome_length;
 	public int index = 0;
 	public int age = Constant.max_age;
 	public int state = 0;//бот или органика
@@ -64,8 +66,14 @@ public class Bot{
 		world = new_world;
 		objects = world.objects;
 		map = world.Map;
-		for (int i = 0; i < 64; i++) {
-			commands[i] = rand.nextInt(64);
+		if (Constant.enable_new_genome) {
+			genome_length = 256;
+		}else {
+			genome_length = 64;
+		}
+		commands = new int[genome_length];
+		for (int i = 0; i < genome_length; i++) {
+			commands[i] = rand.nextInt(genome_length);
 		}
 	}
 	public void Draw(Graphics canvas, int draw_type, boolean record) {
@@ -150,6 +158,7 @@ public class Bot{
 		if (killed == 0) {
 			if (state == 0) {//ботbot_in_sector();
 				if (Constant.enable_divers && divers_sector() == 0) on_land = true;
+				if (Constant.enable_new_genome) update_memory();
 				//
 				energy -= Constant.energy_for_life;
 				if (Constant.allow_age) age--;
@@ -222,173 +231,215 @@ public class Bot{
 		return(0);
 	}
 	public void update_commands(ListIterator<Bot> iterator) {//мозг
+		boolean ret = false;
 		for (int i = 0; i < 5; i++) {
 			int command = commands[index];
-			if (command == 23) {//повернуться
-				rotate += commands[(index + 1) % 64] % 8;
-				rotate %= 8;
-				index += 2;
-				index %= 64;
-			}else if (command == 24) {//сменить направление
-				rotate = commands[(index + 1) % 64] % 8;
-				index += 2;
-				index %= 64;
-			}else if (command == 25) {//фотосинтез
-				if (Constant.photo_list[sector(Constant.photo_list.length)] > 0) {
-					if (Constant.enable_divers) {
-						boolean p = false;
-						int sec = divers_sector();
-						if (sec == 0) {
-							p = true;
-						}else if (sec == 1 && rand.nextInt(0, 1000) < Constant.no_pht_in_sea) {
-							p = true;
-						}else if (sec == 2 && rand.nextInt(0, 1000) < Constant.no_pht_in_mud) {
-							p = true;
-						}
-						if (p) {
+			switch (command) {
+				case(23)://повернуться
+					rotate += commands[(index + 1) % 64] % 8;
+					rotate %= 8;
+					index += 2;
+					index %= 64;
+					break;
+				case(24)://сменить направление
+					rotate = commands[(index + 1) % 64] % 8;
+					index += 2;
+					index %= 64;
+					break;
+				case(25)://фотосинтез
+					if (Constant.photo_list[sector(Constant.photo_list.length)] > 0) {
+						if (Constant.enable_divers) {
+							boolean p = false;
+							int sec = divers_sector();
+							if (sec == 0) {
+								p = true;
+							}else if (sec == 1 && rand.nextInt(0, 1000) < Constant.no_pht_in_sea) {
+								p = true;
+							}else if (sec == 2 && rand.nextInt(0, 1000) < Constant.no_pht_in_mud) {
+								p = true;
+							}
+							if (p) {
+								energy += Constant.photo_list[sector(Constant.photo_list.length)];
+								go_color(Constant.pht_color);
+							}
+						}else {
 							energy += Constant.photo_list[sector(Constant.photo_list.length)];
 							go_color(Constant.pht_color);
 						}
-					}else {
-						energy += Constant.photo_list[sector(Constant.photo_list.length)];
-						go_color(Constant.pht_color);
 					}
-				}
-				index += 1;
-				index %= 64;
-				break;
-			}else if (command == 26) {//походить относительно
-				int sens = move(commands[(index + 1) % 64] % 8);
-				if (sens == 1) {
-					energy -= 1;
-				}
-				index += 2;
-				index %= 64;
-				break;
-			}else if(command == 27) {//походить абсолютно
-				int sens = move(rotate);
-				if (sens == 1) {
-					energy -= 1;
-				}
-				index += 1;
-				index %= 64;
-				break;
-			}else if (command == 28) {//атаковать относительно
-				attack(commands[(index + 1) % 64] % 8);
-				index += 2;
-				index %= 64;
-				break;
-			}else if (command == 29) {//атаковать абсолютно
-				attack(rotate);
-				index += 1;
-				index %= 64;
-				break;
-			}else if (command == 30) {//посмотреть относительно
-				int rot = commands[(index + 1) % 64] % 8;
-				index = commands[(index + 2 + see(rot)) % 64];
-			}else if (command == 31) {//посмотреть абсолютно
-				index = commands[(index + 1 + see(rotate)) % 64];
-			}else if (command == 34 || command == 50) {//отдать ресурсы относительно
-				give(commands[(index + 1) % 64] % 8);
-				index += 2;
-				index %= 64;
-				break;
-			}else if (command == 35 || command == 52) {//отдать ресурсы абсолютно
-				give(rotate);
-				index += 1;
-				index %= 64;
-				break;
-			}else if (command == 36) {//сколько у меня энергии
-				int ind = commands[(index + 1) % 64] * 15;
-				if (energy >= ind) {
-					index = commands[(index + 2) % 64];
-				}else {
-					index = commands[(index + 3) % 64];
-				}
-			}else if (command == 37) {//сколько у меня минералов
-				int ind = commands[(index + 1) % 64] * 15;
-				if (minerals >= ind) {
-					index = commands[(index + 2) % 64];
-				}else {
-					index = commands[(index + 3) % 64];
-				}
-			}else if (command == 38) {//преобразовать минералы в энергию
-				if (minerals > 0) {
-					go_color(Constant.mnr_color);
-				}
-				energy += minerals * 4;
-				minerals = 0;
-				index += 1;
-				index %= 64;
-				break;
-			}else if (command == 39) {//есть ли фотосинтез
-				if (!Constant.enable_divers) {
-					if (Constant.photo_list[sector(Constant.photo_list.length)] > 0) {
+					index += 1;
+					index %= 64;
+					ret = true;
+					break;
+				case(26)://походить относительно
+					int sens = move(commands[(index + 1) % 64] % 8);
+					if (sens == 1) {
+						energy -= 1;
+					}
+					index += 2;
+					index %= 64;
+					ret = true;
+					break;
+				case(27)://походить абсолютно
+					sens = move(rotate);
+					if (sens == 1) {
+						energy -= 1;
+					}
+					index += 1;
+					index %= 64;
+					ret = true;
+					break;
+				case(28)://атаковать относительно
+					attack(commands[(index + 1) % 64] % 8);
+					index += 2;
+					index %= 64;
+					ret = true;
+					break;
+				case(29)://атаковать абсолютно
+					attack(rotate);
+					index += 1;
+					index %= 64;
+					ret = true;
+					break;
+				case(30)://посмотреть относительно
+					int rot = commands[(index + 1) % 64] % 8;
+					index = commands[(index + 2 + see(rot)) % 64];
+					break;
+				case(31)://посмотреть абсолютно
+					index = commands[(index + 1 + see(rotate)) % 64];
+					break;
+				case(34)://отдать ресурсы относительно
+				case(50):
+					give(commands[(index + 1) % 64] % 8);
+					index += 2;
+					index %= 64;
+					ret = true;
+					break;
+				case(35)://отдать ресурсы абсолютно
+				case(52):
+					give(rotate);
+					index += 1;
+					index %= 64;
+					ret = true;
+					break;
+				case(36)://сколько у меня энергии
+					int ind = commands[(index + 1) % 64] * 15;
+					if (energy >= ind) {
+						index = commands[(index + 2) % 64];
+					}else {
+						index = commands[(index + 3) % 64];
+					}
+					break;
+				case(37)://сколько у меня минералов
+					ind = commands[(index + 1) % 64] * 15;
+					if (minerals >= ind) {
+						index = commands[(index + 2) % 64];
+					}else {
+						index = commands[(index + 3) % 64];
+					}
+					break;
+				case(38)://преобразовать минералы в энергию
+					if (minerals > 0) {
+						go_color(Constant.mnr_color);
+					}
+					energy += minerals * 4;
+					minerals = 0;
+					index += 1;
+					index %= 64;
+					ret = true;
+					break;
+				case(39)://есть ли фотосинтез
+					if (!Constant.enable_divers) {
+						if (Constant.photo_list[sector(Constant.photo_list.length)] > 0) {
+							index = commands[(index + 1) % 64];
+						}else {
+							index = commands[(index + 2) % 64];
+						}
+					}else {
+						if (divers_sector() == 0) {
+							index = commands[(index + 1) % 64];
+						}else {
+							index = commands[(index + 2) % 64];
+						}
+					}
+					break;
+				case(40)://есть ли приход минералов
+					if (Constant.minerals_list[sector(Constant.minerals_list.length)] > 0) {
 						index = commands[(index + 1) % 64];
 					}else {
 						index = commands[(index + 2) % 64];
 					}
-				}else {
-					if (divers_sector() == 0) {
-						index = commands[(index + 1) % 64];
-					}else {
+					break;
+				case(41)://поделиться относительно
+					multiply(commands[(index + 1) % 64] % 8, iterator);
+					index += 2;
+					index %= 64;
+					ret = true;
+					break;
+				case(42)://поделиться абсолютно
+					multiply(rotate, iterator);
+					index += 1;
+					index %= 64;
+					ret = true;
+					break;
+				case(43)://какая моя позиция x
+					if (xpos * 1.0 / Constant.W >= commands[(index + 1) % 64] / 63.0) {
 						index = commands[(index + 2) % 64];
+					}else {
+						index = commands[(index + 3) % 64];
 					}
-				}
-			}else if (command == 40) {//есть ли приход минералов
-				if (Constant.minerals_list[sector(Constant.minerals_list.length)] > 0) {
+					break;
+				case(44)://какая моя позиция y
+					if (ypos * 1.0 / Constant.H >= commands[(index + 1) % 64] / 63.0) {
+						index = commands[(index + 2) % 64];
+					}else {
+						index = commands[(index + 3) % 64];
+					}
+					break;
+				case(45)://какой мой возраст
+					if (age >= commands[(index + 1) % 64] * 15) {
+						index = commands[(index + 2) % 64];
+					}else {
+						index = commands[(index + 3) % 64];
+					}
+					break;
+				case(46)://равномерное распределение ресурсов относительно
+					give2(commands[(index + 1) % 64] % 8);
+					index += 2;
+					index %= 64;
+					ret = true;
+					break;
+				case(48)://равномерное распределение ресурсов абсолютно
+					give2(rotate);
+					index += 1;
+					index %= 64;
+					ret = true;
+					break;
+				case(49)://безусловный переход
 					index = commands[(index + 1) % 64];
-				}else {
-					index = commands[(index + 2) % 64];
-				}
-			}else if (command == 41) {//поделиться относительно
-				multiply(commands[(index + 1) % 64] % 8, iterator);
-				index += 2;
-				index %= 64;
+					break;
+				default:
+					index = (index + command) % 64;
+					break;
+			}
+			if (ret) {
 				break;
-			}else if (command == 42) {//поделиться абсолютно
-				multiply(rotate, iterator);
-				index += 1;
-				index %= 64;
-				break;
-			}else if (command == 43) {//какая моя позиция x
-				double ind = commands[(index + 1) % 64] / 63.0;
-				if (xpos * 1.0 / Constant.W >= ind) {
-					index = commands[(index + 2) % 64];
-				}else {
-					index = commands[(index + 3) % 64];
-				}
-			}else if (command == 44) {//какая моя позиция y
-				double ind = commands[(index + 1) % 64] / 63.0;
-				if (ypos * 1.0 / Constant.H >= ind) {
-					index = commands[(index + 2) % 64];
-				}else {
-					index = commands[(index + 3) % 64];
-				}
-			}else if (command == 45) {//какой мой возраст
-				int ind = commands[(index + 1) % 64] * 15;
-				if (age >= ind) {
-					index = commands[(index + 2) % 64];
-				}else {
-					index = commands[(index + 3) % 64];
-				}
-			}else if (command == 46) {//равномерное распределение ресурсов относительно
-				give2(commands[(index + 1) % 64] % 8);
-				index += 2;
-				index %= 64;
-				break;
-			}else if (command == 47) {//равномерное распределение ресурсов абсолютно
-				give2(rotate);
-				index += 1;
-				index %= 64;
-				break;
-			}else if (command == 48) {//безусловный переход
-				index = commands[(index + 1) % 64];
-			}else {
-				index += commands[index];
-				index %= 64;
 			}
 		}
+	}
+	public void new_update_commands(ListIterator<Bot> iterator) {//мозг v2
+		for (int i = 5; i > 0; i++) {
+			int command = commands[index];
+		}
+	}
+	public void update_memory() {
+		memory[0] = (int)(energy / Constant.max_energy * 255);    //энергия
+		memory[1] = (int)(minerals / 1000.0 * 255);               //минералы
+		memory[2] = (int)(age * 1.0 / Constant.max_age * 255);    //возраст
+		memory[3] = (int)(xpos * 1.0 / Constant.W * 255);         //xpos
+		memory[4] = (int)(ypos * 1.0 / Constant.H * 255);         //ypos
+		memory[5] = rotate * 36;                                  //направление
+		memory[6] = index;                                        //index
 	}
 	public int see(int rot) {
 		int[] pos = get_rotate_position(rot);

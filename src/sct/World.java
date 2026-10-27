@@ -196,7 +196,7 @@ public class World extends JPanel{
 	public void new_population() {
 		kill_all();
 		//
-		for (int i = 0; i < Constant.starting_bots; i++) {
+		for (int i = 0; i < Constant.W*Constant.H/17; i++) {
 			while(true){
 				int x = rand.nextInt(Constant.W);
 				int y = rand.nextInt(Constant.H);
@@ -222,9 +222,9 @@ public class World extends JPanel{
 		Constant.W = Integer.parseInt(settings_panels[0].width.getText());
 		Constant.H = Integer.parseInt(settings_panels[0].height.getText());
 		Constant.bot_scale = Math.min(Constant.scr_W/Constant.W, Constant.scr_H/Constant.H);
-		Constant.starting_bots = Constant.W*Constant.H/17;
-		settings_panels[1].sea_level_slider.setMaximum(Constant.H);
-		settings_panels[1].mud_level_slider.setMaximum(Constant.H);
+		settings_panels[0].sea_level_slider.setMaximum(Constant.H);
+		settings_panels[0].mud_level_slider.setMaximum(Constant.H);
+		Constant.enable_new_genome = settings_panels[0].new_genome_button.isSelected();
 		//
 		steps = 0;
 		objects = new ArrayList<Bot>();
