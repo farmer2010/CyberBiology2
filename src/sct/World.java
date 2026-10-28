@@ -546,6 +546,9 @@ public class World extends JPanel{
 		Constant.no_pht_in_mud = settings_panels[0].no_pht_in_mud_slider.getValue();
 		Constant.on_land = settings_panels[0].on_land_slider.getValue();
 		Constant.force_move_y = settings_panels[0].move_y_slider.getValue();
+		//new genome
+		Constant.inherit_memory = settings_panels[0].memory_to_child_button.isSelected();
+		
 	}
 	public void start_stop() {
 		pause = !pause;

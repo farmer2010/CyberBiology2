@@ -1019,7 +1019,7 @@ public class Bot{
 					new_bot.generation = new_genr;
 					new_bot.mutations = new_mut;
 					new_bot.commands = new_brain;
-					new_bot.memory = new_memory;
+					if (Constant.inherit_memory) new_bot.memory = new_memory;
 					map[pos[0]][pos[1]] = new_bot;
 					iterator.add(new_bot);
 				}

@@ -50,6 +50,7 @@ public class OptionsPanel extends JPanel {
 	JSlider sea_multiply_slider = new JSlider(0, 1000, 1000);
 	JSlider on_land_slider = new JSlider(0, 1000, 1000);
 	JRadioButton new_genome_button = new JRadioButton("enable new genome", Constant.enable_new_genome);
+	JRadioButton memory_to_child_button = new JRadioButton("inherit a memory", Constant.inherit_memory);
 	//
 	public OptionsPanel(World w, int new_panel_type) {
 		world = w;
@@ -250,6 +251,7 @@ public class OptionsPanel extends JPanel {
 			panel2.add(new JLabel("NEW GENOME:"));
 			//
 			panel2.add(new_genome_button);
+			panel2.add(memory_to_child_button);
 		}
 		//
 	}
