@@ -53,6 +53,8 @@ public class Constant {
 	//new genome
 	static boolean enable_new_genome = false;
 	static boolean inherit_memory = true;
+	//new energy
+	static boolean enable_new_energy = false;
 	//
 	//
 	//
