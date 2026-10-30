@@ -55,6 +55,15 @@ public class Constant {
 	static boolean inherit_memory = true;
 	//new energy
 	static boolean enable_new_energy = false;
+	static double energy_coeff = 1.5;
+	//
+	static double energy_for_move = 1;
+	static double energy_for_push = 1;
+	static double energy_for_attack = 0;
+	static double energy_for_rotate = 0;
+	static double energy_for_trans_res = 0;
+	static double energy_for_sensors = 0;
+	static double energy_for_transitions = 0;
 	//
 	//
 	//

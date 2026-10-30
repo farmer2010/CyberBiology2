@@ -535,7 +535,6 @@ public class World extends JPanel{
 		Constant.draw_rotate = settings_panels[0].draw_rotate_button.isSelected();
 		Constant.draw_frame = settings_panels[0].draw_frame_button.isSelected();
 		//
-		//panel1
 		//
 		Constant.enable_divers = settings_panels[0].divers_button.isSelected();
 		Constant.sea_level = settings_panels[0].sea_level_slider.getValue();
@@ -546,11 +545,20 @@ public class World extends JPanel{
 		Constant.no_pht_in_mud = settings_panels[0].no_pht_in_mud_slider.getValue();
 		Constant.on_land = settings_panels[0].on_land_slider.getValue();
 		Constant.force_move_y = settings_panels[0].move_y_slider.getValue();
+		//
+		//
 		//new genome
 		Constant.inherit_memory = settings_panels[0].memory_to_child_button.isSelected();
 		//new energy
 		Constant.enable_new_energy = settings_panels[0].new_energy_button.isSelected();
-		
+		Constant.energy_for_life = Double.parseDouble(settings_panels[0].energy_for_life.getText());
+		Constant.energy_for_move = Double.parseDouble(settings_panels[0].energy_for_move.getText());
+		Constant.energy_for_push = Double.parseDouble(settings_panels[0].energy_for_push.getText());
+		Constant.energy_for_attack = Double.parseDouble(settings_panels[0].energy_for_atk.getText());
+		Constant.energy_for_rotate = Double.parseDouble(settings_panels[0].energy_for_rot.getText());
+		Constant.energy_for_trans_res = Double.parseDouble(settings_panels[0].energy_for_trans_res.getText());
+		Constant.energy_for_sensors = Double.parseDouble(settings_panels[0].energy_for_sens.getText());
+		Constant.energy_for_transitions = Double.parseDouble(settings_panels[0].energy_for_transitions.getText());
 	}
 	public void start_stop() {
 		pause = !pause;

@@ -180,7 +180,7 @@ public class Bot{
 						}
 					}
 				}
-				if (energy < 1) {
+				if (energy <= 0) {
 					killed = 1;
 					map[xpos][ypos] = null;
 					return(0);
@@ -234,18 +234,24 @@ public class Bot{
 		}
 		return(0);
 	}
-	public void update_commands(ListIterator<Bot> iterator) {//мозг
+	public int update_commands(ListIterator<Bot> iterator) {//мозг
 		boolean ret = false;
-		for (int i = 0; i < 5; i++) {
+		boolean fret = false;
+		int i = 0;
+		double coeff = 1;
+		while(i < 5) {
+			i++;
 			int command = commands[index];
 			switch (command) {
 				case(23)://повернуться
+					energy -= Constant.energy_for_rotate * coeff;
 					rotate += commands[(index + 1) % 64] % 8;
 					rotate %= 8;
 					index += 2;
 					index %= 64;
 					break;
 				case(24)://сменить направление
+					energy -= Constant.energy_for_rotate * coeff;
 					rotate = commands[(index + 1) % 64] % 8;
 					index += 2;
 					index %= 64;
@@ -255,46 +261,48 @@ public class Bot{
 					index += 1;
 					index %= 64;
 					ret = true;
+					fret = true;
 					break;
 				case(26)://походить относительно
-					int sens = move(commands[(index + 1) % 64] % 8);
-					if (sens == 1) {
-						energy -= 1;
-					}
+					energy -= Constant.energy_for_move * coeff;
+					move(commands[(index + 1) % 64] % 8);
 					index += 2;
 					index %= 64;
 					ret = true;
 					break;
 				case(27)://походить абсолютно
-					sens = move(rotate);
-					if (sens == 1) {
-						energy -= 1;
-					}
+					energy -= Constant.energy_for_move * coeff;
+					move(rotate);
 					index += 1;
 					index %= 64;
 					ret = true;
 					break;
 				case(28)://атаковать относительно
+					energy -= Constant.energy_for_attack * coeff;
 					attack2(commands[(index + 1) % 64] % 8, Constant.attack_strength);
 					index += 2;
 					index %= 64;
 					ret = true;
 					break;
 				case(29)://атаковать абсолютно
+					energy -= Constant.energy_for_attack * coeff;
 					attack2(rotate, Constant.attack_strength);
 					index += 1;
 					index %= 64;
 					ret = true;
 					break;
 				case(30)://посмотреть относительно
+					energy -= Constant.energy_for_sensors * coeff;
 					int rot = commands[(index + 1) % 64] % 8;
 					index = commands[(index + 2 + see(rot)) % 64];
 					break;
 				case(31)://посмотреть абсолютно
+					energy -= Constant.energy_for_sensors * coeff;
 					index = commands[(index + 1 + see(rotate)) % 64];
 					break;
 				case(34)://отдать ресурсы относительно
 				case(50):
+					energy -= Constant.energy_for_trans_res * coeff;
 					give(commands[(index + 1) % 64] % 8);
 					index += 2;
 					index %= 64;
@@ -302,12 +310,14 @@ public class Bot{
 					break;
 				case(35)://отдать ресурсы абсолютно
 				case(52):
+					energy -= Constant.energy_for_trans_res * coeff;
 					give(rotate);
 					index += 1;
 					index %= 64;
 					ret = true;
 					break;
 				case(36)://сколько у меня энергии
+					energy -= Constant.energy_for_sensors * coeff;
 					int ind = commands[(index + 1) % 64] * 15;
 					if (energy >= ind) {
 						index = commands[(index + 2) % 64];
@@ -316,6 +326,7 @@ public class Bot{
 					}
 					break;
 				case(37)://сколько у меня минералов
+					energy -= Constant.energy_for_sensors * coeff;
 					ind = commands[(index + 1) % 64] * 15;
 					if (minerals >= ind) {
 						index = commands[(index + 2) % 64];
@@ -332,8 +343,10 @@ public class Bot{
 					index += 1;
 					index %= 64;
 					ret = true;
+					fret = true;
 					break;
 				case(39)://есть ли фотосинтез
+					energy -= Constant.energy_for_sensors * coeff;
 					if (!Constant.enable_divers) {
 						if (Constant.photo_list[sector(Constant.photo_list.length)] > 0) {
 							index = commands[(index + 1) % 64];
@@ -349,6 +362,7 @@ public class Bot{
 					}
 					break;
 				case(40)://есть ли приход минералов
+					energy -= Constant.energy_for_sensors * coeff;
 					if (Constant.minerals_list[sector(Constant.minerals_list.length)] > 0) {
 						index = commands[(index + 1) % 64];
 					}else {
@@ -368,6 +382,7 @@ public class Bot{
 					ret = true;
 					break;
 				case(43)://какая моя позиция x
+					energy -= Constant.energy_for_sensors * coeff;
 					if (xpos * 1.0 / Constant.W >= commands[(index + 1) % 64] / 63.0) {
 						index = commands[(index + 2) % 64];
 					}else {
@@ -375,6 +390,7 @@ public class Bot{
 					}
 					break;
 				case(44)://какая моя позиция y
+					energy -= Constant.energy_for_sensors * coeff;
 					if (ypos * 1.0 / Constant.H >= commands[(index + 1) % 64] / 63.0) {
 						index = commands[(index + 2) % 64];
 					}else {
@@ -382,6 +398,7 @@ public class Bot{
 					}
 					break;
 				case(45)://какой мой возраст
+					energy -= Constant.energy_for_sensors * coeff;
 					if (age >= commands[(index + 1) % 64] * 15) {
 						index = commands[(index + 2) % 64];
 					}else {
@@ -389,28 +406,51 @@ public class Bot{
 					}
 					break;
 				case(46)://равномерное распределение ресурсов относительно
+					energy -= Constant.energy_for_trans_res * coeff;
 					give2(commands[(index + 1) % 64] % 8);
 					index += 2;
 					index %= 64;
 					ret = true;
 					break;
 				case(48)://равномерное распределение ресурсов абсолютно
+					energy -= Constant.energy_for_trans_res * coeff;
 					give2(rotate);
 					index += 1;
 					index %= 64;
 					ret = true;
 					break;
 				case(49)://безусловный переход
+					energy -= Constant.energy_for_transitions * coeff;
 					index = commands[(index + 1) % 64];
 					break;
+				case(51):
+					if (Constant.enable_new_energy) {
+						fret = true;
+						index += 1;
+						index %= 64;
+					}else {
+						index = (index + command) % 64;
+					}
+					break;
 				default:
+					energy -= Constant.energy_for_transitions * coeff;
 					index = (index + command) % 64;
 					break;
 			}
-			if (ret) {
+			//
+			if (Constant.enable_new_energy) {
+				coeff *= Constant.energy_coeff;
+			}
+			//
+			if (energy <= 0 && Constant.enable_new_energy) {
+				return(1);
+			}
+			//
+			if (ret && !Constant.enable_new_energy || fret) {
 				break;
 			}
 		}
+		return(0);
 	}
 	public void new_update_commands(ListIterator<Bot> iterator) {//мозг v2
 		for (int i = 0; i < 5; i++) {
@@ -919,7 +959,7 @@ public class Bot{
 		if (pos[1] >= 0 & pos[1] < Constant.H) {
 			if (map[pos[0]][pos[1]] != null) {
 				Bot victim = map[pos[0]][pos[1]];
-				if (victim != null) {
+				if (victim != null && victim.killed == 0) {
 					victim.killed = 1;
 					energy += victim.energy;
 					map[pos[0]][pos[1]] = null;
@@ -933,7 +973,7 @@ public class Bot{
 		if (pos[1] >= 0 & pos[1] < Constant.H) {
 			if (map[pos[0]][pos[1]] != null) {
 				Bot victim = map[pos[0]][pos[1]];
-				if (victim != null) {
+				if (victim != null && victim.killed == 0) {
 					if (victim.energy >= strength) {
 						energy += strength;
 						victim.energy -= strength;

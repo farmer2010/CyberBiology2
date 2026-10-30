@@ -14,6 +14,7 @@ public class OptionsPanel extends JPanel {
 	//
 	//type 0
 	//
+	//panel0
 	JTextField width = new JTextField();
 	JTextField height = new JTextField();
 	JTextField energy_for_life = new JTextField();
@@ -38,8 +39,8 @@ public class OptionsPanel extends JPanel {
 	JRadioButton draw_rotate_button = new JRadioButton("draw rotate", Constant.draw_rotate);
 	JRadioButton draw_frame_button = new JRadioButton("draw frame", Constant.draw_frame);
 	//
-	//type 1
 	//
+	//panel1
 	JRadioButton divers_button = new JRadioButton("enable divers", Constant.enable_divers);
 	JSlider sea_level_slider = new JSlider(0, 108, 65);
 	JSlider mud_level_slider = new JSlider(0, 108, 24);
@@ -52,6 +53,13 @@ public class OptionsPanel extends JPanel {
 	JRadioButton new_genome_button = new JRadioButton("enable new genome", Constant.enable_new_genome);
 	JRadioButton memory_to_child_button = new JRadioButton("inherit a memory", Constant.inherit_memory);
 	JRadioButton new_energy_button = new JRadioButton("enable new energy system", Constant.enable_new_energy);
+	JTextField energy_for_move = new JTextField();
+	JTextField energy_for_push = new JTextField();
+	JTextField energy_for_atk = new JTextField();
+	JTextField energy_for_rot = new JTextField();
+	JTextField energy_for_trans_res = new JTextField();
+	JTextField energy_for_sens = new JTextField();
+	JTextField energy_for_transitions = new JTextField();
 	//
 	public OptionsPanel(World w, int new_panel_type) {
 		world = w;
@@ -70,6 +78,11 @@ public class OptionsPanel extends JPanel {
 		panel2.setLayout(new BoxLayout(panel2, BoxLayout.PAGE_AXIS));
 		panel2.setBounds(300, 0, 300, 1080);
 		add(panel2);
+		//
+		JPanel panel3 = new JPanel();
+		panel3.setLayout(new BoxLayout(panel3, BoxLayout.PAGE_AXIS));
+		panel3.setBounds(600, 0, 300, 1080);
+		add(panel3);
 		//
 		if (panel_type == 0) {//базовые параметры и эксперименты
 			//
@@ -249,15 +262,51 @@ public class OptionsPanel extends JPanel {
 			panel2.add(on_land_slider);
 			//
 			//
-			panel2.add(new JLabel("NEW GENOME:"));
+			panel3.add(new JLabel("NEW GENOME:"));
 			//
-			panel2.add(new_genome_button);
-			panel2.add(memory_to_child_button);
+			panel3.add(new_genome_button);
+			panel3.add(memory_to_child_button);
 			//
 			//
-			panel2.add(new JLabel("NEW ENERGY SYSTEM: (only with new genome)"));
+			panel3.add(new JLabel("NEW ENERGY SYSTEM:"));
 			//
-			panel2.add(new_energy_button);
+			panel3.add(new_energy_button);
+			//
+			//
+			panel3.add(new JLabel("energy for move:"));
+			energy_for_move.setText(String.valueOf(Constant.energy_for_move));
+			energy_for_move.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
+			panel3.add(energy_for_move);
+			//
+			panel3.add(new JLabel("energy for push:"));
+			energy_for_push.setText(String.valueOf(Constant.energy_for_push));
+			energy_for_push.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
+			panel3.add(energy_for_push);
+			//
+			panel3.add(new JLabel("energy for attack:"));
+			energy_for_atk.setText(String.valueOf(Constant.energy_for_attack));
+			energy_for_atk.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
+			panel3.add(energy_for_atk);
+			//
+			panel3.add(new JLabel("energy for rotate:"));
+			energy_for_rot.setText(String.valueOf(Constant.energy_for_rotate));
+			energy_for_rot.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
+			panel3.add(energy_for_rot);
+			//
+			panel3.add(new JLabel("energy for transfer resources:"));
+			energy_for_trans_res.setText(String.valueOf(Constant.energy_for_trans_res));
+			energy_for_trans_res.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
+			panel3.add(energy_for_trans_res);
+			//
+			panel3.add(new JLabel("energy for sensors:"));
+			energy_for_sens.setText(String.valueOf(Constant.energy_for_sensors));
+			energy_for_sens.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
+			panel3.add(energy_for_sens);
+			//
+			panel3.add(new JLabel("energy for transitions:"));
+			energy_for_transitions.setText(String.valueOf(Constant.energy_for_transitions));
+			energy_for_transitions.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
+			panel3.add(energy_for_transitions);
 		}
 		//
 	}
