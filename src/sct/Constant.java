@@ -73,6 +73,7 @@ public class Constant {
 	static double air_resistance = 0.9;
 	static double gravitation = 0.1;
 	static double elasticity_coeff = 0.8;
+	static boolean draw_move_rotate = false;
 	//
 	//
 	//

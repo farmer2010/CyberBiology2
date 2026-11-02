@@ -567,6 +567,7 @@ public class World extends JPanel{
 		Constant.move_speed = Double.parseDouble(settings_panels[0].move_speed.getText());
 		Constant.air_resistance = Double.parseDouble(settings_panels[0].air_resistance.getText());
 		Constant.gravitation = Double.parseDouble(settings_panels[0].gravitation.getText());
+		Constant.draw_move_rotate = settings_panels[0].draw_move_rotate_button.isSelected();
 	}
 	public void start_stop() {
 		pause = !pause;

@@ -68,6 +68,7 @@ public class OptionsPanel extends JPanel {
 	JTextField move_speed = new JTextField();
 	JTextField air_resistance = new JTextField();
 	JTextField gravitation = new JTextField();
+	JRadioButton draw_move_rotate_button = new JRadioButton("draw move rotate", Constant.draw_move_rotate);
 	//
 	public OptionsPanel(World w, int new_panel_type) {
 		world = w;
@@ -347,6 +348,8 @@ public class OptionsPanel extends JPanel {
 			gravitation.setText(String.valueOf(Constant.gravitation));
 			gravitation.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
 			panel3.add(gravitation);
+			//
+			panel3.add(draw_move_rotate_button);
 		}
 		//
 	}

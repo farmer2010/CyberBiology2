@@ -165,6 +165,14 @@ public class Bot{
 				}
 			}
 		}
+		if (Constant.enable_new_move && Constant.draw_move_rotate) {
+			canvas.setColor(new Color(0, 0, 0));
+			double b = scale / 2.0;
+			double dist = Math.sqrt(vx * vx + vy * vy);
+			if (dist != 0) {
+				canvas.drawLine((int)(cx + b), (int)(cy + b), (int)(cx + b + vx / dist * (b - 1)), (int)(cy + b + vy / dist * (b - 1)));
+			}
+		}
 	}
 	public int Update(ListIterator<Bot> iterator) {
 		if (killed == 0) {
@@ -174,6 +182,9 @@ public class Bot{
 				//
 				if (nx < 0) {
 					nx += Constant.W;
+					if (nx > Constant.W - 1) {
+						nx = Constant.W - 1;
+					}
 				}else if (nx >= Constant.W) {
 					nx -= Constant.W;
 				}
@@ -185,6 +196,9 @@ public class Bot{
 				if((int)(nx) == Constant.W) {
 					System.out.println(nx);
 					System.out.println(vx);
+					System.out.println(x);
+					System.out.println(x + vx);
+					System.out.println(x + vx + Constant.W);
 				}
 				if (map[(int)(nx)][(int)(ny)] == null || map[(int)(nx)][(int)(ny)] == this) {
 					map[xpos][ypos] = null;
@@ -1160,6 +1174,8 @@ public class Bot{
 					new_bot.generation = new_genr;
 					new_bot.mutations = new_mut;
 					new_bot.commands = new_brain;
+					new_bot.vx = vx;
+					new_bot.vy = vy;
 					if (Constant.inherit_memory) new_bot.memory = new_memory;
 					map[pos[0]][pos[1]] = new_bot;
 					iterator.add(new_bot);
