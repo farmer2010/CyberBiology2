@@ -562,6 +562,8 @@ public class World extends JPanel{
 		//health
 		Constant.enable_health = settings_panels[0].health_button.isSelected();
 		Constant.health_cost = Double.parseDouble(settings_panels[0].health_cost.getText());
+		//new move
+		Constant.enable_new_move = settings_panels[0].new_move_button.isSelected();
 	}
 	public void start_stop() {
 		pause = !pause;

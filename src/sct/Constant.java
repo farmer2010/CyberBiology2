@@ -67,6 +67,9 @@ public class Constant {
 	//health
 	static boolean enable_health = false;
 	static double health_cost = 20;
+	//new move
+	static boolean enable_new_move = false;
+	static double move_speed = 0.2;
 	//
 	//
 	//

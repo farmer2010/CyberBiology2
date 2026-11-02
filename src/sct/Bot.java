@@ -11,6 +11,10 @@ public class Bot{
 	Random rand = new Random();
 	public int xpos;
 	public int ypos;
+	public double x;
+	public double y;
+	public double vx = 0;
+	public double vy = 0;
 	public Color color;
 	public double energy;
 	public double health = 100;
@@ -61,6 +65,8 @@ public class Bot{
 	public Bot(int new_xpos, int new_ypos, Color new_color, double new_energy, World new_world) {
 		xpos = new_xpos;
 		ypos = new_ypos;
+		x = new_xpos;
+		y = new_ypos;
 		color = new_color;
 		energy = new_energy;
 		minerals = 0;
@@ -76,19 +82,20 @@ public class Bot{
 		for (int i = 0; i < genome_length; i++) {
 			commands[i] = rand.nextInt(genome_length);
 		}
+		if (Constant.enable_new_move) rotate = rand.nextInt(64);
 	}
 	public void Draw(Graphics canvas, int draw_type, boolean record) {
 		int scale;
-		int x;
-		int y;
+		int cx;
+		int cy;
 		if (!record) {
 			scale = world.zoom_slider.getValue();
-			x = xpos * scale - world.zoom_pos[0] * scale + (Constant.scr_W - 300) / 2;
-			y = ypos * scale - world.zoom_pos[1] * scale + Constant.scr_H / 2;
+			cx = xpos * scale - world.zoom_pos[0] * scale + (Constant.scr_W - 300) / 2;
+			cy = ypos * scale - world.zoom_pos[1] * scale + Constant.scr_H / 2;
 		}else {
 			scale = Constant.bot_scale;
-			x = xpos * scale;
-			y = ypos * scale;
+			cx = xpos * scale;
+			cy = ypos * scale;
 		}
 		//
 		boolean draw_frame = Constant.draw_frame || record;
@@ -103,7 +110,7 @@ public class Bot{
 		if (state == 0) {//рисуем бота
 			if (draw_frame) {
 				canvas.setColor(new Color(0, 0, 0));
-				canvas.fillRect(x, y, scale, scale);
+				canvas.fillRect(cx, cy, scale, scale);
 			}
 			if (draw_type == 0) {//режим отрисовки хищников
 				if (c_red == -1 || c_green == -1 || c_blue == -1) {
@@ -123,19 +130,19 @@ public class Bot{
 				canvas.setColor(Constant.gradient(new Color(255, 0, 0), new Color(0, 255, 0), health / 100));
 			}
 			if (draw_frame) {
-				canvas.fillRect(x + 1, y + 1, scale - 2, scale - 2);
+				canvas.fillRect(cx + 1, cy + 1, scale - 2, scale - 2);
 			}else {
-				canvas.fillRect(x, y, scale, scale);
+				canvas.fillRect(cx, cy, scale, scale);
 			}
 			if (draw_rotate) {
 				canvas.setColor(new Color(0, 0, 0));
 				int b = scale / 2;
-				canvas.drawLine(x + b, y + b, x + b + movelist[rotate][0] * (b - 1), y + b + movelist[rotate][1] * (b - 1));
+				canvas.drawLine(cx + b, cy + b, cx + b + movelist[rotate][0] * (b - 1), cy + b + movelist[rotate][1] * (b - 1));
 			}
 		}else {//рисуем органику
 			if (draw_frame) {
 				canvas.setColor(new Color(0, 0, 0));
-				canvas.fillRect(x + 1, y + 1, scale - 2, scale - 2);
+				canvas.fillRect(cx + 1, cy + 1, scale - 2, scale - 2);
 			}
 			if (draw_type == 2) {
 				canvas.setColor(Constant.gradient(new Color(255, 255, 0), new Color(255, 0, 0), energy / Constant.max_energy));
@@ -143,19 +150,46 @@ public class Bot{
 				canvas.setColor(new Color(100, 100, 100));
 			}
 			if (draw_frame) {
-				canvas.fillRect(x + 2, y + 2, scale - 4, scale - 4);
+				canvas.fillRect(cx + 2, cy + 2, scale - 4, scale - 4);
 			}else {
 				if (scale <= 2) {
-					canvas.fillRect(x, y, 1, 1);
+					canvas.fillRect(cx, cy, 1, 1);
 				}else {
-					canvas.fillRect(x + 1, y + 1, scale - 2, scale - 2);
+					canvas.fillRect(cx + 1, cy + 1, scale - 2, scale - 2);
 				}
 			}
 		}
 	}
 	public int Update(ListIterator<Bot> iterator) {
 		if (killed == 0) {
-			if (state == 0) {//ботbot_in_sector();
+			if (Constant.enable_new_move) {
+				double nx = x + vx;
+				double ny = y + vy;
+				//
+				if (nx < 0) {
+					nx += Constant.W;
+				}else if (nx >= Constant.W) {
+					nx -= Constant.W;
+				}
+				ny = Math.min(Math.max(ny, 0), Constant.H - 1);
+				//
+				if (map[(int)(nx)][(int)(ny)] == null || map[(int)(nx)][(int)(ny)] == this) {
+					map[xpos][ypos] = null;
+					x = nx;
+					y = ny;
+					xpos = (int)(x);
+					ypos = (int)(y);
+					//
+					vx *= 0.9;
+					vy *= 0.9;
+					map[xpos][ypos] = this;
+				}else {
+					vx = 0;
+					vy = 0;
+				}
+			}
+			//
+			if (state == 0) {//бот
 				if (Constant.enable_divers && divers_sector() == 0) on_land = true;
 				if (Constant.enable_new_genome) update_memory();
 				//
@@ -210,7 +244,7 @@ public class Bot{
 					minerals = 1000;
 				}
 			}else if (state == 1) {//падающая органика
-				if (Constant.org_fall_type != 0) {
+				if (Constant.org_fall_type != 0 && !Constant.enable_new_move) {
 					move(4);
 				}
 				if (Constant.org_fall_type == 1) {
@@ -235,6 +269,7 @@ public class Bot{
 						}
 					}
 				}
+				vy += 0.1;
 			}else {//стоящая органика
 				//
 			}
@@ -247,19 +282,28 @@ public class Bot{
 		int i = 0;
 		double coeff = 1;
 		while(i < 5) {
-			i++;
+			if (!Constant.enable_new_energy) i++;
 			int command = commands[index];
 			switch (command) {
 				case(23)://повернуться
 					energy -= Constant.energy_for_rotate * coeff;
-					rotate += commands[(index + 1) % 64] % 8;
-					rotate %= 8;
+					if (!Constant.enable_new_move) {
+						rotate += commands[(index + 1) % 64] % 8;
+						rotate %= 8;
+					}else {
+						rotate += commands[(index + 1) % 64];
+						rotate %= 64;
+					}
 					index += 2;
 					index %= 64;
 					break;
 				case(24)://сменить направление
 					energy -= Constant.energy_for_rotate * coeff;
-					rotate = commands[(index + 1) % 64] % 8;
+					if (!Constant.enable_new_move) {
+						rotate = commands[(index + 1) % 64] % 8;
+					}else {
+						rotate = commands[(index + 1) % 64];
+					}
 					index += 2;
 					index %= 64;
 					break;
@@ -272,21 +316,31 @@ public class Bot{
 					break;
 				case(26)://походить относительно
 					energy -= Constant.energy_for_move * coeff;
-					move(commands[(index + 1) % 64] % 8);
+					if (!Constant.enable_new_move) {
+						move(commands[(index + 1) % 64]);
+					}else {
+						vx += Constant.move_speed * Math.cos(commands[(index + 1) % 64] / 63.0 * 2 * Math.PI);
+						vy += Constant.move_speed * Math.sin(commands[(index + 1) % 64] / 63.0 * 2 * Math.PI);
+					}
 					index += 2;
 					index %= 64;
 					ret = true;
 					break;
 				case(27)://походить абсолютно
 					energy -= Constant.energy_for_move * coeff;
-					move(rotate);
+					if (!Constant.enable_new_move) {
+						move(rotate);
+					}else {
+						vx += Constant.move_speed * Math.cos(rotate / 63.0 * 2 * Math.PI);
+						vy += Constant.move_speed * Math.sin(rotate / 63.0 * 2 * Math.PI);
+					}
 					index += 1;
 					index %= 64;
 					ret = true;
 					break;
 				case(28)://атаковать относительно
 					energy -= Constant.energy_for_attack * coeff;
-					attack2(commands[(index + 1) % 64] % 8, Constant.attack_strength);
+					attack2(commands[(index + 1) % 64], Constant.attack_strength);
 					index += 2;
 					index %= 64;
 					ret = true;
@@ -300,7 +354,7 @@ public class Bot{
 					break;
 				case(30)://посмотреть относительно
 					energy -= Constant.energy_for_sensors * coeff;
-					int rot = commands[(index + 1) % 64] % 8;
+					int rot = commands[(index + 1) % 64];
 					index = commands[(index + 2 + see(rot)) % 64];
 					break;
 				case(31)://посмотреть абсолютно
@@ -310,7 +364,7 @@ public class Bot{
 				case(34)://отдать ресурсы относительно
 				case(50):
 					energy -= Constant.energy_for_trans_res * coeff;
-					give(commands[(index + 1) % 64] % 8);
+					give(commands[(index + 1) % 64]);
 					index += 2;
 					index %= 64;
 					ret = true;
@@ -377,7 +431,7 @@ public class Bot{
 					}
 					break;
 				case(41)://поделиться относительно
-					multiply(commands[(index + 1) % 64] % 8, iterator);
+					multiply(commands[(index + 1) % 64], iterator);
 					index += 2;
 					index %= 64;
 					ret = true;
@@ -414,7 +468,7 @@ public class Bot{
 					break;
 				case(46)://равномерное распределение ресурсов относительно
 					energy -= Constant.energy_for_trans_res * coeff;
-					give2(commands[(index + 1) % 64] % 8);
+					give2(commands[(index + 1) % 64]);
 					index += 2;
 					index %= 64;
 					ret = true;
@@ -1145,8 +1199,13 @@ public class Bot{
 	}
 	public int[] get_rotate_position(int rot){
 		int[] pos = new int[2];
-		pos[0] = (xpos + movelist[rot][0]) % Constant.W;
-		pos[1] = ypos + movelist[rot][1];
+		if (!Constant.enable_new_move) {
+			pos[0] = (xpos + movelist[rot % 8][0]) % Constant.W;
+			pos[1] = ypos + movelist[rot % 8][1];
+		}else {
+			pos[0] = (int)(x + Math.cos(rot / 63.0 * 2 * Math.PI));
+			pos[1] = (int)(y + Math.sin(rot / 63.0 * 2 * Math.PI));
+		}
 		if (pos[0] < 0) {
 			pos[0] = Constant.W - 1;
 		}else if(pos[0] >= Constant.W) {

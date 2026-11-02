@@ -64,6 +64,7 @@ public class OptionsPanel extends JPanel {
 	JTextField energy_for_transitions = new JTextField();
 	JRadioButton health_button = new JRadioButton("enable health", Constant.enable_health);
 	JTextField health_cost = new JTextField();
+	JRadioButton new_move_button = new JRadioButton("enable new move system", Constant.enable_new_move);
 	//
 	public OptionsPanel(World w, int new_panel_type) {
 		world = w;
@@ -322,6 +323,12 @@ public class OptionsPanel extends JPanel {
 			health_cost.setText(String.valueOf(Constant.health_cost));
 			health_cost.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
 			panel3.add(health_cost);
+			//
+			//
+			//
+			panel3.add(new JLabel("NEW MOVE:"));
+			//
+			panel3.add(new_move_button);
 		}
 		//
 	}
