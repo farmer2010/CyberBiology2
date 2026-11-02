@@ -14,7 +14,7 @@ public class OptionsPanel extends JPanel {
 	//
 	//type 0
 	//
-	//panel0
+	//panel1
 	JTextField width = new JTextField();
 	JTextField height = new JTextField();
 	JTextField energy_for_life = new JTextField();
@@ -40,7 +40,7 @@ public class OptionsPanel extends JPanel {
 	JRadioButton draw_frame_button = new JRadioButton("draw frame", Constant.draw_frame);
 	//
 	//
-	//panel1
+	//panel2
 	JRadioButton divers_button = new JRadioButton("enable divers", Constant.enable_divers);
 	JSlider sea_level_slider = new JSlider(0, 108, 65);
 	JSlider mud_level_slider = new JSlider(0, 108, 24);
@@ -50,6 +50,8 @@ public class OptionsPanel extends JPanel {
 	JSlider land_multiply_slider = new JSlider(0, 1000, 1000);
 	JSlider sea_multiply_slider = new JSlider(0, 1000, 1000);
 	JSlider on_land_slider = new JSlider(0, 1000, 1000);
+	//
+	//panel3
 	JRadioButton new_genome_button = new JRadioButton("enable new genome", Constant.enable_new_genome);
 	JRadioButton memory_to_child_button = new JRadioButton("inherit a memory", Constant.inherit_memory);
 	JRadioButton new_energy_button = new JRadioButton("enable new energy system", Constant.enable_new_energy);
@@ -60,6 +62,8 @@ public class OptionsPanel extends JPanel {
 	JTextField energy_for_trans_res = new JTextField();
 	JTextField energy_for_sens = new JTextField();
 	JTextField energy_for_transitions = new JTextField();
+	JRadioButton health_button = new JRadioButton("enable health", Constant.enable_health);
+	JTextField health_cost = new JTextField();
 	//
 	public OptionsPanel(World w, int new_panel_type) {
 		world = w;
@@ -307,6 +311,17 @@ public class OptionsPanel extends JPanel {
 			energy_for_transitions.setText(String.valueOf(Constant.energy_for_transitions));
 			energy_for_transitions.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
 			panel3.add(energy_for_transitions);
+			//
+			//
+			//
+			panel3.add(new JLabel("HEALTH:"));
+			//
+			panel3.add(health_button);
+			//
+			panel3.add(new JLabel("health cost:"));
+			health_cost.setText(String.valueOf(Constant.health_cost));
+			health_cost.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
+			panel3.add(health_cost);
 		}
 		//
 	}

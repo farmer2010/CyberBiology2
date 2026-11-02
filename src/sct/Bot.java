@@ -13,6 +13,7 @@ public class Bot{
 	public int ypos;
 	public Color color;
 	public double energy;
+	public double health = 100;
 	public int minerals;
 	public int killed = 0;
 	public Bot[][] map;
@@ -118,8 +119,8 @@ public class Bot{
 				canvas.setColor(Constant.gradient(new Color(0, 255, 0), new Color(0, 255, 255), minerals / 1000.0));
 			}else if (draw_type == 4) {//возраста
 				canvas.setColor(Constant.gradient(new Color(0, 0, 255), new Color(255, 255, 0), age / (Constant.max_age * 1.0)));
-			}else if (draw_type == 5) {
-				//
+			}else if (draw_type == 5) {//жизни
+				canvas.setColor(Constant.gradient(new Color(255, 0, 0), new Color(0, 255, 0), health / 100));
 			}
 			if (draw_frame) {
 				canvas.fillRect(x + 1, y + 1, scale - 2, scale - 2);
@@ -179,6 +180,12 @@ public class Bot{
 							return(0);
 						}
 					}
+				}
+				//
+				if (health <= 0 && Constant.enable_health) {
+					killed = 1;
+					map[xpos][ypos] = null;
+					return(0);
 				}
 				if (energy <= 0) {
 					killed = 1;
@@ -429,6 +436,30 @@ public class Bot{
 						index += 1;
 						index %= 64;
 					}else {
+						energy -= Constant.energy_for_transitions * coeff;
+						index = (index + command) % 64;
+					}
+					break;
+				case(53)://сколько у меня жизни
+					if (Constant.enable_health) {
+						energy -= Constant.energy_for_sensors * coeff;
+						ind = commands[(index + 1) % 64] * 15;
+						if (health >= ind / 255.0 * 100) {
+							index = commands[(index + 2) % 64];
+						}else {
+							index = commands[(index + 3) % 64];
+						}
+					}else {
+						energy -= Constant.energy_for_transitions * coeff;
+						index = (index + command) % 64;
+					}
+					break;
+				case(54)://восстановить хп
+					if (Constant.enable_health) {
+						energy -= Constant.health_cost * coeff;
+						health = Math.min(100, health + 1);
+					}else {
+						energy -= Constant.energy_for_transitions * coeff;
 						index = (index + command) % 64;
 					}
 					break;
@@ -974,6 +1005,7 @@ public class Bot{
 			if (map[pos[0]][pos[1]] != null) {
 				Bot victim = map[pos[0]][pos[1]];
 				if (victim != null && victim.killed == 0) {
+					victim.health -= strength / 4;
 					if (victim.energy >= strength) {
 						energy += strength;
 						victim.energy -= strength;

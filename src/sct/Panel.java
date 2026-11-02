@@ -17,72 +17,76 @@ public class Panel extends JPanel {
 	//
 	Compilator c = new Compilator();
 	//
+	//type 1
+	JSlider red_slider = new JSlider(0, 255, rand.nextInt(256));
+	JSlider green_slider = new JSlider(0, 255, rand.nextInt(256));
+	JSlider blue_slider = new JSlider(0, 255, rand.nextInt(256));
+	JSlider energy_slider = new JSlider(0, 1000, 1000);
+	JSlider minerals_slider = new JSlider(0, 1000, 0);
+	JSlider age_slider = new JSlider(0, 1000, 1000);
+	ButtonGroup type_group = new ButtonGroup();
+	JRadioButton bot_button = new JRadioButton("bot", true);
+	JRadioButton org_fall_button = new JRadioButton("falling organics", false);
+	JRadioButton org_button = new JRadioButton("static organics", false);
+	//type 2
+	JTextArea text_area = new JTextArea();
+	JTextField sl_code = new JTextField();
+	JTextField sl_bot = new JTextField();
+	//
 	public Panel(World w, int new_panel_type) {
 		world = w;
 		panel_type = new_panel_type;
 		//
 		if (panel_type == 1) {
-			JSlider red_slider = new JSlider(0, 255, rand.nextInt(256));
 			red_slider.setBounds(0, 70, 200, 40);
 			red_slider.setPaintLabels(true);
 			red_slider.setMajorTickSpacing(50);
 			add(red_slider);
 			//
-			JSlider green_slider = new JSlider(0, 255, rand.nextInt(256));
 			green_slider.setBounds(0, 140, 200, 40);
 			green_slider.setPaintLabels(true);
 			green_slider.setMajorTickSpacing(50);
 			add(green_slider);
 			//
-			JSlider blue_slider = new JSlider(0, 255, rand.nextInt(256));
 			blue_slider.setBounds(0, 210, 200, 40);
 			blue_slider.setPaintLabels(true);
 			blue_slider.setMajorTickSpacing(50);
 			add(blue_slider);
 			//
-			JSlider energy_slider = new JSlider(0, 1000, 1000);
 			energy_slider.setBounds(0, 300, 200, 40);
 			energy_slider.setPaintLabels(true);
 			energy_slider.setMajorTickSpacing(200);
 			add(energy_slider);
 			//
-			JSlider minerals_slider = new JSlider(0, 1000, 0);
 			minerals_slider.setBounds(0, 370, 200, 40);
 			minerals_slider.setPaintLabels(true);
 			minerals_slider.setMajorTickSpacing(200);
 			add(minerals_slider);
 			//
-			JSlider age_slider = new JSlider(0, 1000, 1000);
 			age_slider.setBounds(0, 440, 200, 40);
 			age_slider.setPaintLabels(true);
 			age_slider.setMajorTickSpacing(200);
 			add(age_slider);
 			//
-			ButtonGroup group = new ButtonGroup();
-			JRadioButton bot_button = new JRadioButton("bot", true);
 			bot_button.setBounds(0, 510, 150, 20);
-			group.add(bot_button);
+			type_group.add(bot_button);
 			add(bot_button);
 			//
-			JRadioButton org_fall_button = new JRadioButton("falling organics", false);
 			org_fall_button.setBounds(0, 530, 150, 20);
-			group.add(org_fall_button);
+			type_group.add(org_fall_button);
 			add(org_fall_button);
 			//
-			JRadioButton org_button = new JRadioButton("static organics", false);
 			org_button.setBounds(0, 550, 150, 20);
-			group.add(org_button);
+			type_group.add(org_button);
 			add(org_button);
 			//
 			for (int i = 0; i < getComponentCount(); i++) {
 				getComponent(i).setVisible(false);
 			}
 		}else if (panel_type == 2) {
-			JTextArea text_area = new JTextArea();
 			text_area.setBounds(5, 30, 250, 500);
 			add(text_area);
 			//
-			JTextField sl_code = new JTextField();
 			sl_code.setBounds(0, 560, 250, 20);
 			add(sl_code);
 			//
@@ -96,7 +100,6 @@ public class Panel extends JPanel {
 			load_code_button.setBounds(125, 585, 120, 20);
 			add(load_code_button);
 			//
-			JTextField sl_bot = new JTextField();
 			sl_bot.setBounds(0, 625, 250, 20);
 			add(sl_bot);
 			//
@@ -110,8 +113,6 @@ public class Panel extends JPanel {
 			load_bot_button.setBounds(125, 650, 120, 20);
 			add(load_bot_button);
 		}
-		//
-		//timer.start();
 	}
 	//
 	public void paintComponent(Graphics canvas) {
@@ -185,17 +186,17 @@ public class Panel extends JPanel {
 				canvas.fillRect(250, 370, 50, 50);
 				canvas.fillRect(250, 440, 50, 50);
 				//
-				canvas.setColor(new Color(get_JSlider(0).getValue(), get_JSlider(1).getValue(), get_JSlider(2).getValue()));
+				canvas.setColor(new Color(red_slider.getValue(), green_slider.getValue(), blue_slider.getValue()));
 				canvas.fillRect(255, 145, 40, 40);
 				//
-				canvas.setColor(new Color(255, 255 - (int)(get_JSlider(3).getValue() / 1000.0 * 255.0), 0));
+				canvas.setColor(new Color(255, 255 - (int)(energy_slider.getValue() / 1000.0 * 255.0), 0));
 				canvas.fillRect(255, 305, 40, 40);
 				//
-				int rg = 255 - (int)(get_JSlider(4).getValue() / 1000.0 * 255.0);
+				int rg = 255 - (int)(minerals_slider.getValue() / 1000.0 * 255.0);
 				canvas.setColor(new Color(rg, rg, 255));
 				canvas.fillRect(255, 375, 40, 40);
 				//
-				int ag = (int)(get_JSlider(5).getValue() / 1000.0 * 255.0);
+				int ag = (int)(age_slider.getValue() / 1000.0 * 255.0);
 				canvas.setColor(new Color(ag, ag, 255 - ag));
 				canvas.fillRect(255, 445, 40, 40);
 			}else {
@@ -215,31 +216,15 @@ public class Panel extends JPanel {
 		}
 	}
 	//
-	public OptionsPanel get_OptionsPanel(int index) {
-		return((OptionsPanel) getComponent(index));
-	}
-	public JTextArea get_JTextArea(int index) {
-		return((JTextArea) getComponent(index));
-	}
-	public JTextField get_JTextField(int index) {
-		return((JTextField) getComponent(index));
-	}
-	public JSlider get_JSlider(int index) {
-		return((JSlider) getComponent(index));
-	}
-	public JRadioButton get_JRadioButton(int index) {
-		return((JRadioButton) getComponent(index));
-	}
-	//
 	public void save_bot() {
-    	int[] genome = c.compilate(get_JTextArea(0).getText());
+    	int[] genome = c.compilate(text_area.getText());
     	//
     	String txt = "";
 		for (int i = 0; i < 64; i++) {
 			txt += String.valueOf(genome[i]) + " ";
 		}
 		try {
-            FileWriter fileWriter = new FileWriter("saved objects/" + get_JTextField(4).getText() +".dat");
+            FileWriter fileWriter = new FileWriter("saved objects/" + sl_bot.getText() +".dat");
             BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
             bufferedWriter.write(txt);
             bufferedWriter.close();
@@ -250,7 +235,7 @@ public class Panel extends JPanel {
 	}
 	//
 	public void load_bot() {
-		world.for_set = c.compilate(get_JTextArea(0).getText());
+		world.for_set = c.compilate(text_area.getText());
 		//
         for (int i = 0; i < world.panels[1].getComponentCount(); i++) {
         	world.panels[1].getComponent(i).setVisible(true);

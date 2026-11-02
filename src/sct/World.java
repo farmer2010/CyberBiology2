@@ -386,14 +386,14 @@ public class World extends JPanel{
 										for (int i = 0; i < 64; i++) {
 											new_bot.commands[i] = for_set[i];
 										}
-										new_bot.energy = panels[1].get_JSlider(3).getValue();
-										new_bot.minerals = panels[1].get_JSlider(4).getValue();
-										new_bot.age = panels[1].get_JSlider(5).getValue();
-										new_bot.color = new Color(panels[1].get_JSlider(0).getValue(), panels[1].get_JSlider(1).getValue(), panels[1].get_JSlider(2).getValue());
+										new_bot.energy = panels[1].energy_slider.getValue();
+										new_bot.minerals = panels[1].minerals_slider.getValue();
+										new_bot.age = panels[1].age_slider.getValue();
+										new_bot.color = new Color(panels[1].red_slider.getValue(), panels[1].green_slider.getValue(), panels[1].blue_slider.getValue());
 										int s = 0;
-										if (panels[1].get_JRadioButton(7).isSelected()) {
+										if (panels[1].org_fall_button.isSelected()) {
 											s = 1;
-										}else if (panels[1].get_JRadioButton(8).isSelected()) {
+										}else if (panels[1].org_button.isSelected()) {
 											s = 2;
 										}
 										new_bot.state = s;
@@ -559,6 +559,9 @@ public class World extends JPanel{
 		Constant.energy_for_trans_res = Double.parseDouble(settings_panels[0].energy_for_trans_res.getText());
 		Constant.energy_for_sensors = Double.parseDouble(settings_panels[0].energy_for_sens.getText());
 		Constant.energy_for_transitions = Double.parseDouble(settings_panels[0].energy_for_transitions.getText());
+		//health
+		Constant.enable_health = settings_panels[0].health_button.isSelected();
+		Constant.health_cost = Double.parseDouble(settings_panels[0].health_cost.getText());
 	}
 	public void start_stop() {
 		pause = !pause;
@@ -752,6 +755,11 @@ public class World extends JPanel{
         color_button.addActionListener(e -> change_draw_type(1));
 		color_button.setBounds(0, 240, 125, 20);
 		panels[0].add(color_button);
+		//
+		JButton health_button = new JButton("Health");
+		health_button.addActionListener(e -> change_draw_type(5));
+		health_button.setBounds(130, 240, 125, 20);
+		panels[0].add(health_button);
         //
 		JButton move_zoom_button = new JButton("Zoom");
 		move_zoom_button.addActionListener(e -> change_mouse(3));

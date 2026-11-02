@@ -64,6 +64,9 @@ public class Constant {
 	static double energy_for_trans_res = 0;
 	static double energy_for_sensors = 0;
 	static double energy_for_transitions = 0;
+	//health
+	static boolean enable_health = false;
+	static double health_cost = 20;
 	//
 	//
 	//
