@@ -70,6 +70,9 @@ public class Constant {
 	//new move
 	static boolean enable_new_move = false;
 	static double move_speed = 0.2;
+	static double air_resistance = 0.9;
+	static double gravitation = 0.1;
+	static double elasticity_coeff = 0.8;
 	//
 	//
 	//

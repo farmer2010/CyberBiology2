@@ -65,6 +65,9 @@ public class OptionsPanel extends JPanel {
 	JRadioButton health_button = new JRadioButton("enable health", Constant.enable_health);
 	JTextField health_cost = new JTextField();
 	JRadioButton new_move_button = new JRadioButton("enable new move system", Constant.enable_new_move);
+	JTextField move_speed = new JTextField();
+	JTextField air_resistance = new JTextField();
+	JTextField gravitation = new JTextField();
 	//
 	public OptionsPanel(World w, int new_panel_type) {
 		world = w;
@@ -329,6 +332,21 @@ public class OptionsPanel extends JPanel {
 			panel3.add(new JLabel("NEW MOVE:"));
 			//
 			panel3.add(new_move_button);
+			//
+			panel3.add(new JLabel("move speed:"));
+			move_speed.setText(String.valueOf(Constant.move_speed));
+			move_speed.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
+			panel3.add(move_speed);
+			//
+			panel3.add(new JLabel("air resistance:"));
+			air_resistance.setText(String.valueOf(Constant.air_resistance));
+			air_resistance.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
+			panel3.add(air_resistance);
+			//
+			panel3.add(new JLabel("gravitation:"));
+			gravitation.setText(String.valueOf(Constant.gravitation));
+			gravitation.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
+			panel3.add(gravitation);
 		}
 		//
 	}

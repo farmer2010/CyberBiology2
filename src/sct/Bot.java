@@ -135,9 +135,15 @@ public class Bot{
 				canvas.fillRect(cx, cy, scale, scale);
 			}
 			if (draw_rotate) {
-				canvas.setColor(new Color(0, 0, 0));
-				int b = scale / 2;
-				canvas.drawLine(cx + b, cy + b, cx + b + movelist[rotate][0] * (b - 1), cy + b + movelist[rotate][1] * (b - 1));
+				if (!Constant.enable_new_move) {
+					canvas.setColor(new Color(0, 0, 0));
+					int b = scale / 2;
+					canvas.drawLine(cx + b, cy + b, cx + b + movelist[rotate][0] * (b - 1), cy + b + movelist[rotate][1] * (b - 1));
+				}else {
+					canvas.setColor(new Color(0, 0, 0));
+					double b = scale / 2.0;
+					canvas.drawLine((int)(cx + b), (int)(cy + b), (int)(cx + b + Math.cos(rotate / 63.0 * 2 * Math.PI) * (b - 1)), (int)(cy + b + Math.sin(rotate / 63.0 * 2 * Math.PI) * (b - 1)));
+				}
 			}
 		}else {//рисуем органику
 			if (draw_frame) {
@@ -171,8 +177,15 @@ public class Bot{
 				}else if (nx >= Constant.W) {
 					nx -= Constant.W;
 				}
+				if (ny < 0 || ny > Constant.H - 1) {
+					vy = 0;
+				}
 				ny = Math.min(Math.max(ny, 0), Constant.H - 1);
 				//
+				if((int)(nx) == Constant.W) {
+					System.out.println(nx);
+					System.out.println(vx);
+				}
 				if (map[(int)(nx)][(int)(ny)] == null || map[(int)(nx)][(int)(ny)] == this) {
 					map[xpos][ypos] = null;
 					x = nx;
@@ -180,10 +193,12 @@ public class Bot{
 					xpos = (int)(x);
 					ypos = (int)(y);
 					//
-					vx *= 0.9;
-					vy *= 0.9;
+					vx *= Constant.air_resistance;
+					vy *= Constant.air_resistance;
 					map[xpos][ypos] = this;
 				}else {
+					map[(int)(nx)][(int)(ny)].vx += vx * Constant.elasticity_coeff;
+					map[(int)(nx)][(int)(ny)].vy += vy * Constant.elasticity_coeff;	
 					vx = 0;
 					vy = 0;
 				}
@@ -269,7 +284,7 @@ public class Bot{
 						}
 					}
 				}
-				vy += 0.1;
+				vy += Constant.gravitation;
 			}else {//стоящая органика
 				//
 			}
@@ -1203,8 +1218,8 @@ public class Bot{
 			pos[0] = (xpos + movelist[rot % 8][0]) % Constant.W;
 			pos[1] = ypos + movelist[rot % 8][1];
 		}else {
-			pos[0] = (int)(x + Math.cos(rot / 63.0 * 2 * Math.PI));
-			pos[1] = (int)(y + Math.sin(rot / 63.0 * 2 * Math.PI));
+			pos[0] = (int)(x + 0.5 + Math.cos(rot / 63.0 * 2 * Math.PI));
+			pos[1] = (int)(y + 0.5 + Math.sin(rot / 63.0 * 2 * Math.PI));
 		}
 		if (pos[0] < 0) {
 			pos[0] = Constant.W - 1;

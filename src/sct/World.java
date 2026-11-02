@@ -564,6 +564,9 @@ public class World extends JPanel{
 		Constant.health_cost = Double.parseDouble(settings_panels[0].health_cost.getText());
 		//new move
 		Constant.enable_new_move = settings_panels[0].new_move_button.isSelected();
+		Constant.move_speed = Double.parseDouble(settings_panels[0].move_speed.getText());
+		Constant.air_resistance = Double.parseDouble(settings_panels[0].air_resistance.getText());
+		Constant.gravitation = Double.parseDouble(settings_panels[0].gravitation.getText());
 	}
 	public void start_stop() {
 		pause = !pause;
